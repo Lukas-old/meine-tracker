@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wasser-Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; background: #fafaf8; color: #1a1a1a; min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #0f4c75 0%, #0a3254 100%); padding: 28px 32px 0; color: #fff; }
+  .header-inner { max-width: 760px; margin: 0 auto; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .header-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px; }
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .header-sub { font-size: 13px; opacity: 0.65; margin-top: 4px; }
+  .header-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 700; }
+  .stat-label { font-size: 11px; opacity: 0.6; }
+
+  /* PROGRESS BAR in header */
+  .progress-wrap { margin-top: 20px; padding-bottom: 0; }
+  .progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .progress-label { font-size: 12px; opacity: 0.75; }
+  .progress-pct { font-size: 14px; font-weight: 700; }
+  .progress-bar-bg { height: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden; margin-bottom: 18px; }
+  .progress-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #38bdf8, #0ea5e9); transition: width 0.4s ease; }
+  .progress-bar-fill.done { background: linear-gradient(90deg, #34d399, #10b981); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; }
+  .tab-btn { padding: 10px 20px; border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+    border-radius: 8px 8px 0 0; transition: all 0.2s; font-family: Georgia, serif; }
+  .tab-btn.active { background: #fafaf8; color: #0f4c75; }
+  .tab-btn.inactive { background: transparent; color: rgba(255,255,255,0.65); }
+
+  /* MAIN */
+  .main { max-width: 760px; margin: 0 auto; padding: 24px 16px 100px; }
+
+  /* DAILY GOAL CARD */
+  .goal-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0; padding: 16px 18px; margin-bottom: 20px; }
+  .goal-card-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #9ca3af; margin-bottom: 12px; }
+  .goal-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .goal-row label { font-size: 13px; color: #374151; }
+  .goal-input { width: 80px; padding: 7px 10px; border: 1.5px solid #d1d5db; border-radius: 7px;
+    font-size: 15px; font-weight: 700; text-align: center; color: #111; font-family: Georgia, serif;
+    outline: none; transition: box-shadow 0.2s; }
+  .goal-input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px #bae6fd; }
+  .goal-hint { font-size: 12px; color: #6b7280; font-style: italic; }
+  .goal-desc { font-size: 12px; color: #9ca3af; margin-top: 8px; line-height: 1.5; }
+
+  /* QUICK ADD */
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: #9ca3af; margin-bottom: 12px; padding-left: 2px; }
+  .quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 24px; }
+  .quick-btn { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px;
+    padding: 14px 10px; cursor: pointer; font-family: Georgia, serif; text-align: center;
+    transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .quick-btn:hover { border-color: #0ea5e9; background: #f0f9ff; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(14,165,233,0.15); }
+  .quick-btn:active { transform: translateY(0); }
+  .quick-icon { font-size: 22px; }
+  .quick-name { font-size: 12px; font-weight: 700; color: #374151; }
+  .quick-ml { font-size: 11px; color: #6b7280; }
+  .quick-net { font-size: 10px; color: #0ea5e9; font-weight: 700; }
+
+  /* CUSTOM ADD */
+  .custom-add { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0; padding: 16px 18px; margin-bottom: 24px; }
+  .custom-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .custom-field { display: flex; flex-direction: column; gap: 4px; }
+  .custom-field label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #9ca3af; }
+  .custom-field input, .custom-field select { padding: 8px 10px; border: 1.5px solid #d1d5db; border-radius: 7px;
+    font-size: 14px; font-family: Georgia, serif; outline: none; color: #111; }
+  .custom-field input:focus, .custom-field select:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px #bae6fd; }
+  .custom-field input { width: 90px; font-weight: 700; text-align: center; }
+  .add-btn { background: #0f4c75; color: #fff; border: none; padding: 9px 18px; border-radius: 7px;
+    font-size: 13px; font-weight: 700; cursor: pointer; font-family: Georgia, serif; transition: background 0.2s; white-space: nowrap; align-self: flex-end; }
+  .add-btn:hover { background: #0a3254; }
+
+  /* SUPPLEMENT HINTS */
+  .hints { margin-bottom: 24px; }
+  .hint-card { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .hint-card.done { background: #f0fdf4; border-color: #bbf7d0; opacity: 0.6; }
+  .hint-time { font-size: 12px; font-weight: 700; color: #854d0e; white-space: nowrap; min-width: 44px; }
+  .hint-text { font-size: 12px; color: #374151; flex: 1; }
+  .hint-ml { font-size: 12px; font-weight: 700; color: #0ea5e9; white-space: nowrap; }
+  .hint-check { width: 26px; height: 26px; border-radius: 6px; border: 2px solid #d1d5db; background: #fff;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;
+    transition: all 0.15s; flex-shrink: 0; }
+  .hint-check:hover { border-color: #10b981; }
+  .hint-check.checked { border-color: #10b981; background: #dcfce7; }
+  .hint-check.checked::after { content: "✓"; font-weight: 900; color: #10b981; }
+
+  /* LOG */
+  .log-wrap { margin-bottom: 24px; }
+  .log-empty { text-align: center; padding: 32px; color: #9ca3af; font-size: 13px; font-style: italic; }
+  .log-entry { background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;
+    padding: 10px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px;
+    transition: all 0.2s; }
+  .log-entry:hover { border-color: #cbd5e1; }
+  .log-time { font-size: 12px; color: #9ca3af; font-weight: 600; min-width: 42px; }
+  .log-icon { font-size: 18px; }
+  .log-name { font-size: 13px; font-weight: 700; color: #374151; flex: 1; }
+  .log-ml { font-size: 13px; color: #6b7280; }
+  .log-net { font-size: 13px; font-weight: 700; color: #0ea5e9; }
+  .log-del { background: none; border: none; color: #d1d5db; cursor: pointer; font-size: 16px; padding: 2px 4px;
+    border-radius: 4px; transition: all 0.15s; }
+  .log-del:hover { color: #ef4444; background: #fef2f2; }
+
+  /* CUMULATIVE ROW */
+  .cum-bar { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0; padding: 14px 18px; margin-bottom: 8px; }
+  .cum-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .cum-type { display: flex; align-items: center; gap: 8px; }
+  .cum-icon { font-size: 18px; }
+  .cum-name { font-size: 13px; font-weight: 700; color: #374151; }
+  .cum-factor { font-size: 11px; color: #9ca3af; }
+  .cum-amounts { display: flex; gap: 20px; font-size: 13px; }
+  .cum-raw { color: #6b7280; }
+  .cum-net-val { font-weight: 700; color: #0ea5e9; }
+
+  /* HISTORY TAB */
+  .history-day { background: #fff; border-radius: 10px; border: 1px solid #e2e8f0;
+    padding: 14px 18px; margin-bottom: 10px; }
+  .history-date { font-size: 12px; font-weight: 700; color: #6b7280; margin-bottom: 6px; }
+  .history-bar-bg { height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+  .history-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #38bdf8, #0ea5e9); }
+  .history-bar-fill.done { background: linear-gradient(90deg, #34d399, #10b981); }
+  .history-nums { font-size: 12px; color: #9ca3af; }
+
+  /* STREAK */
+  .streak-row { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+  .streak-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 700; }
+  .streak-dot.hit { background: #0ea5e9; color: #fff; }
+  .streak-dot.miss { background: #f1f5f9; color: #9ca3af; }
+  .streak-dot.today { background: #0f4c75; color: #fff; box-shadow: 0 0 0 3px #bae6fd; }
+
+  /* SAVE BAR */
+  .save-bar { position: sticky; bottom: 0; background: #0f4c75; color: #fff;
+    padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; box-shadow: 0 -2px 12px rgba(0,0,0,0.15); z-index: 10; }
+  .save-btn { background: #0ea5e9; color: #fff; border: none; padding: 8px 18px;
+    border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer;
+    font-family: Georgia, serif; transition: background 0.2s; }
+  .save-btn:hover { background: #0284c7; }
+  .save-btn.danger { background: #dc2626; }
+  .save-btn.danger:hover { background: #b91c1c; }
+
+  .badge-pill { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px; }
+  .badge-water { background: #e0f2fe; color: #0369a1; }
+  .badge-coffee { background: #fef3c7; color: #92400e; }
+  .badge-tea { background: #f0fdf4; color: #166534; }
+  .badge-juice { background: #fef9c3; color: #854d0e; }
+  .badge-other { background: #f3f4f6; color: #374151; }
+
+  @media (max-width: 520px) {
+    .header { padding: 20px 16px 0; }
+    .quick-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div>
+        <div class="header-label">Friedhelm · 85 kg</div>
+        <h1>💧 Wasser-Tracker</h1>
+        <div class="header-sub" id="headerDate">–</div>
+      </div>
+      <div class="header-stats">
+        <div class="stat">
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">ml heute</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="statGoal">3000</div>
+          <div class="stat-label">ml Ziel</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="statStreak">0</div>
+          <div class="stat-label">Tage Streak</div>
+        </div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-row">
+        <span class="progress-label" id="progressLabel">0 ml von 3.000 ml</span>
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('heute')">Heute</button>
+      <button class="tab-btn inactive" onclick="showTab('statistik')">Statistik</button>
+      <button class="tab-btn inactive" onclick="showTab('einstellungen')">Einstellungen</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- TAB: HEUTE -->
+  <div id="tab-heute">
+
+    <!-- SUPPLEMENT HINTS -->
+    <div class="hints" id="supplementHints">
+      <div class="section-label">💊 Supplement-Zeiten · Wasserhinweise</div>
+      <!-- generated by JS -->
+    </div>
+
+    <!-- QUICK ADD -->
+    <div class="section-label">Schnell hinzufügen</div>
+    <div class="quick-grid" id="quickGrid">
+      <!-- generated by JS -->
+    </div>
+
+    <!-- CUSTOM ADD -->
+    <div class="section-label">Manuell eintragen</div>
+    <div class="custom-add">
+      <div class="custom-row">
+        <div class="custom-field">
+          <label>Menge (ml)</label>
+          <input type="number" id="customMl" value="250" min="1" max="2000">
+        </div>
+        <div class="custom-field">
+          <label>Flüssigkeit</label>
+          <select id="customType">
+            <option value="wasser">💧 Wasser / Tee</option>
+            <option value="kaffee">☕ Kaffee</option>
+            <option value="saft">🥤 Saft / Schorle</option>
+          </select>
+        </div>
+        <button class="add-btn" onclick="addCustom()">+ Eintragen</button>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="section-label">Heutige Einträge</div>
+    <div class="log-wrap" id="logWrap"></div>
+
+    <!-- CUMULATIVE BY TYPE -->
+    <div class="section-label">Heutige Übersicht</div>
+    <div id="cumWrap"></div>
+
+  </div>
+
+  <!-- TAB: STATISTIK -->
+  <div id="tab-statistik" style="display:none">
+    <div class="section-label">7-Tage-Streak</div>
+    <div class="streak-row" id="streakRow"></div>
+    <div class="section-label">Verlauf (letzte 14 Tage)</div>
+    <div id="historyWrap"></div>
+  </div>
+
+  <!-- TAB: EINSTELLUNGEN -->
+  <div id="tab-einstellungen" style="display:none">
+    <div class="goal-card">
+      <div class="goal-card-title">Tagesziel</div>
+      <div class="goal-row">
+        <label>Ziel (ml):</label>
+        <input type="number" class="goal-input" id="goalInput" value="3000" min="500" max="6000">
+        <button class="add-btn" onclick="saveGoal()">Speichern</button>
+      </div>
+      <div class="goal-desc">Empfehlung für 85 kg: 35 ml × 85 kg = <strong>2.975 ml ≈ 3.000 ml</strong> täglich.<br>
+        Deine 3 Tassen Kaffee (660 ml × 75% = 495 ml netto) sind bereits als Wasser-Äquivalent anrechenbar.</div>
+    </div>
+    <div class="goal-card" style="margin-top:16px">
+      <div class="goal-card-title">Anrechnungsfaktoren</div>
+      <div style="font-size:13px;line-height:2;color:#374151">
+        💧 Wasser / Kräutertee / Supplement-Wasser → <strong>100%</strong><br>
+        ☕ Kaffee / schwarzer Tee → <strong>75%</strong><br>
+        🥤 Saft / Schorle → <strong>80%</strong>
+      </div>
+    </div>
+    <div class="goal-card" style="margin-top:16px">
+      <div class="goal-card-title">Daten</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="add-btn" style="background:#6b7280" onclick="exportData()">📤 Exportieren</button>
+        <button class="add-btn" style="background:#dc2626" onclick="resetToday()">🗑 Heute löschen</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="save-bar">
+  <span id="saveTodayMl">Heute: 0 ml</span>
+  <span id="saveStatus" style="font-size:11px;opacity:0.7"></span>
+</div>
+
+<script>
+// ── TYPES ──────────────────────────────────────────────────────────────────
+const TYPES = {
+  wasser: { label: 'Wasser / Tee', icon: '💧', factor: 1.00, badge: 'badge-water' },
+  kaffee: { label: 'Kaffee',       icon: '☕', factor: 0.75, badge: 'badge-coffee' },
+  saft:   { label: 'Saft / Schorle', icon: '🥤', factor: 0.80, badge: 'badge-juice' },
+};
+
+// ── QUICK BUTTONS ──────────────────────────────────────────────────────────
+const QUICK = [
+  { name: 'Glas',       icon: '🥛', ml: 250,  type: 'wasser' },
+  { name: 'Becher',     icon: '🫖', ml: 350,  type: 'wasser' },
+  { name: 'Flasche',    icon: '💧', ml: 500,  type: 'wasser' },
+  { name: 'Kaffee',     icon: '☕', ml: 220,  type: 'kaffee' },
+  { name: 'Kräutertee', icon: '🍵', ml: 300,  type: 'wasser' },
+  { name: 'Saft',       icon: '🥤', ml: 200,  type: 'saft'   },
+];
+
+// ── SUPPLEMENT HINTS ───────────────────────────────────────────────────────
+const HINTS = [
+  { time: '07:15', text: 'Vitamin C gepuffert → nüchtern mit Wasser',   ml: 300 },
+  { time: '07:25', text: 'Hyaluronsäure → nüchtern mit reichlich Wasser', ml: 400 },
+  { time: '07:30', text: 'Kollagen / UC-II® / Kieselsäure → nüchtern',  ml: 250 },
+  { time: '08:00', text: 'Morgen-Supplements → zum Frühstück',           ml: 250 },
+  { time: '13:00', text: 'Mittags-Supplements → zum Essen',              ml: 250 },
+];
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+function todayKey() { return 'wt_day_' + new Date().toISOString().slice(0,10); }
+function histKey(d)  { return 'wt_day_' + d; }
+
+function loadLog()      { try { return JSON.parse(localStorage.getItem(todayKey()) || '[]'); } catch(e){ return []; } }
+function saveLog(log)   { localStorage.setItem(todayKey(), JSON.stringify(log)); }
+function loadGoal()     { return parseInt(localStorage.getItem('wt_goal') || '3000'); }
+function saveGoalLS(g)  { localStorage.setItem('wt_goal', g); }
+function loadHints()    { try { return JSON.parse(localStorage.getItem('wt_hints_' + todayKey()) || '{}'); } catch(e){ return {}; } }
+function saveHints(h)   { localStorage.setItem('wt_hints_' + todayKey(), JSON.stringify(h)); }
+
+let log   = loadLog();
+let goal  = loadGoal();
+let hints = loadHints();
+
+// ── COMPUTE ────────────────────────────────────────────────────────────────
+function netMl(entry) { return Math.round(entry.ml * TYPES[entry.type].factor); }
+function totalNet()   { return log.reduce((s,e) => s + netMl(e), 0); }
+function totalRaw()   { return log.reduce((s,e) => s + e.ml, 0); }
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function render() {
+  renderHeader();
+  renderHints();
+  renderQuick();
+  renderLog();
+  renderCum();
+}
+
+function renderHeader() {
+  const net  = totalNet();
+  const g    = goal;
+  const pct  = Math.min(100, Math.round(net / g * 100));
+  const fill = document.getElementById('progressFill');
+  fill.style.width = pct + '%';
+  fill.className = 'progress-bar-fill' + (pct >= 100 ? ' done' : '');
+  document.getElementById('progressLabel').textContent = fmt(net) + ' ml von ' + fmt(g) + ' ml';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('statTotal').textContent = fmt(net);
+  document.getElementById('statGoal').textContent = fmt(g);
+  document.getElementById('statStreak').textContent = calcStreak();
+  document.getElementById('headerDate').textContent = new Date().toLocaleDateString('de-DE', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('saveTodayMl').textContent = 'Heute netto: ' + fmt(net) + ' ml';
+  document.getElementById('goalInput').value = g;
+}
+
+function renderHints() {
+  const wrap = document.getElementById('supplementHints');
+  let html = '<div class="section-label">💊 Supplement-Zeiten · Wasserhinweise</div>';
+  HINTS.forEach((h,i) => {
+    const done = hints[i] ? ' done' : '';
+    const checked = hints[i] ? ' checked' : '';
+    html += `<div class="hint-card${done}">
+      <span class="hint-time">⏰ ${h.time}</span>
+      <span class="hint-text">${h.text}</span>
+      <span class="hint-ml">+${h.ml} ml</span>
+      <div class="hint-check${checked}" onclick="toggleHint(${i},${h.ml})"></div>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+function renderQuick() {
+  const wrap = document.getElementById('quickGrid');
+  wrap.innerHTML = QUICK.map((q,i) => {
+    const net = Math.round(q.ml * TYPES[q.type].factor);
+    const netStr = net < q.ml ? `→ ${net} ml netto` : '';
+    return `<button class="quick-btn" onclick="addQuick(${i})">
+      <span class="quick-icon">${q.icon}</span>
+      <span class="quick-name">${q.name}</span>
+      <span class="quick-ml">${q.ml} ml</span>
+      ${netStr ? `<span class="quick-net">${netStr}</span>` : ''}
+    </button>`;
+  }).join('');
+}
+
+function renderLog() {
+  const wrap = document.getElementById('logWrap');
+  if (!log.length) {
+    wrap.innerHTML = '<div class="log-empty">Noch keine Einträge heute.<br>Fang an zu trinken! 💧</div>';
+    return;
+  }
+  // Show newest first
+  const sorted = [...log].reverse();
+  wrap.innerHTML = sorted.map((e,ri) => {
+    const i = log.length - 1 - ri;
+    const t = TYPES[e.type];
+    const net = netMl(e);
+    const netStr = net < e.ml ? ` <span class="log-net">${net} ml netto</span>` : `<span class="log-net">${net} ml</span>`;
+    return `<div class="log-entry">
+      <span class="log-time">${e.time}</span>
+      <span class="log-icon">${t.icon}</span>
+      <span class="log-name">${t.label}</span>
+      <span class="log-ml">${e.ml} ml</span>
+      ${netStr}
+      <button class="log-del" onclick="deleteEntry(${i})" title="Löschen">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderCum() {
+  const wrap = document.getElementById('cumWrap');
+  const byType = {};
+  log.forEach(e => {
+    if (!byType[e.type]) byType[e.type] = { raw: 0, net: 0 };
+    byType[e.type].raw += e.ml;
+    byType[e.type].net += netMl(e);
+  });
+  if (!Object.keys(byType).length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = Object.entries(byType).map(([k,v]) => {
+    const t = TYPES[k];
+    const factorStr = t.factor < 1 ? ` (×${t.factor})` : '';
+    return `<div class="cum-bar">
+      <div class="cum-row">
+        <div class="cum-type">
+          <span class="cum-icon">${t.icon}</span>
+          <div>
+            <div class="cum-name">${t.label}</div>
+            <div class="cum-factor">${Math.round(t.factor*100)}% anrechenbar${factorStr}</div>
+          </div>
+        </div>
+        <div class="cum-amounts">
+          <span class="cum-raw">${fmt(v.raw)} ml getrunken</span>
+          <span class="cum-net-val">${fmt(v.net)} ml netto</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderStats() {
+  renderStreakRow();
+  renderHistory();
+}
+
+function renderStreakRow() {
+  const wrap = document.getElementById('streakRow');
+  const today = new Date();
+  let html = '';
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    const dayLog = JSON.parse(localStorage.getItem(histKey(key)) || '[]');
+    const net = dayLog.reduce((s,e) => s + Math.round(e.ml * TYPES[e.type].factor), 0);
+    const g = loadGoal();
+    const hit = net >= g;
+    const isToday = i === 0;
+    const label = d.toLocaleDateString('de-DE', {weekday:'narrow'});
+    const cls = isToday ? 'today' : hit ? 'hit' : 'miss';
+    html += `<div class="streak-dot ${cls}" title="${key}: ${fmt(net)} ml">${label}</div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+function renderHistory() {
+  const wrap = document.getElementById('historyWrap');
+  const g = loadGoal();
+  const today = new Date();
+  let html = '';
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    const dayLog = JSON.parse(localStorage.getItem(histKey(key)) || '[]');
+    const net = dayLog.reduce((s,e) => s + Math.round(e.ml * TYPES[e.type].factor), 0);
+    if (!net && i > 0) continue;
+    const pct = Math.min(100, Math.round(net / g * 100));
+    const label = d.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'short'});
+    html += `<div class="history-day">
+      <div class="history-date">${label}</div>
+      <div class="history-bar-bg"><div class="history-bar-fill${pct>=100?' done':''}" style="width:${pct}%"></div></div>
+      <div class="history-nums">${fmt(net)} ml netto · ${pct}% von Ziel</div>
+    </div>`;
+  }
+  wrap.innerHTML = html || '<div style="color:#9ca3af;font-size:13px;font-style:italic;padding:16px">Noch keine Historien-Daten.</div>';
+}
+
+function calcStreak() {
+  const g = loadGoal();
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    const dayLog = JSON.parse(localStorage.getItem(histKey(key)) || '[]');
+    const net = dayLog.reduce((s,e) => s + Math.round(e.ml * TYPES[e.type].factor), 0);
+    if (net >= g) streak++; else break;
+  }
+  return streak;
+}
+
+function fmt(n) { return n.toLocaleString('de-DE'); }
+
+// ── ACTIONS ────────────────────────────────────────────────────────────────
+function addEntry(ml, type) {
+  const now = new Date();
+  const time = now.toTimeString().slice(0,5);
+  log.push({ ml, type, time });
+  saveLog(log);
+  render();
+  flash('✓ +' + ml + ' ml eingetragen');
+}
+
+function addQuick(i) { const q = QUICK[i]; addEntry(q.ml, q.type); }
+
+function addCustom() {
+  const ml = parseInt(document.getElementById('customMl').value);
+  const type = document.getElementById('customType').value;
+  if (!ml || ml < 1) return;
+  addEntry(ml, type);
+}
+
+function deleteEntry(i) {
+  log.splice(i, 1);
+  saveLog(log);
+  render();
+}
+
+function toggleHint(i, ml) {
+  if (hints[i]) {
+    // uncheck → remove water entry (last added)
+    hints[i] = false;
+  } else {
+    hints[i] = true;
+    addEntry(ml, 'wasser');
+  }
+  saveHints(hints);
+  renderHints();
+}
+
+function saveGoal() {
+  goal = parseInt(document.getElementById('goalInput').value) || 3000;
+  saveGoalLS(goal);
+  render();
+  flash('✓ Ziel gespeichert: ' + fmt(goal) + ' ml');
+}
+
+function resetToday() {
+  if (!confirm('Alle heutigen Einträge löschen?')) return;
+  log = [];
+  hints = {};
+  saveLog(log);
+  saveHints(hints);
+  render();
+}
+
+function exportData() {
+  const today = new Date().toISOString().slice(0,10);
+  let text = `Wasser-Tracker Export · ${today}\n`;
+  text += `Ziel: ${fmt(goal)} ml\n`;
+  text += `Netto: ${fmt(totalNet())} ml\n\n`;
+  text += `Zeit\t\tFlüssigkeit\t\tml\tnetto\n`;
+  log.forEach(e => {
+    text += `${e.time}\t\t${TYPES[e.type].label}\t\t${e.ml}\t${netMl(e)}\n`;
+  });
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `wasser-${today}.txt`;
+  a.click();
+}
+
+function flash(msg) {
+  const el = document.getElementById('saveStatus');
+  el.textContent = msg;
+  setTimeout(() => el.textContent = '', 2500);
+}
+
+// ── TABS ───────────────────────────────────────────────────────────────────
+function showTab(name) {
+  ['heute','statistik','einstellungen'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === name ? '' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    const tabs = ['heute','statistik','einstellungen'];
+    btn.className = 'tab-btn ' + (tabs[i] === name ? 'active' : 'inactive');
+  });
+  if (name === 'statistik') renderStats();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
