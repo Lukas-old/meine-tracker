@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Christians Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
+  :root{--bg:#0f1117;--surface:#1c1f2b;--surface2:#252836;--surface3:#1a1d2a;--border:#2e3248;--accent:#4f8ef7;--accent2:#6ee7b7;--warn:#fbbf24;--danger:#f87171;--text:#eef0ff;--muted:#7a80a0;--r:16px;--rs:10px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:18px;line-height:1.5;}
+  .header{background:linear-gradient(135deg,#151929 0%,#0f1117 100%);border-bottom:2px solid var(--border);padding:24px 24px 0;}
+  .header-inner{max-width:980px;margin:0 auto;}
+  .hlabel{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:4px;}
+  h1{font-size:32px;font-weight:900;letter-spacing:-0.5px;line-height:1.1;margin-bottom:4px;}
+  .hsub{font-size:15px;color:var(--muted);margin-bottom:16px;}
+  .hstats{display:flex;gap:10px;flex-wrap:wrap;}
+  .stat{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);padding:9px 16px;text-align:center;}
+  .stat-num{font-size:26px;font-weight:900;line-height:1;}
+  .stat-lbl{font-size:11px;color:var(--muted);margin-top:2px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+  .tabs{display:flex;gap:4px;margin-top:20px;flex-wrap:wrap;}
+  .tab-btn{padding:11px 20px;border:none;cursor:pointer;font-size:15px;font-weight:800;border-radius:11px 11px 0 0;transition:all 0.2s;font-family:'Nunito',sans-serif;}
+  .tab-btn.active{background:var(--surface);color:var(--accent);}
+  .tab-btn.inactive{background:transparent;color:var(--muted);}
+  .main{max-width:980px;margin:0 auto;padding:22px 20px 110px;}
+  .intro{font-size:15px;color:var(--muted);margin-bottom:20px;line-height:1.6;}
+  .group{margin-bottom:28px;}
+  .glabel{font-size:11px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+  .glabel::after{content:'';flex:1;height:1px;background:var(--border);}
+  .card{background:var(--surface);border-radius:var(--r);border:1.5px solid var(--border);margin-bottom:10px;overflow:hidden;transition:border-color 0.2s;}
+  .card.ac{border-color:rgba(110,231,183,0.4);}
+  .card-head{display:flex;align-items:center;gap:10px;padding:14px 18px;flex-wrap:wrap;}
+  .badge{flex-shrink:0;font-size:11px;font-weight:800;letter-spacing:1px;padding:4px 12px;border-radius:20px;text-transform:uppercase;white-space:nowrap;}
+  .bs{background:#1a2f5a;color:#4f8ef7;} .br{background:#3b1a1a;color:#f87171;} .be{background:#1a2c3b;color:#38bdf8;}
+  .cname{flex:1;min-width:0;}
+  .cname strong{font-size:19px;font-weight:800;display:block;line-height:1.2;}
+  .cname small{font-size:13px;color:var(--muted);margin-top:2px;display:block;}
+  .twrap{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;}
+  .tb{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;padding:3px 10px;border-radius:10px;white-space:nowrap;}
+  .tb.m{background:#fef9c3;color:#854d0e;} .tb.a{background:#ede9fe;color:#5b21b6;}
+  .tb.e{background:#eff6ff;color:#1d4ed8;} .tb.n{background:#f1f5f9;color:#475569;} .tb.u{background:#fff7ed;color:#9a3412;}
+  .dwrap{display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+  .stepper{display:flex;border-radius:var(--rs);overflow:hidden;border:2px solid var(--border);}
+  .sb{width:50px;height:50px;border:none;background:var(--surface2);color:var(--text);font-size:22px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;transition:background 0.15s;display:flex;align-items:center;justify-content:center;}
+  .sb:hover{background:var(--accent);color:#fff;} .sb:active{transform:scale(0.95);}
+  .dose-input{width:68px;padding:9px 6px;border:none;border-left:1.5px solid var(--border);border-right:1.5px solid var(--border);font-size:24px;font-weight:900;text-align:center;color:var(--text);background:var(--bg);font-family:'Nunito',sans-serif;outline:none;-moz-appearance:textfield;}
+  .dose-input::-webkit-inner-spin-button,.dose-input::-webkit-outer-spin-button{-webkit-appearance:none;}
+  .dose-input.hv{color:var(--accent2);}
+  .dunit{font-size:14px;color:var(--muted);font-weight:700;min-width:70px;}
+  .chwrap{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+  .chlbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;white-space:nowrap;}
+  .chk{width:34px;height:34px;border-radius:8px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;transition:all 0.15s;flex-shrink:0;color:transparent;user-select:none;}
+  .chk:hover{border-color:var(--accent);}
+  .chk.ck{border-color:#16a34a;background:rgba(22,163,74,0.15);color:#4ade80;} .chk.ck::after{content:"✓";}
+  .cbtns{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;}
+  .ibtn{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:14px;color:var(--muted);padding:7px 13px;transition:all 0.2s;white-space:nowrap;font-weight:700;font-family:'Nunito',sans-serif;}
+  .ibtn:hover{background:var(--border);color:var(--text);}
+  .ibtn.evo{background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.4);color:var(--warn);}
+  /* Interaction warning strip */
+  .iact{background:rgba(248,113,113,0.08);border-top:2px solid rgba(248,113,113,0.4);border-bottom:2px solid rgba(248,113,113,0.4);padding:9px 18px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;color:var(--danger);}
+  .iact-icon{font-size:18px;flex-shrink:0;}
+  /* Cumulation & optimization hint boxes */
+  .cumbox{border-radius:var(--r);padding:14px 18px;margin-bottom:14px;display:flex;gap:12px;align-items:flex-start;}
+  .cumbox.warn{background:rgba(251,191,36,0.07);border:1.5px solid rgba(251,191,36,0.35);}
+  .cumbox.danger{background:rgba(248,113,113,0.07);border:1.5px solid rgba(248,113,113,0.35);}
+  .cumbox.opt{background:rgba(79,142,247,0.07);border:1.5px solid rgba(79,142,247,0.3);}
+  .cumbox-icon{font-size:22px;flex-shrink:0;margin-top:2px;}
+  .cumbox-body{flex:1;}
+  .cumbox-title{font-size:14px;font-weight:800;margin-bottom:4px;}
+  .cumbox.warn .cumbox-title{color:var(--warn);}
+  .cumbox.danger .cumbox-title{color:var(--danger);}
+  .cumbox.opt .cumbox-title{color:var(--accent);}
+  .cumbox-text{font-size:14px;color:#c8cce8;line-height:1.65;}
+  /* Stock panel */
+  .cstock{border-top:1.5px solid var(--border);background:var(--surface3);padding:12px 18px 14px;}
+  .srow{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;}
+  .scol{display:flex;flex-direction:column;gap:4px;}
+  .slbl{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+  .sdisp{font-size:14px;font-weight:800;}
+  .srange{font-size:12px;font-weight:700;margin-top:2px;}
+  .sinput{width:110px;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Nunito',sans-serif;background:var(--surface2);color:var(--text);outline:none;}
+  .sinput:focus{border-color:var(--accent);}
+  .psinput{padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Nunito',sans-serif;background:var(--surface2);color:var(--text);outline:none;}
+  .psinput:focus{border-color:var(--accent);}
+  .psday{font-size:15px;font-weight:900;color:var(--accent2);margin-top:3px;}
+  /* Day panel */
+  .daypanel{border-top:1.5px solid var(--border);background:var(--surface3);padding:12px 18px 14px;}
+  .daychips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .daychip{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);font-size:12px;font-weight:800;cursor:pointer;color:var(--muted);transition:all 0.15s;user-select:none;}
+  .daychip.da{background:var(--accent);border-color:var(--accent);color:#fff;} .daychip:hover{border-color:var(--accent);}
+  /* Nutrient panel */
+  .cnut{border-top:1.5px solid var(--border);background:var(--surface2);padding:14px 18px 18px;}
+  .plbl{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  .ngrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+  .ni{background:var(--surface3);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 14px;}
+  .ni-name{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+  .ni-per{font-size:15px;font-weight:700;color:var(--text);}
+  .ni-tot{font-size:16px;font-weight:900;color:var(--accent2);margin-top:3px;}
+  .ni-tot.z{color:var(--muted);font-weight:700;font-size:14px;}
+  .ni-rec{font-size:13px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+  .ni-miss{font-size:13px;font-weight:800;margin-top:3px;}
+  .ni-miss.ok{color:var(--accent2);} .ni-miss.warn{color:var(--warn);} .ni-miss.danger{color:var(--danger);} .ni-miss.z{color:var(--muted);}
+  /* Evidence */
+  .cev{border-top:1.5px solid rgba(251,191,36,0.2);background:rgba(251,191,36,0.03);padding:16px 18px 20px;}
+  .ev-title{font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--warn);margin-bottom:14px;}
+  .ev-blk{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(251,191,36,0.1);}
+  .ev-blk:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+  .ev-nut{font-size:14px;font-weight:800;color:var(--accent);margin-bottom:5px;}
+  .ev-text{font-size:15px;color:#c8cce8;line-height:1.75;}
+  .ev-src{font-size:12px;color:var(--muted);margin-top:5px;font-style:italic;}
+  /* Save bar */
+  .savebar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:2px solid var(--border);padding:13px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;z-index:100;box-shadow:0 -6px 24px rgba(0,0,0,0.5);}
+  .sbar-info span{font-size:15px;font-weight:700;color:var(--text);display:block;}
+  .sbar-status{font-size:12px;color:var(--muted);margin-top:2px;}
+  .sbtn{background:var(--accent);color:#fff;border:none;padding:11px 24px;border-radius:var(--rs);font-size:16px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;}
+  .sbtn:hover{background:#3a7aee;}
+  /* Start widget */
+  .sw{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .sw-lbl{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:4px;}
+  .sdinput{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;font-family:'Nunito',sans-serif;background:var(--surface2);color:var(--text);outline:none;}
+  .sdinput:focus{border-color:var(--accent);}
+  .dcbig{font-size:24px;font-weight:900;color:var(--accent2);}
+  /* Analysis */
+  .asum{background:var(--surface);border:1.5px solid var(--accent);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;}
+  .atitle{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+  .achips{display:flex;flex-wrap:wrap;gap:8px;}
+  .achip{font-size:14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:5px 12px;font-weight:700;}
+  .achip strong{color:var(--accent2);}
+  .tw{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px;}
+  .atab{width:100%;border-collapse:collapse;font-size:15px;}
+  .atab thead tr{background:var(--surface2);border-bottom:2px solid var(--border);}
+  .atab th{padding:11px 14px;text-align:left;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+  .atab th.r{text-align:right;}
+  .atab td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .atab tr:last-child td{border-bottom:none;}
+  .atab tr.alt td{background:rgba(255,255,255,0.015);}
+  .atab td.nn{font-weight:800;font-size:16px;}
+  .atab td.yv{font-weight:900;font-size:17px;color:var(--accent2);text-align:right;white-space:nowrap;}
+  .atab td.nv{color:var(--muted);text-align:right;font-size:13px;white-space:nowrap;}
+  .sv-num{font-weight:800;font-size:15px;color:var(--text);}
+  .sv-src{font-size:11px;color:var(--muted);display:block;margin-top:2px;line-height:1.4;}
+  .mb{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:13px;font-weight:800;white-space:nowrap;margin-top:7px;}
+  .mb.ok{background:rgba(110,231,183,0.12);border:1.5px solid rgba(110,231,183,0.3);color:var(--accent2);}
+  .mb.warn{background:rgba(251,191,36,0.12);border:1.5px solid rgba(251,191,36,0.3);color:var(--warn);}
+  .mb.danger{background:rgba(248,113,113,0.12);border:1.5px solid rgba(248,113,113,0.3);color:var(--danger);}
+  .mb.zero{background:var(--surface2);border:1.5px solid var(--border);color:var(--muted);}
+  .mb.ul{background:rgba(248,113,113,0.18);border:1.5px solid rgba(248,113,113,0.5);color:var(--danger);}
+  .bc{min-width:130px;}
+  .bwrap{display:flex;align-items:center;gap:8px;}
+  .btrack{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+  .bfill{height:100%;border-radius:4px;transition:width 0.5s;}
+  .bpct{font-size:15px;font-weight:900;min-width:46px;text-align:right;}
+  .tleg{font-size:12px;color:var(--muted);padding:10px 14px 12px;border-top:1px solid var(--border);background:var(--surface2);line-height:1.6;}
+  .tleg strong{color:var(--text);}
+  .srcrow td{padding:0 14px 10px !important;border-bottom:none !important;}
+  .schip{display:inline-block;background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:2px 10px;font-size:12px;margin:2px 3px 0 0;white-space:nowrap;color:var(--text);}
+  .schip strong{color:var(--accent2);}
+  .csect{font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin:20px 0 10px;display:flex;align-items:center;gap:10px;}
+  .csect::after{content:'';flex:1;height:1px;background:var(--border);}
+  .orow{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+  .oname{font-size:16px;font-weight:800;} .oval{font-size:17px;font-weight:900;color:var(--accent2);}
+  /* Monat */
+  .mhdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+  .mtitle{font-size:22px;font-weight:900;} .msub{font-size:14px;color:var(--muted);margin-top:4px;}
+  .sbox{background:rgba(251,191,36,0.1);border:1.5px solid rgba(251,191,36,0.3);border-radius:var(--rs);padding:10px 18px;text-align:center;}
+  .sbox-num{font-size:28px;font-weight:900;color:var(--warn);} .sbox-lbl{font-size:11px;color:var(--warn);font-weight:800;letter-spacing:1px;}
+  .mbtns{display:flex;gap:8px;flex-wrap:wrap;}
+  .mbtn{padding:9px 16px;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;}
+  .mbtn.p{background:var(--surface2);color:var(--text);border:1.5px solid var(--border);}
+  .mbtn.ex{background:rgba(110,231,183,0.15);color:var(--accent2);border:1.5px solid rgba(110,231,183,0.3);}
+  .mbtn.im{background:rgba(79,142,247,0.15);color:var(--accent);border:1.5px solid rgba(79,142,247,0.3);}
+  .mbtn.ic{background:rgba(251,191,36,0.12);color:var(--warn);border:1.5px solid rgba(251,191,36,0.3);}
+  .mtab{width:100%;border-collapse:collapse;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;}
+  .mtab th{padding:9px 14px;text-align:left;font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);background:var(--surface2);}
+  .mtab td{padding:8px 14px;border-top:1px solid var(--border);font-size:15px;}
+  .mtab tr.tr td{background:rgba(79,142,247,0.07);}
+  .mleg{font-size:12px;color:var(--muted);margin-top:10px;padding:10px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);}
+  .icsh{margin-top:12px;padding:14px 18px;background:rgba(251,191,36,0.06);border:1.5px solid rgba(251,191,36,0.2);border-radius:var(--rs);font-size:13px;color:#c8cce8;line-height:1.7;}
+  .icsraw{margin-top:10px;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px;font-family:monospace;white-space:pre-wrap;color:var(--muted);max-height:200px;overflow-y:auto;}
+  .empty{text-align:center;padding:70px 20px;color:var(--muted);}
+  .empty-icon{font-size:48px;margin-bottom:12px;} .empty-title{font-size:22px;font-weight:800;color:var(--text);} .empty-sub{font-size:16px;margin-top:6px;}
+  .hidden{display:none;}
+  @media(max-width:680px){h1{font-size:24px;}.atab th:nth-child(3),.atab td:nth-child(3){display:none;}.sb{width:44px;height:44px;font-size:20px;}.dose-input{width:56px;font-size:20px;}.ngrid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div class="hlabel">Persönliche Übersicht</div>
+    <h1>Christians Tracker</h1>
+    <div class="hsub" id="hsub">Wird geladen…</div>
+    <div class="hstats">
+      <div class="stat"><div class="stat-num" style="color:#4f8ef7" id="s-supp">–</div><div class="stat-lbl">Supplements</div></div>
+      <div class="stat"><div class="stat-num" style="color:#f87171" id="s-rx">–</div><div class="stat-lbl">Medikamente</div></div>
+      <div class="stat"><div class="stat-num" style="color:#38bdf8" id="s-eye">–</div><div class="stat-lbl">Augentropfen</div></div>
+      <div class="stat"><div class="stat-num" style="color:#6ee7b7" id="s-act">0</div><div class="stat-lbl">Aktiv</div></div>
+      <div class="stat"><div class="stat-num" style="color:#fbbf24" id="s-str">0</div><div class="stat-lbl">🔥 Streak</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('p')">Produkte &amp; Dosierung</button>
+      <button class="tab-btn inactive" onclick="showTab('a')">Nährstoff-Analyse</button>
+      <button class="tab-btn inactive" onclick="showTab('m')">📊 Monatsübersicht</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div id="tab-p">
+    <p class="intro"><strong>+ / −</strong> zum Dosieren · <strong>▼ Inhaltsstoffe</strong> zeigt Nährstoffe &amp; fehlende Mengen · <strong>📖 Evidenz</strong> öffnet die Studienlage · Kästchen täglich abhaken</p>
+    <div class="sw">
+      <div><div class="sw-lbl">📅 Startdatum (global)</div>
+        <input type="date" id="sd-input" class="sdinput" onchange="saveSD(this.value)"></div>
+      <div id="dctr" class="dcbig"></div>
+    </div>
+    <div class="group"><div class="glabel">🌅 Morgens</div><div id="g-morgens"></div></div>
+    <div class="group"><div class="glabel">🌙 Abends</div><div id="g-abends"></div></div>
+  </div>
+  <div id="tab-a" class="hidden">
+    <p class="intro">Kumulierte Tageszufuhr der Supplements verglichen mit EU-NRV und Studienempfehlungen. UL = EFSA Tolerable Upper Intake Level.</p>
+    <div id="cum"></div>
+  </div>
+  <div id="tab-m" class="hidden"><div id="exp"></div></div>
+</div>
+
+<div class="savebar">
+  <div class="sbar-info"><span>💾 Automatisch gespeichert</span><div class="sbar-status" id="ss">Noch nicht gespeichert</div></div>
+  <button class="sbtn" onclick="saveNow()">Jetzt speichern</button>
+</div>
+
+<script>
+const PR=[
+  // ── MORGENS ──────────────────────────────────────────────
+  {id:1,typ:"supplement",name:"Vitamin D3 + K2 + Pantothensäure + Magnesium",hersteller:"FormMed",einheit:"Kapseln",
+   hinweis:"1 Kapsel = Tagesportion",
+   timing:{zeit:"Morgens",essen:"Zum Essen (fetthaltig)",uhr:{morgens:"07:30"}},
+   nutrients:[
+     {key:"vitamin_d3",label:"Vitamin D3",per:50,unit:"µg"},
+     {key:"vitamin_k2",label:"Vitamin K2 (MK-7)",per:37.5,unit:"µg"},
+     {key:"vitamin_b5",label:"Pantothensäure",per:0.90,unit:"mg"},
+     {key:"magnesium",label:"Magnesium",per:150,unit:"mg"},
+   ],
+   evidence:[
+     {nut:"Vitamin D3",text:"Fettlöslich – immer mit einer fetthaltigen Mahlzeit einnehmen, sonst bis zu 50 % geringere Resorption. Blutspiegelkontrolle empfohlen: optimaler Zielwert 40–60 ng/ml.",src:"Holick et al., JCEM 2011 · Endocrine Society"},
+     {nut:"Vitamin K2 (MK-7)",text:"Synergistisch mit D3: aktiviert Matrix-Gla-Protein (MGP) und verhindert Calciumablagerung in Gefäßwänden. MK-7 hat ~72 Stunden Halbwertszeit – längste aller K2-Formen.",src:"Geleijnse et al., NEJM 2004"},
+     {nut:"Magnesium als D3-Aktivator",text:"Magnesium ist essenzieller Cofaktor für die Umwandlung von D3 in aktives Calcitriol. Ohne ausreichend Mg bleibt D3 weitgehend wirkungslos.",src:"Uwitonze & Razzaque, JASN 2018"},
+   ]},
+  {id:3,typ:"supplement",name:"Omega-3 + Vitamin D3 + K2 + E",hersteller:"Sunday Natural",einheit:"Kapseln",
+   hinweis:"Tagesdosis = 2 Kapseln · vegan (Algenöl)",
+   timing:{zeit:"Morgens",essen:"Zum Essen (fetthaltig)",uhr:{morgens:"07:45"}},
+   nutrients:[
+     {key:"dha",label:"DHA",per:200,unit:"mg"},
+     {key:"epa",label:"EPA",per:100,unit:"mg"},
+     {key:"vitamin_d3",label:"Vitamin D3",per:12.5,unit:"µg"},
+     {key:"vitamin_k2",label:"Vitamin K2",per:25,unit:"µg"},
+     {key:"vitamin_e",label:"Vitamin E",per:null,unit:"mg"},
+   ],
+   evidence:[
+     {nut:"EPA & DHA (Algenöl)",text:"EPA wirkt entzündungshemmend und kardioprotektiv; DHA ist Hauptstrukturbestandteil von Gehirn und Netzhaut. Algenöl ist die direkte Primärquelle – gleichwertige Bioverfügbarkeit wie Fischöl.",src:"Arterburn et al., AJCN 2008 · AHA 2002"},
+     {nut:"D3 + K2 Ergänzung",text:"Liefert zusätzlich 12,5 µg D3 und 25 µg K2 – sinnvolle Ergänzung zum FormMed-Komplex. Fett des Algenöls verbessert D3-Resorption weiter.",src:"Holick et al., JCEM 2011"},
+   ]},
+  {id:4,typ:"supplement",name:"Astaxanthin + Mangan",hersteller:"–",einheit:"Kapseln",
+   hinweis:"Tagesdosis = 2 Kapseln · Oleoresin aus Haematococcus pluvialis",
+   timing:{zeit:"Morgens",essen:"Zum Essen (fetthaltig)",uhr:{morgens:"07:45"}},
+   nutrients:[
+     {key:"astaxanthin",label:"Astaxanthin",per:4,unit:"mg"},
+     {key:"oleoresin",label:"Oleoresin",per:80,unit:"mg"},
+     {key:"mangan",label:"Mangan",per:1.5,unit:"mg"},
+   ],
+   evidence:[
+     {nut:"Astaxanthin – stärkstes Antioxidans",text:"Astaxanthin ist 550× stärker als Vitamin E als Antioxidans. Eines der wenigen Antioxidantien, die sowohl Blut-Hirn-Schranke als auch Blut-Retina-Schranke passieren – besonders relevant bei Glaukom. Schützt Netzhautzellen vor oxidativem Stress.",src:"Guerin et al., Trends Biotechnol 2003 · Nakajima et al., Nutrients 2018"},
+     {nut:"Netzhaut & Augengesundheit",text:"In klinischen Studien verbesserte Astaxanthin (4–8 mg/Tag) die Durchblutung der Netzhaut und reduzierte Augenermüdung. Immer mit fetthaltiger Mahlzeit – Resorption ohne Fett praktisch null.",src:"Nagaki et al., J Trad Complement Med 2010"},
+   ]},
+  {id:5,typ:"supplement",name:"LaVita Saftkonzentrat",hersteller:"LaVita GmbH",einheit:"EL (10 ml)",
+   hinweis:"1 EL + 90 ml Wasser täglich · Kühl lagern · 70+ Obst- & Gemüsesorten",
+   timing:{zeit:"Morgens",essen:"Verdünnt mit Wasser",uhr:{morgens:"07:00"}},
+   nutrients:[
+     {key:"vitamin_c",label:"Vitamin C",per:300,unit:"mg"},
+     {key:"vitamin_e",label:"Vitamin E",per:30,unit:"mg"},
+     {key:"vitamin_d3",label:"Vitamin D3",per:10,unit:"µg"},
+     {key:"vitamin_k",label:"Vitamin K (K1+K2)",per:30,unit:"µg"},
+     {key:"vitamin_b1",label:"Vitamin B1",per:3,unit:"mg"},
+     {key:"vitamin_b2",label:"Vitamin B2",per:2.5,unit:"mg"},
+     {key:"vitamin_b3",label:"Niacin (B3)",per:15,unit:"mg"},
+     {key:"vitamin_b5",label:"Pantothensäure (B5)",per:8,unit:"mg"},
+     {key:"vitamin_b6",label:"Vitamin B6",per:2.5,unit:"mg"},
+     {key:"vitamin_b12",label:"Vitamin B12",per:5,unit:"µg"},
+     {key:"folat",label:"Folsäure",per:200,unit:"µg"},
+     {key:"biotin",label:"Biotin",per:50,unit:"µg"},
+     {key:"magnesium",label:"Magnesium",per:30,unit:"mg"},
+     {key:"selen",label:"Selen",per:35,unit:"µg"},
+     {key:"zink",label:"Zink",per:5,unit:"mg"},
+     {key:"mangan",label:"Mangan",per:1,unit:"mg"},
+     {key:"kupfer",label:"Kupfer",per:0.25,unit:"mg"},
+     {key:"eisen",label:"Eisen",per:4,unit:"mg"},
+     {key:"jod",label:"Jod",per:50,unit:"µg"},
+     {key:"chrom",label:"Chrom",per:20,unit:"µg"},
+     {key:"molybdaen",label:"Molybdän",per:30,unit:"µg"},
+   ],
+   evidence:[
+     {nut:"Breite Mikronährstoffbasis",text:"LaVita liefert aus 70+ Obst- und Gemüsesorten eine breite Mikronährstoffbasis in bioaktiver Form. Die hohe Vitamin-C-Dosis (300 mg) unterstützt Kollagensynthese, Immunsystem und die Eisenresorption.",src:"LaVita GmbH · EFSA NRV 2023"},
+     {nut:"Vitamin E (30 mg = 250% NRV)",text:"Liegt bei 250% EU-NRV, aber weit unter EFSA-Sicherheitsgrenze (300 mg). Vitamin E schützt als fettlösliches Antioxidans Zellmembranen und Omega-3-Fettsäuren vor Oxidation.",src:"EFSA UL Vitamin E 2006"},
+   ]},
+  {id:11,typ:"supplement",name:"Omegaform® 330 Krill",hersteller:"FormMed",einheit:"Kapseln",
+   hinweis:"330 mg Omega-3-Phospholipide · hochrein aus antarktischem Krill · mit natürlichem Astaxanthin",
+   timing:{zeit:"Morgens",essen:"Zum Essen (fetthaltig)",uhr:{morgens:"07:45"}},
+   nutrients:[
+     {key:"omega3_pl",label:"Omega-3-Phospholipide",per:330,unit:"mg"},
+     {key:"omega3",label:"Omega-3-Fettsäuren",per:160,unit:"mg"},
+     {key:"epa",label:"EPA",per:89,unit:"mg"},
+     {key:"dha",label:"DHA",per:41,unit:"mg"},
+     {key:"astaxanthin",label:"Astaxanthin",per:50,unit:"µg"},
+   ],
+   evidence:[
+     {nut:"Phospholipidform – höchste Bioverfügbarkeit",text:"Krillöl-Omega-3 liegt als Phospholipid vor – im Gegensatz zu Fischöl (Triglyceride). Phospholipid-gebundenes EPA/DHA wird direkt in Zellmembranen eingebaut, ohne Umweg über die Leber. Bis zu 68 % höhere Bioverfügbarkeit als Fischöl.",src:"Ulven et al., Lipids 2011 · Schuchardt et al., Lipids 2011"},
+     {nut:"Natürliches Astaxanthin",text:"Das enthaltene Astaxanthin aus Haematococcus pluvialis schützt die empfindlichen Omega-3-Fettsäuren vor Oxidation und passiert Blut-Hirn- und Blut-Retina-Schranke – für Christian besonders relevant bei Augenerkrankung.",src:"Guerin et al., Trends Biotechnol 2003 · Nakajima et al., Nutrients 2018"},
+   ]},
+  {id:12,typ:"supplement",name:"Omega 3 EPA 400 mg + DHA Vegan",hersteller:"Sunday Natural",einheit:"Kapseln",
+   hinweis:"40% EPA + 22,5% DHA · Algenöl · vegan",
+   timing:{zeit:"Morgens",essen:"Zum Essen (fetthaltig)",uhr:{morgens:"07:45"}},
+   nutrients:[
+     {key:"epa",label:"EPA",per:400,unit:"mg"},
+     {key:"dha",label:"DHA",per:225,unit:"mg"},
+   ],
+   evidence:[
+     {nut:"EPA-reiche Formel",text:"400 mg EPA pro Kapsel – ideal bei erhöhtem Entzündungsstatus oder kardiovaskulärem Risiko. EPA wirkt stärker entzündungshemmend als DHA; DHA ist primär für Gehirn- und Netzhautstruktur zuständig.",src:"Calder, PLEFA 2015 · AHA Scientific Statement 2002"},
+     {nut:"Algenöl – direkte Primärquelle",text:"Algenöl ist die ursprüngliche Quelle aller marinen Omega-3-Fettsäuren. Gleiche Bioverfügbarkeit wie Fischöl, ohne Schwermetallbelastung, 100 % vegan.",src:"Arterburn et al., AJCN 2008"},
+   ]},
+  // ── ABENDS ───────────────────────────────────────────────
+  {id:2,typ:"supplement",name:"Magnesium L-Threonat (Magtein®)",hersteller:"Sunday Natural",einheit:"Kapseln",
+   hinweis:"49 mg Mg/Kapsel · kognitive Wirkung ab 3 Kapseln/Tag",
+   timing:{zeit:"Abends",essen:"Zum Essen",uhr:{abends:"20:00"}},
+   nutrients:[{key:"magnesium",label:"Magnesium",per:49,unit:"mg"}],
+   evidence:[
+     {nut:"Blut-Hirn-Schranke",text:"Die einzige Magnesiumform, die nachweislich die Blut-Hirn-Schranke überquert und den Magnesiumspiegel im Gehirn messbar erhöht. Alle anderen Formen haben keinen Effekt auf Hirnmagnesium.",src:"Slutsky et al., Neuron 2010"},
+     {nut:"Kognitive Wirkung",text:"In einer RCT verbesserten 3 Kapseln/Tag Kurzzeitgedächtnis, Lernfähigkeit und kognitive Flexibilität signifikant. Kognitives Alter verbesserte sich um 9 Jahre vs. Placebo.",src:"Liu et al., Neuron 2010"},
+     {nut:"Schlaf",text:"Abends einnehmen: Magnesium fördert parasympathisches Nervensystem und Schlafqualität. Magtein® hat leicht sedierende Wirkung – erwünscht.",src:"Abbasi et al., J Res Med Sci 2012"},
+   ]},
+  {id:10,typ:"supplement",name:"Magnesium Komplex 11 Ultra",hersteller:"Sunday Natural",einheit:"Kapseln",
+   hinweis:"11 Mg-Formen · 200 mg/Kapsel · abends zum Auffüllen des Körperspiegels",
+   timing:{zeit:"Abends",essen:"Zum Essen",uhr:{abends:"20:00"}},
+   nutrients:[
+     {key:"magnesium",label:"Magnesium",per:200,unit:"mg"},
+     {key:"vitamin_c",label:"Vitamin C",per:38,unit:"mg"},
+   ],
+   evidence:[
+     {nut:"11 Magnesiumformen – warum?",text:"Verschiedene Mg-Formen werden über unterschiedliche Transportwege resorbiert und in verschiedenen Geweben angereichert. Malat → Mitochondrien; Bisglycinat → Nerven & Schlaf; Taurat → Herz & Gefäße. Die Kombination aller 11 Formen maximiert die Gewebsabdeckung.",src:"Gröber et al., Nutrients 2015 · Workinger et al., Nutrients 2018"},
+     {nut:"Magnesiumgesamtbilanz",text:"Christian erhält Magnesium aus vier Quellen: FormMed (150 mg) + Magtein® 3 Kapseln (147 mg) + Komplex 11 Ultra (200 mg) + LaVita (30 mg) = bis zu 527 mg/Tag im therapeutischen Bereich.",src:"DGE Referenzwerte 2021 · NIH ODS Magnesium 2023"},
+   ]},
+  // ── MEDIKAMENTE ──────────────────────────────────────────
+  {id:6,typ:"medikament",name:"Bisoprolol 2,5 mg",hersteller:"ratiopharm",einheit:"Tabletten",
+   hinweis:"Bisoprololfumarat · früh und spät",
+   timing:{zeit:"Morgens + Abends",essen:"Zum Essen",uhr:{morgens:"07:00",abends:"21:00"}},
+   nutrients:[{key:"bisoprolol",label:"Bisoprololfumarat",per:2.5,unit:"mg"}],
+   evidence:[
+     {nut:"Wirkprinzip",text:"Selektiver Beta-1-Blocker – reduziert Herzfrequenz und Blutdruck. Morgendliche und abendliche Einnahme sorgt für gleichmäßigen Wirkspiegel.",src:"Fachinformation Bisoprolol · ESC Guidelines 2021"},
+     {nut:"Einnahmehinweis",text:"Immer zur selben Zeit und mit Mahlzeit einnehmen. Nie abrupt absetzen – Dosis muss ärztlich ausgeschlichen werden. Bei Puls <50/min oder Schwindel sofort Arzt informieren.",src:"ESC Guidelines Herzinsuffizienz 2021"},
+   ]},
+  // ── AUGENTROPFEN ─────────────────────────────────────────
+  {id:7,typ:"auge",name:"Combigan® Augentropfen",hersteller:"AbbVie",einheit:"Tropfen/Auge",
+   hinweis:"Brimonidin 2 mg/ml + Timolol 5 mg/ml · beide Augen · früh und spät",
+   timing:{zeit:"Morgens + Abends",essen:"Unabhängig",uhr:{morgens:"07:00",abends:"21:00"}},
+   nutrients:[{key:"brimonidin",label:"Brimonidin",per:2,unit:"mg/ml"},{key:"timolol",label:"Timolol",per:5,unit:"mg/ml"}],
+   evidence:[
+     {nut:"Kombinationspräparat Glaukom",text:"Brimonidin (Alpha-2-Agonist) + Timolol (Beta-Blocker): senken Augeninnendruck über zwei Mechanismen – stärker als jeder Wirkstoff allein.",src:"Fachinformation Combigan® · AAO Glaucoma Guidelines"},
+     {nut:"Timolol – systemische Wirkung beachten",text:"Timolol wird trotz lokaler Anwendung teilweise systemisch resorbiert. In Kombination mit Bisoprolol kann die herzfrequenzsenkende Wirkung verstärkt werden.",src:"Fachinformation Timolol · DGK Leitlinien"},
+   ]},
+  {id:8,typ:"auge",name:"Dorzolamid 20 mg/ml Augentropfen",hersteller:"Micro Labs",einheit:"Tropfen",
+   hinweis:"Dorzolamid · rechtes Auge · 4× täglich",
+   timing:{zeit:"4× täglich",essen:"Unabhängig",uhr:{morgens:"07:00 · 12:00",abends:"17:00 · 21:00"}},
+   checks4x:{morgens:[0,1],abends:[2,3]},
+   uhrzeiten4x:["07:00","12:00","17:00","21:00"],
+   nutrients:[{key:"dorzolamid",label:"Dorzolamid",per:20,unit:"mg/ml"}],
+   evidence:[
+     {nut:"Karboanhydrasehemmer",text:"Dorzolamid hemmt Karboanhydrase II im Ziliarepithel – senkt Kammerwasserproduktion und Augeninnendruck. 4× tägliche Anwendung für gleichmäßigen IOD-senkenden Effekt.",src:"Fachinformation Dorzolamid · EMA"},
+     {nut:"Anwendungshinweis",text:"Nach dem Einträufeln 1–2 min inneren Augenwinkel zudrücken – reduziert systemische Resorption. Kontaktlinsen vorher herausnehmen. Fläschchen max. 4 Wochen nach Öffnen verwenden.",src:"Fachinformation Dorzolamid Micro Labs"},
+   ]},
+  {id:9,typ:"auge",name:"Spersacarpin® 2% Augentropfen",hersteller:"Alcon",einheit:"Tropfen/Auge",
+   hinweis:"Pilocarpinhydrochlorid 20 mg/ml · beide Augen · früh und spät",
+   timing:{zeit:"Morgens + Abends",essen:"Unabhängig",uhr:{morgens:"07:00",abends:"21:00"}},
+   nutrients:[{key:"pilocarpin",label:"Pilocarpinhydrochlorid",per:20,unit:"mg/ml"}],
+   evidence:[
+     {nut:"Miotikum – Pupillenverengung",text:"Pilocarpin (Parasympathomimetikum) verengt die Pupille, öffnet durch Zug am Trabekelwerk den Kammerwinkel und verbessert den Kammerwasserabfluss – senkt den Augeninnendruck.",src:"Fachinformation Spersacarpin · AAO"},
+     {nut:"Sehbeeinträchtigung nach Einnahme",text:"Temporäre Sehverschlechterung durch Pupillenverengung – besonders bei schlechten Lichtverhältnissen. Kein Autofahren unmittelbar nach Einnahme. Wirkung klingt nach 4–8 Stunden ab.",src:"Fachinformation Spersacarpin 2%"},
+   ]},
+];
+
+const NRV={vitamin_c:{value:80,unit:"mg"},vitamin_e:{value:12,unit:"mg"},vitamin_d3:{value:5,unit:"µg"},vitamin_k:{value:75,unit:"µg"},vitamin_k2:{value:75,unit:"µg"},vitamin_b1:{value:1.1,unit:"mg"},vitamin_b2:{value:1.4,unit:"mg"},vitamin_b3:{value:16,unit:"mg"},vitamin_b5:{value:6,unit:"mg"},vitamin_b6:{value:1.4,unit:"mg"},vitamin_b12:{value:2.5,unit:"µg"},folat:{value:200,unit:"µg"},biotin:{value:50,unit:"µg"},magnesium:{value:375,unit:"mg"},selen:{value:55,unit:"µg"},zink:{value:10,unit:"mg"},mangan:{value:2,unit:"mg"},kupfer:{value:1,unit:"mg"},eisen:{value:14,unit:"mg"},jod:{value:150,unit:"µg"},chrom:{value:40,unit:"µg"},molybdaen:{value:50,unit:"µg"},epa:{value:250,unit:"mg"},dha:{value:250,unit:"mg"}};
+const UL={vitamin_c:{value:2000,unit:"mg",src:"EFSA 2006"},vitamin_e:{value:300,unit:"mg",src:"EFSA 2006"},vitamin_d3:{value:100,unit:"µg",src:"EFSA 2012"},vitamin_b6:{value:25,unit:"mg",src:"EFSA 2006"},folat:{value:1000,unit:"µg",src:"EFSA 2006"},selen:{value:300,unit:"µg",src:"EFSA 2023"},zink:{value:25,unit:"mg",src:"EFSA 2023"},mangan:{value:8,unit:"mg",src:"EFSA 2013"},kupfer:{value:5,unit:"mg",src:"EFSA 2006"},eisen:{value:40,unit:"mg",src:"EFSA 2006"},jod:{value:600,unit:"µg",src:"EFSA 2006"}};
+const STUDY={magnesium:{text:"310–420 mg/Tag",src:"DGE · NIH ODS · Gröber, Nutrients 2015"},vitamin_d3:{text:"37,5–50 µg (1.500–2.000 IU)",src:"Endocrine Society · Holick, JCEM 2011"},vitamin_k2:{text:"90–200 µg MK-7/Tag",src:"EFSA 2017 · Geleijnse, NEJM 2004"},vitamin_c:{text:"100–200 mg/Tag",src:"Carr & Maggini, Nutrients 2017"},epa:{text:"≥500 mg EPA+DHA kombiniert",src:"AHA 2002 · ISSFAL · ESC 2021"},dha:{text:"≥500 mg EPA+DHA kombiniert",src:"AHA 2002 · ISSFAL · ESC 2021"},selen:{text:"55–100 µg/Tag",src:"Rayman, Lancet 2012"},folat:{text:"400 µg/Tag",src:"DGE · NIH ODS"},vitamin_b12:{text:"3–5 µg/Tag (bioverfügbar)",src:"NIH ODS 2023"},vitamin_b5:{text:"5–7 mg/Tag",src:"NIH ODS 2023"}};
+const NRV_ORDER=["vitamin_c","vitamin_e","vitamin_d3","vitamin_k","vitamin_k2","vitamin_b1","vitamin_b2","vitamin_b3","vitamin_b5","vitamin_b6","vitamin_b12","folat","biotin","magnesium","selen","zink","mangan","kupfer","eisen","jod","chrom","molybdaen","epa","dha"];
+const TC={supplement:{badge:"bs",label:"Supplement",hbg:"rgba(79,142,247,0.04)"},medikament:{badge:"br",label:"Rx-Medikament",hbg:"rgba(248,113,113,0.04)"},auge:{badge:"be",label:"Augentropfen",hbg:"rgba(56,189,248,0.04)"}};
+
+let doses={},expNut={},expEv={},checks={},stock={},hist={},pdays={},pstart={};
+const T=()=>new Date().toISOString().slice(0,10);
+function fmt(v){if(v===null||v===undefined)return"–";if(v%1===0)return v.toString();return parseFloat(v.toFixed(3)).toString();}
+function skey(id){const p=PR.find(x=>x.id===id);return p?.stockGroup||String(id);}
+
+function loadAll(){
+  try{
+    const d=localStorage.getItem("c_doses");if(d)doses=JSON.parse(d);
+    const ts=localStorage.getItem("c_ts");if(ts)document.getElementById("ss").textContent="Gespeichert: "+ts;
+    const ck=localStorage.getItem("c_checks"),cd=localStorage.getItem("c_cd");
+    if(ck&&cd===T())checks=JSON.parse(ck);else{checks={};localStorage.setItem("c_cd",T());}
+    const sk=localStorage.getItem("c_stock");if(sk)stock=JSON.parse(sk);
+    const hk=localStorage.getItem("c_hist");if(hk)hist=JSON.parse(hk);
+    const dk=localStorage.getItem("c_days");if(dk)pdays=JSON.parse(dk);
+    const pk=localStorage.getItem("c_ps");if(pk)pstart=JSON.parse(pk);
+    if(localStorage.getItem("c_lr")!==T()){
+      recDay();Object.keys(checks).forEach(id=>{checks[id]=[false,false,false,false];});
+      saveChecks();localStorage.setItem("c_lr",T());
+    }
+  }catch(e){}
+  const sd=localStorage.getItem("c_sd");if(sd){const el=document.getElementById("sd-input");if(el)el.value=sd;}
+  updDC();
+}
+function saveNow(){try{localStorage.setItem("c_doses",JSON.stringify(doses));const n=new Date().toLocaleString("de-DE");localStorage.setItem("c_ts",n);document.getElementById("ss").textContent="Gespeichert: "+n;}catch(e){}}
+function saveChecks(){try{localStorage.setItem("c_checks",JSON.stringify(checks));localStorage.setItem("c_cd",T());}catch(e){}}
+function saveSD(v){localStorage.setItem("c_sd",v);updDC();}
+function updDC(){
+  const v=localStorage.getItem("c_sd"),el=document.getElementById("dctr");if(!el)return;
+  if(!v){el.textContent="";return;}
+  const s=new Date(v),t=new Date();s.setHours(0,0,0,0);t.setHours(0,0,0,0);
+  const d=Math.floor((t-s)/86400000)+1;
+  if(d<1){el.textContent="Startet in "+Math.abs(d-1)+" Tagen";return;}
+  el.textContent="Tag "+d+" 🗓";
+}
+
+function setStock(id,v){const k=skey(id);if(!stock[k])stock[k]={a:0};stock[k].a=Math.max(0,parseFloat(v)||0);localStorage.setItem("c_stock",JSON.stringify(stock));PR.filter(p=>skey(p.id)===k).forEach(p=>rStk(p.id));}
+function deductStock(id,delta){const k=skey(id);if(!stock[k])stock[k]={a:0};stock[k].a=Math.max(0,(stock[k].a||0)+delta);localStorage.setItem("c_stock",JSON.stringify(stock));PR.filter(p=>skey(p.id)===k).forEach(p=>rStk(p.id));}
+function rStk(id){
+  const k=skey(id),amt=Math.round(stock[k]?.a||0),p=PR.find(x=>x.id===id);if(!p)return;
+  const dose=doses[id]||0;let rh="";
+  if(dose>0&&amt>0){const dl=Math.floor(amt/dose);const rd=new Date();rd.setDate(rd.getDate()+dl);const rs=rd.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});const c=dl<=7?"var(--danger)":dl<=14?"var(--warn)":"var(--accent2)";rh=`<div class="srange" style="color:${c}">⏳ Reicht noch ${dl} Tage · Nachkaufen bis ${rs}</div>`;}
+  const sc=amt<=5?"var(--danger)":amt<=15?"var(--warn)":"var(--accent2)";
+  document.querySelectorAll(`.sd-${id}`).forEach(el=>{el.textContent=`📦 ${amt} ${p.einheit}`;el.style.color=sc;});
+  document.querySelectorAll(`.sr-${id}`).forEach(el=>{el.innerHTML=rh;});
+  document.querySelectorAll(`.si-${id}`).forEach(el=>{if(document.activeElement!==el)el.value=amt||"";});
+}
+function setPS(id,v){const k=skey(id);pstart[k]=v;localStorage.setItem("c_ps",JSON.stringify(pstart));PR.filter(p=>skey(p.id)===k).forEach(p=>rPS(p.id));}
+function calcPD(id){const k=skey(id),v=pstart[k];if(!v)return null;const s=new Date(v),t=new Date();s.setHours(0,0,0,0);t.setHours(0,0,0,0);const d=Math.floor((t-s)/86400000)+1;return d>=1?d:null;}
+function rPS(id){const k=skey(id),v=pstart[k]||"",d=calcPD(id);document.querySelectorAll(`.psi-${id}`).forEach(el=>{if(document.activeElement!==el)el.value=v;});document.querySelectorAll(`.psd-${id}`).forEach(el=>{el.textContent=d?`Tag ${d} 🗓`:"";});}
+function toggleDay(id,i){if(!pdays[id])pdays[id]=[true,true,true,true,true,true,true];pdays[id][i]=!pdays[id][i];localStorage.setItem("c_days",JSON.stringify(pdays));document.getElementById(`dc-${id}-${i}`)?.classList.toggle("da",pdays[id][i]);}
+function toggleDP(id){document.getElementById(`dp-${id}`)?.classList.toggle("hidden");}
+function todayActive(id){return(pdays[id]||[true,true,true,true,true,true,true])[(new Date().getDay()+6)%7];}
+function recDay(){
+  const today=T(),ad=PR.filter(p=>(doses[p.id]||0)>0&&todayActive(p.id));if(!ad.length)return;
+  const tc=ad.reduce((s,p)=>s+(checks[p.id]||[]).filter(Boolean).length,0);
+  hist[today]={completed:tc>0,checkedCount:tc};localStorage.setItem("c_hist",JSON.stringify(hist));updStr();
+}
+function updStr(){
+  let str=0,d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-1);
+  while(true){const k=d.toISOString().slice(0,10);if(hist[k]?.completed){str++;d.setDate(d.getDate()-1);}else break;}
+  const el=document.getElementById("s-str");if(el)el.textContent=str;
+}
+function updateDose(id,val){
+  const n=parseFloat(val);doses[id]=isNaN(n)||n<0?0:n;
+  ["morgens","abends"].forEach(slot=>{const uid=`${id}-${slot}`;const inp=document.getElementById("inp-"+uid);if(inp){inp.value=doses[id]||"";inp.classList.toggle("hv",doses[id]>0);}document.getElementById("cd-"+uid)?.classList.toggle("ac",doses[id]>0);});
+  PR.forEach(p=>{if(expNut[`${p.id}-morgens`]||expNut[`${p.id}-abends`])updNP(p.id);});rStk(id);updHdr();saveNow();
+  if(!document.getElementById("tab-a").classList.contains("hidden"))renderCum();
+}
+function step(id,delta){updateDose(id,Math.max(0,(doses[id]||0)+delta));}
+function toggleChk(id,i){
+  if(!checks[id])checks[id]=[false,false,false,false];const was=checks[id][i];checks[id][i]=!was;
+  if(!was)deductStock(id,-1);else deductStock(id,+1);saveChecks();recDay();
+  ["morgens","abends"].forEach(slot=>{const uid=`${id}-${slot}`;const e1=document.getElementById(`chk-${uid}`);if(e1)e1.classList.toggle("ck",checks[id][i]);const e2=document.getElementById(`chk-${uid}-${i}`);if(e2)e2.classList.toggle("ck",checks[id][i]);});
+}
+function calcAcc(){
+  const acc={};PR.forEach(p=>{const dose=doses[p.id]||0;if(!dose)return;p.nutrients.forEach(n=>{if(n.per===null)return;if(!acc[n.key])acc[n.key]={label:n.label,total:0,unit:n.unit,sources:[]};acc[n.key].total+=n.per*dose;acc[n.key].sources.push({name:p.name,amount:n.per*dose,unit:n.unit});});});return acc;
+}
+function updNP(id){
+  const p=PR.find(x=>x.id===id);if(!p)return;const dose=doses[id]||0,acc=calcAcc();
+  ["morgens","abends"].forEach(slot=>{const uid=`${id}-${slot}`;if(!expNut[uid])return;p.nutrients.forEach(n=>{const elT=document.getElementById(`nt-${uid}-${n.key}`),elM=document.getElementById(`nm-${uid}-${n.key}`);if(!elT)return;const ta=(dose>0&&n.per!==null)?n.per*dose:0,ct=acc[n.key]?.total||0;if(ta>0){elT.textContent=`→ ${fmt(ta)} ${n.unit} heute`;elT.classList.remove("z");}else{elT.textContent="– nicht dosiert";elT.classList.add("z");}if(!elM)return;const nm=NRV[n.key];if(!nm||ct===0){elM.textContent="";elM.className="ni-miss z";return;}const diff=nm.value-ct,pct=Math.round((ct/nm.value)*100),other=ct-ta,note=other>0.001?` (gesamt: ${fmt(ct)} ${nm.unit})`:"";if(diff<=0){elM.textContent=`✓ NRV erreicht${note}`;elM.className="ni-miss ok";}else{elM.textContent=`Noch ${fmt(diff)} ${nm.unit} bis NRV${note}`;elM.className=`ni-miss ${pct>=60?"warn":"danger"}`;}});});
+}
+function toggleNut(uid){expNut[uid]=!expNut[uid];document.getElementById("np-"+uid)?.classList.toggle("hidden",!expNut[uid]);const b=document.getElementById("nb-"+uid);if(b)b.textContent=expNut[uid]?"▲ Inhaltsstoffe":"▼ Inhaltsstoffe";updNP(parseInt(uid));}
+function toggleEv(uid){expEv[uid]=!expEv[uid];document.getElementById("ep-"+uid)?.classList.toggle("hidden",!expEv[uid]);const b=document.getElementById("eb-"+uid);if(b){b.textContent=expEv[uid]?"📖 Evidenz ▲":"📖 Evidenz";b.classList.toggle("evo",expEv[uid]);}}
+function updHdr(){
+  const act=PR.filter(p=>(doses[p.id]||0)>0).length;
+  document.getElementById("hsub").textContent=`${PR.length} Produkte · ${act} aktiv`;
+  document.getElementById("s-act").textContent=act;
+  document.getElementById("s-supp").textContent=PR.filter(p=>p.typ==="supplement").length;
+  document.getElementById("s-rx").textContent=PR.filter(p=>p.typ==="medikament").length;
+  document.getElementById("s-eye").textContent=PR.filter(p=>p.typ==="auge").length;
+}
+function renderProducts(){
+  function getSlots(p){const z=p.timing?.zeit||"";const s=[];if(z.includes("Morgens")||z.includes("4×"))s.push("morgens");if(z.includes("Abends")||z.includes("4×"))s.push("abends");return s.length?s:["morgens"];}
+  function tRank(p){return p.typ==="supplement"?0:p.typ==="medikament"?1:2;}
+  function eRank(p){const e=p.timing?.essen||"";return e.startsWith("Nüchtern")?0:e==="Unabhängig"?1:2;}
+  const td=p=>getSlots(p).length>1;
+  ["morgens","abends"].forEach(slot=>{
+    const cont=document.getElementById("g-"+slot);if(!cont)return;cont.innerHTML="";
+    function timeRank(p,slot){
+        if(p.checks4x&&p.uhrzeiten4x){const idx=p.checks4x[slot]||[];const t=p.uhrzeiten4x[idx[0]]||"9999";return t.replace(":","");}
+        const raw=p.timing?.uhr?.[slot]||"9999";return raw.split(" ")[0].replace(":","");
+      }
+    const entries=PR.filter(p=>getSlots(p).includes(slot)).sort((a,b)=>{const ta=timeRank(a,slot),tb=timeRank(b,slot);return ta<tb?-1:ta>tb?1:tRank(a)-tRank(b);});
+    entries.forEach(p=>{
+      const conf=TC[p.typ],dose=doses[p.id]||0;
+      const eS=p.einheit==="Kapseln"?"Kapsel":p.einheit==="Tabletten"?"Tablette":p.einheit;
+      const uid=`${p.id}-${slot}`,state=checks[p.id]||[false,false,false];
+      const days=pdays[p.id]||[true,true,true,true,true,true,true];
+      const amt=Math.round(stock[skey(p.id)]?.a||0),psv=pstart[skey(p.id)]||"",pd=calcPD(p.id);
+      const uhr=p.timing?.uhr?.[slot]||"",si=slot==="morgens"?"🌅":"🌙",sl=slot==="morgens"?"Morgens":"Abends";
+      const ezC=p.timing.essen.startsWith("Nüchtern")?"n":p.timing.essen==="Unabhängig"?"u":"e";
+      const ezI=p.timing.essen.startsWith("Nüchtern")?"🚫":p.timing.essen==="Unabhängig"?"ℹ️":"🍽️";
+      const sc=amt<=5?"var(--danger)":amt<=15?"var(--warn)":"var(--accent2)";
+      let chkH="";
+      if(td(p)){
+        const lbl=slot==="morgens"?"Morgens":"Abends";
+        if(p.checks4x){
+          // 4× täglich: show 2 checkboxes per slot with time labels
+          const indices=p.checks4x[slot]||[];
+          const times=p.uhrzeiten4x||[];
+          const boxes=indices.map(idx=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><span style="font-size:10px;color:var(--muted);font-weight:700;">${times[idx]||""}</span><div class="chk${state[idx]?" ck":""}" id="chk-${uid}-${idx}" onclick="toggleChk(${p.id},${idx})"></div></div>`).join("");
+          chkH=`<div class="chwrap"><span class="chlbl">${lbl}</span>${boxes}</div>`;
+        } else {
+          const idx=slot==="morgens"?0:1;
+          chkH=`<div class="chwrap"><span class="chlbl">${lbl}</span><div class="chk${state[idx]?" ck":""}" id="chk-${uid}-${idx}" onclick="toggleChk(${p.id},${idx})"></div></div>`;
+        }
+      }
+      else{chkH=`<div class="chwrap"><span class="chlbl">Heute</span><div class="chk${state[0]?" ck":""}" id="chk-${uid}-0" onclick="toggleChk(${p.id},0)"></div><div class="chk${state[1]?" ck":""}" id="chk-${uid}-1" onclick="toggleChk(${p.id},1)"></div><div class="chk${state[2]?" ck":""}" id="chk-${uid}-2" onclick="toggleChk(${p.id},2)"></div></div>`;}
+      const nutH=p.nutrients.map(n=>{const nm=NRV[n.key],sm=STUDY[n.key];const rt=sm?`Empfohlen: ${sm.text}`:(nm?`NRV: ${nm.value} ${nm.unit}`:"");return`<div class="ni"><div class="ni-name">${n.label}</div><div class="ni-per">${n.per!==null?fmt(n.per)+" "+n.unit+" / "+eS:"Konzentration / ml"}</div><div class="ni-tot z" id="nt-${uid}-${n.key}">– nicht dosiert</div>${rt?`<div class="ni-rec">${rt}</div>`:""}<div class="ni-miss z" id="nm-${uid}-${n.key}"></div></div>`;}).join("");
+      const evH=(p.evidence||[]).map(e=>`<div class="ev-blk"><div class="ev-nut">▸ ${e.nut}</div><div class="ev-text">${e.text}</div><div class="ev-src">Quellen: ${e.src}</div></div>`).join("");
+      const div=document.createElement("div");div.className="card"+(dose>0?" ac":"");div.id="cd-"+uid;
+      div.innerHTML=`<div class="card-head" style="background:${conf.hbg}">
+        <span class="badge ${conf.badge}">${conf.label}</span>
+        <div class="cname"><strong>${p.name}</strong><small>${p.hersteller}${p.hinweis?" · "+p.hinweis:""}</small>
+          <div class="twrap"><span class="tb ${slot==="morgens"?"m":"a"}">${si} ${sl}${uhr?` · <strong>${uhr} Uhr</strong>`:""}</span><span class="tb ${ezC}">${ezI} ${p.timing.essen}</span>${p.timing.zeit.includes("4×")?'<span class="tb u">⏱ 4× täglich</span>':""}</div>
+        </div>
+        <div class="dwrap"><div class="stepper"><button class="sb" onclick="step(${p.id},-1)">−</button><input type="number" id="inp-${uid}" class="dose-input${dose?" hv":""}" min="0" step="1" value="${dose||""}" placeholder="0" oninput="updateDose(${p.id},this.value)"><button class="sb" onclick="step(${p.id},1)">+</button></div><span class="dunit">${p.einheit}/Tag</span></div>
+        ${chkH}
+        <div class="cbtns"><button class="ibtn" id="nb-${uid}" onclick="toggleNut('${uid}')">▼ Inhaltsstoffe</button>${evH?`<button class="ibtn" id="eb-${uid}" onclick="toggleEv('${uid}')">📖 Evidenz</button>`:""}<button class="ibtn" onclick="toggleDP(${p.id})" title="Einnahmetage">📆 Tage</button></div>
+      </div>
+      ${(p.id===6||p.id===7)?`<div class="iact"><span class="iact-icon">⚠️</span><span>Wechselwirkung: Bisoprolol + Timolol (Combigan) wirken beide herzfrequenzsenkend – kumulative Wirkung möglich. Bitte mit dem Arzt abgestimmt halten.</span></div>`:""}
+      <div class="cstock"><div class="srow">
+        <div class="scol"><div class="slbl">📦 Bestand</div><div class="sd-${p.id} sdisp" style="color:${sc}">${amt>0?`${amt} ${p.einheit}`:"Noch nicht eingetragen"}</div><div class="sr-${p.id}"></div><input type="number" min="0" step="1" placeholder="Bestand" value="${amt||""}" class="si-${p.id} sinput" style="margin-top:6px" onchange="setStock(${p.id},this.value)" oninput="setStock(${p.id},this.value)"></div>
+        <div class="scol"><div class="slbl">📅 Startdatum Produkt</div><input type="date" value="${psv}" class="psi-${p.id} psinput" onchange="setPS(${p.id},this.value)"><div class="psd-${p.id} psday">${pd?"Tag "+pd+" 🗓":""}</div></div>
+      </div></div>
+      <div class="daypanel hidden" id="dp-${p.id}"><div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">An welchen Tagen einnehmen?</div><div class="daychips">${["Mo","Di","Mi","Do","Fr","Sa","So"].map((d,i)=>`<div class="daychip${days[i]?" da":""}" id="dc-${p.id}-${i}" onclick="toggleDay(${p.id},${i})">${d}</div>`).join("")}</div></div>
+      <div class="cnut hidden" id="np-${uid}"><div class="plbl">Nährstoffe pro ${eS} &amp; heutige Zufuhr</div><div class="ngrid">${nutH}</div></div>
+      ${evH?`<div class="cev hidden" id="ep-${uid}"><div class="ev-title">📖 Wissenschaftliche Evidenz</div>${evH}</div>`:""}`;
+      cont.appendChild(div);
+    });
+    entries.forEach(p=>rStk(p.id));
+  });
+}
+
+function missBadge(tot,nm,ul){
+  if(ul?.value&&tot>ul.value)return`<span class="mb ul">⛔ UL überschritten (${ul.value} ${ul.unit})</span>`;
+  if(!nm)return`<span class="mb zero">Kein NRV</span>`;
+  if(tot===0)return`<span class="mb zero">Noch nicht dosiert</span>`;
+  const diff=nm.value-tot;if(diff<=0)return`<span class="mb ok">✓ NRV erreicht</span>`;
+  const pct=Math.round((tot/nm.value)*100);return`<span class="mb ${pct>=60?"warn":"danger"}">Noch ${fmt(diff)} ${nm.unit} fehlend</span>`;
+}
+function renderCum(){
+  const cont=document.getElementById("cum"),act=PR.filter(p=>(doses[p.id]||0)>0&&p.typ==="supplement");
+  if(!act.length){cont.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><div class="empty-title">Noch keine Dosen eingetragen</div><div class="empty-sub">Trage deine Mengen im Tab „Produkte &amp; Dosierung" ein.</div></div>`;return;}
+  const acc=calcAcc(),chips=act.map(p=>`<div class="achip"><strong>${doses[p.id]}</strong> × ${p.name}</div>`).join("");
+  const nkeys=NRV_ORDER.filter(k=>acc[k]||NRV[k]);
+  const okeys=Object.keys(acc).filter(k=>!NRV[k]);
+  const rows=nkeys.map((key,i)=>{
+    const data=acc[key]||{label:key,total:0,unit:NRV[key]?.unit||"",sources:[]};
+    const nm=NRV[key];if(!nm)return"";const sm=STUDY[key],ul=UL[key];
+    const pct=data.total>0?Math.round((data.total/nm.value)*100):0;
+    const ule=ul?.value&&data.total>ul.value,uln=ul?.value&&data.total>ul.value*0.8;
+    const col=ule?"var(--danger)":uln?"var(--warn)":pct>=100?"var(--accent2)":pct>=60?"var(--warn)":"var(--danger)";
+    const bw=Math.min(pct,100),hm=data.sources.length>1;
+    const sr=hm?`<tr class="srcrow"><td colspan="5"><div style="display:flex;flex-wrap:wrap;">${data.sources.map(s=>`<span class="schip">${s.name} <strong>${fmt(s.amount)} ${s.unit}</strong></span>`).join("")}</div></td></tr>`:"";
+    const lbl=data.label||key;
+    return`<tr class="${i%2===1?"alt":""}"><td class="nn">${lbl}${hm?`<span style="font-size:11px;background:rgba(79,142,247,0.15);color:var(--accent);border-radius:10px;padding:1px 8px;margin-left:6px;font-weight:800;">${data.sources.length} Quellen</span>`:""}</td><td class="yv">${data.total>0?fmt(data.total)+" "+nm.unit:"–"}</td><td class="nv">${nm.value} ${nm.unit}${ul?.value?`<br><span style="font-size:10px;color:var(--danger);font-weight:700;">UL:${ul.value}${ul.unit}</span>`:""}</td><td><span class="sv-num">${sm?sm.text:"–"}</span><span class="sv-src">${sm?sm.src:""}</span><div>${missBadge(data.total,nm,ul)}</div></td><td class="bc"><div class="bwrap"><div class="btrack"><div class="bfill" style="width:${bw}%;background:${col}"></div></div><span class="bpct" style="color:${col}">${pct}%</span></div><div style="font-size:11px;color:var(--muted);margin-top:2px;">vs. EU-NRV</div></td></tr>${sr}`;
+  }).join("");
+  const oH=okeys.length?`<div class="csect">Weitere Wirkstoffe (kein EU-NRV)</div>${okeys.map(k=>`<div class="orow"><div class="oname">${acc[k].label}</div><div class="oval">${fmt(acc[k].total)} ${acc[k].unit}</div></div>`).join("")}`:"";
+
+  // Cumulation warnings
+  const d3total=(acc["vitamin_d3"]?.total||0);
+  const mgtotal=(acc["magnesium"]?.total||0);
+  let warnH="";
+  if(d3total>=60){warnH+=`<div class="cumbox warn"><div class="cumbox-icon">☀️</div><div class="cumbox-body"><div class="cumbox-title">Vitamin D3 – Gesamtzufuhr prüfen</div><div class="cumbox-text">Aktuelle Tageszufuhr aus allen Quellen: <strong>${fmt(d3total)} µg (${Math.round(d3total*40)} IU)</strong>. EFSA-UL liegt bei 100 µg. Blutspiegelkontrolle empfohlen – Zielwert 40–60 ng/ml (25-OH-D). Tipp: Das Sunday Natural Omega-3+D3+K2+E (id 3) ist redundant, da D3 und K2 bereits durch FormMed abgedeckt sind. Weglassen würde die D3-Zufuhr auf <strong>60 µg</strong> senken.</div></div></div>`;}
+  if(mgtotal>=450){warnH+=`<div class="cumbox danger"><div class="cumbox-icon">⚡</div><div class="cumbox-body"><div class="cumbox-title">Magnesium – Supplement-UL beachten</div><div class="cumbox-text">Aktuelle Tageszufuhr aus Supplements: <strong>${fmt(mgtotal)} mg</strong>. Der NIH empfiehlt max. 350 mg/Tag aus Supplementen (zusätzlich zur Nahrung). Bei Herzpatienten mit Beta-Blocker bitte mit dem Arzt abklären. Tipp: Den <strong>Magnesium Komplex 11 Ultra</strong> weglassen – Magtein® (Blut-Hirn-Schranke) + FormMed + LaVita ergeben bereits <strong>327 mg</strong> im grünen Bereich.</div></div></div>`;}
+
+  // Optimization hints
+  const optH=`<div class="csect">Optimierungshinweise</div>
+    <div class="cumbox opt"><div class="cumbox-icon">💡</div><div class="cumbox-body"><div class="cumbox-title">Sunday Natural Omega-3 + D3 + K2 + E – erwägen wegzulassen</div><div class="cumbox-text">Dieses Produkt ist dreifach redundant: Omega-3 wird durch Krill-Öl und das reine EPA 400 mg bereits gut abgedeckt; D3 (12,5 µg) und K2 (25 µg) kommen bereits aus dem FormMed-Komplex. Weglassen reduziert D3 auf 60 µg und vereinfacht das Regime ohne Verlust.</div></div></div>
+    <div class="cumbox opt"><div class="cumbox-icon">💡</div><div class="cumbox-body"><div class="cumbox-title">Magnesium Komplex 11 Ultra – erwägen wegzulassen</div><div class="cumbox-text">Magtein® (Blut-Hirn-Schranke, Kognition, Schlaf) hat eine klar einzigartige Wirkung. Der Komplex 11 Ultra ergänzt zwar verschiedene Formen, aber FormMed + Magtein® + LaVita decken bereits 327 mg ab – im idealen Bereich unter dem NIH-Supplement-UL von 350 mg.</div></div></div>`;
+
+  cont.innerHTML=`${warnH}<div class="asum"><div class="atitle">Aktive Dosierungen</div><div class="achips">${chips}</div></div><div class="csect">Nährstoffvergleich: Zufuhr vs. EU-NRV</div><div class="tw"><table class="atab"><thead><tr><th>Nährstoff</th><th class="r">Deine Zufuhr</th><th class="r">EU NRV / UL</th><th>Studienempfehlung &amp; Status</th><th>% NRV</th></tr></thead><tbody>${rows}</tbody></table><div class="tleg">Grün = NRV erreicht · Gelb = 60–99 % · Rot &lt;60 % · ⛔ = EFSA UL überschritten. Kein Ersatz für ärztlichen Rat.</div></div>${oH}${optH}`;
+}
+function renderExport(){
+  const el=document.getElementById("exp");if(!el)return;
+  const now=new Date(),y=now.getFullYear(),mo=now.getMonth();
+  const mn=now.toLocaleDateString("de-DE",{month:"long",year:"numeric"});
+  const dim=new Date(y,mo+1,0).getDate(),str=document.getElementById("s-str")?.textContent||"0",sd=localStorage.getItem("c_sd");
+  let rows="";
+  for(let d=1;d<=dim;d++){const dt=new Date(y,mo,d),k=dt.toISOString().slice(0,10),h=hist[k],it=k===T();const wd=dt.toLocaleDateString("de-DE",{weekday:"short"});const st=h?.completed?"✅":h?"⬜":(dt<now&&!it?"–":"");rows+=`<tr class="${it?"tr":""}"><td style="font-weight:${it?800:400};color:${it?"var(--accent)":"var(--text)"};">${wd} ${d}.</td><td style="text-align:center;font-size:16px;">${st}</td><td style="color:var(--muted);font-size:13px;">${h?.checkedCount?h.checkedCount+" Einnahmen":""}</td></tr>`;}
+  el.innerHTML=`<div class="mhdr"><div><div class="mtitle">${mn}</div>${sd?`<div class="msub">Startdatum: ${new Date(sd).toLocaleDateString("de-DE")} · ${document.getElementById("dctr")?.textContent||""}</div>`:""}</div><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;"><div class="sbox"><div class="sbox-num">${str}</div><div class="sbox-lbl">🔥 STREAK</div></div><div class="mbtns"><button class="mbtn p" onclick="window.print()">🖨 Drucken</button><button class="mbtn ex" onclick="expData()">📤 JSON Export</button><label class="mbtn im" style="cursor:pointer;">📥 JSON Import<input type="file" accept=".json" onchange="impData(event)" style="display:none;"></label><button class="mbtn ic" onclick="expICS()">📆 Kalender .ics</button></div></div></div><table class="mtab"><thead><tr><th>TAG</th><th style="text-align:center;">STATUS</th><th>DETAIL</th></tr></thead><tbody>${rows}</tbody></table><div class="mleg">✅ = mindestens 1 Einnahme abgehakt · ⬜ = nichts abgehakt · – = noch keine Daten</div><div id="icsf" style="display:none;"><div class="icsh"><strong>Kalender-Datei erstellt!</strong> Falls der Download nicht startet, den Text unten kopieren und als <code>supplement-erinnerungen.ics</code> speichern.</div><div class="icsraw" id="icsraw"></div></div>`;
+}
+function expICS(){
+  const uid=()=>Math.random().toString(36).substr(2,9).toUpperCase();
+  const es=s=>s.replace(/,/g,"\\,").replace(/;/g,"\\;").replace(/\n/g,"\\n");
+  const tm=new Date();tm.setDate(tm.getDate()+1);const ds=tm.toISOString().slice(0,10).replace(/-/g,"");
+  // Build a map: "HH:MM" -> [products]
+  const timeMap={};
+  function addToSlot(uhrRaw,p){
+    const uhr=uhrRaw.trim().split(/\s/)[0]; // take first time if multiple
+    if(!timeMap[uhr])timeMap[uhr]=[];
+    if(!timeMap[uhr].find(x=>x.id===p.id))timeMap[uhr].push(p);
+  }
+  PR.forEach(p=>{
+    if(!p.timing)return;
+    const z=p.timing.zeit;
+    if(p.checks4x&&p.uhrzeiten4x){
+      // 4× täglich: add product to ALL four individual time slots
+      p.uhrzeiten4x.forEach(uhr=>addToSlot(uhr,p));
+    } else {
+      if(z.includes("Morgens")&&p.timing.uhr?.morgens)addToSlot(p.timing.uhr.morgens,p);
+      if(z.includes("Abends")&&p.timing.uhr?.abends)addToSlot(p.timing.uhr.abends,p);
+    }
+  });
+  let lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Christians Tracker//DE","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Christians Supplement-Erinnerungen","X-WR-TIMEZONE:Europe/Berlin"];
+  Object.entries(timeMap).sort().forEach(([uhr,prods])=>{
+    const [h,m]=uhr.split(":").map(Number);
+    const em=h<11?"🌅":h<15?"☀️":h<19?"🌇":"🌙";
+    const tS=`${String(h).padStart(2,"0")}${String(m).padStart(2,"0")}00`;
+    const hE=m+5>=60?h+1:h,mE=(m+5)%60;
+    const tE=`${String(hE).padStart(2,"0")}${String(mE).padStart(2,"0")}00`;
+    const title=`${em} Christians Supplemente – ${uhr} Uhr`;
+    const desc=prods.map(p=>`• ${p.name}${p.timing?.essen?` (${p.timing.essen})`:""}`).join("\\n");
+    lines=lines.concat(["BEGIN:VEVENT",`UID:${uid()}@ct`,`DTSTART;TZID=Europe/Berlin:${ds}T${tS}`,`DTEND;TZID=Europe/Berlin:${ds}T${tE}`,"RRULE:FREQ=DAILY",`SUMMARY:${es(title)}`,`DESCRIPTION:${es(desc)}`,"BEGIN:VALARM","TRIGGER:-PT5M","ACTION:DISPLAY",`DESCRIPTION:${es(title)} – jetzt einnehmen!`,"END:VALARM","END:VEVENT"]);
+  });
+  lines.push("END:VCALENDAR");const content=lines.join("\r\n");
+  const a=document.createElement("a");a.href="data:text/calendar;charset=utf-8,"+encodeURIComponent(content);a.download="christian-supplement-erinnerungen.ics";document.body.appendChild(a);a.click();document.body.removeChild(a);
+  const fb=document.getElementById("icsf");if(fb){fb.style.display="block";document.getElementById("icsraw").textContent=content;}
+}
+function expData(){
+  const data={_version:1,_exported:new Date().toISOString(),doses:JSON.parse(localStorage.getItem("c_doses")||"{}"),checks:JSON.parse(localStorage.getItem("c_checks")||"{}"),checks_date:localStorage.getItem("c_cd")||"",stock:JSON.parse(localStorage.getItem("c_stock")||"{}"),history:JSON.parse(localStorage.getItem("c_hist")||"{}"),product_days:JSON.parse(localStorage.getItem("c_days")||"{}"),product_start:JSON.parse(localStorage.getItem("c_ps")||"{}"),start_date:localStorage.getItem("c_sd")||"",last_reset:localStorage.getItem("c_lr")||"",saved_at:localStorage.getItem("c_ts")||""};
+  const a=document.createElement("a");a.href="data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(data,null,2));a.download=`christian-supplement-daten-${T()}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+function impData(event){
+  const file=event.target.files?.[0];if(!file)return;const reader=new FileReader();
+  reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data._version)throw new Error("Ungültiges Format");if(data.doses)localStorage.setItem("c_doses",JSON.stringify(data.doses));if(data.checks)localStorage.setItem("c_checks",JSON.stringify(data.checks));if(data.checks_date)localStorage.setItem("c_cd",data.checks_date);if(data.stock)localStorage.setItem("c_stock",JSON.stringify(data.stock));if(data.history)localStorage.setItem("c_hist",JSON.stringify(data.history));if(data.product_days)localStorage.setItem("c_days",JSON.stringify(data.product_days));if(data.product_start)localStorage.setItem("c_ps",JSON.stringify(data.product_start));if(data.start_date)localStorage.setItem("c_sd",data.start_date);if(data.last_reset)localStorage.setItem("c_lr",data.last_reset);if(data.saved_at)localStorage.setItem("c_ts",data.saved_at);doses=data.doses||{};checks=data.checks||{};stock=data.stock||{};hist=data.history||{};pdays=data.product_days||{};pstart=data.product_start||{};loadAll();renderProducts();updHdr();updStr();alert(`✅ Import erfolgreich!\nExportiert am: ${data._exported?new Date(data._exported).toLocaleString("de-DE"):"unbekannt"}`);showTab("p");}catch(err){alert("❌ Import fehlgeschlagen: "+err.message);}event.target.value="";};reader.readAsText(file);
+}
+function showTab(tab){
+  ["p","a","m"].forEach(t=>document.getElementById("tab-"+t).classList.toggle("hidden",t!==tab));
+  document.querySelectorAll(".tab-btn").forEach((b,i)=>{const act=(i===0&&tab==="p")||(i===1&&tab==="a")||(i===2&&tab==="m");b.classList.toggle("active",act);b.classList.toggle("inactive",!act);});
+  if(tab==="a")renderCum();if(tab==="m")renderExport();
+}
+loadAll();renderProducts();updHdr();updStr();
+</script>
+</body>
+</html>
