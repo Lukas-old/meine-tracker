@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Supplement-Tracker</title>
 <style>
-  html { scroll-behavior: smooth; scroll-padding-top: 60px; }
-  html, body { overscroll-behavior-y: none; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Georgia, serif; background: #fafaf8; color: #1a1a1a; min-height: 100vh; }
+  body { font-family: Georgia, serif; background: #fafaf8; color: #1a1a1a; min-height: 100vh; overscroll-behavior-y: none; }
+  .card { touch-action: pan-y; }
+  input[type=number], input[type=date], input[type=text], button, select { touch-action: manipulation; }
 
+  /* HEADER */
   .header { background: linear-gradient(135deg, #1e3a5f 0%, #0f2644 100%); padding: 28px 32px 0; color: #fff; }
   .header-inner { max-width: 960px; margin: 0 auto; }
   .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
@@ -21,65 +22,23 @@
   .stat-num { font-size: 22px; font-weight: 700; }
   .stat-label { font-size: 11px; opacity: 0.6; }
 
+  /* TABS */
   .tabs { display: flex; gap: 0; margin-top: 24px; }
   .tab-btn { padding: 10px 20px; border: none; cursor: pointer; font-size: 13px; font-weight: 600;
     border-radius: 8px 8px 0 0; transition: all 0.2s; font-family: Georgia, serif; }
   .tab-btn.active { background: #fff; color: #1e3a5f; }
   .tab-btn.inactive { background: transparent; color: rgba(255,255,255,0.65); }
 
-  /* ── NEU: Sprungmarken-Navigation ── */
-  .section-nav {
-    position: sticky; top: 0; z-index: 15;
-    background: #fff; border-bottom: 2px solid #e5e7eb;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    padding: 8px 16px;
-  }
-  .section-nav-inner {
-    max-width: 960px; margin: 0 auto;
-    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-  }
-  .section-nav-label { font-size: 11px; font-weight: 700; color: #9ca3af;
-    letter-spacing: 1px; text-transform: uppercase; margin-right: 4px; }
-  .nav-jump {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer;
-    font-size: 13px; font-weight: 700; font-family: Georgia, serif;
-    transition: all 0.15s; text-decoration: none;
-  }
-  .nav-jump.morgens { background: #fef9c3; color: #854d0e; }
-  .nav-jump.morgens:hover { background: #fde68a; }
-  .nav-jump.mittags { background: #dcfce7; color: #166534; }
-  .nav-jump.mittags:hover { background: #bbf7d0; }
-  .nav-jump.abends  { background: #ede9fe; color: #5b21b6; }
-  .nav-jump.abends:hover  { background: #ddd6fe; }
-  .nav-jump.top { background: #f1f5f9; color: #475569; }
-  .nav-jump.top:hover { background: #e2e8f0; }
-
+  /* MAIN */
   .main { max-width: 960px; margin: 0 auto; padding: 24px 16px 100px; }
   .intro { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
 
+  /* GROUP */
   .group-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
     color: #9ca3af; margin-bottom: 12px; padding-left: 4px; }
   .group { margin-bottom: 32px; }
 
-  /* NEU: "Weiter zu ..." Trennlinie zwischen Gruppen */
-  .group-nav-link {
-    display: flex; align-items: center; justify-content: flex-end;
-    gap: 10px; margin-top: 4px; margin-bottom: 8px; padding-right: 4px;
-  }
-  .group-nav-btn {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 5px 14px; border-radius: 20px; border: 1.5px solid #e5e7eb;
-    background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 700;
-    font-family: Georgia, serif; cursor: pointer; transition: all 0.15s;
-    text-decoration: none;
-  }
-  .group-nav-btn:hover { background: #f0f7ff; border-color: #bdd7f5; color: #1e3a5f; }
-
+  /* PRODUCT CARD */
   .card { background: #fff; border-radius: 10px; overflow: hidden;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 8px;
     border: 1px solid transparent; transition: border-color 0.2s; }
@@ -97,6 +56,7 @@
   .dose-input.has-value { box-shadow: 0 0 0 2px #bfdbfe; border-color: #3b82f6; }
   .dose-unit { font-size: 12px; color: #6b7280; min-width: 56px; }
 
+  /* TIMING BADGES */
   .timing-wrap { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
   .timing-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700;
     padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
@@ -107,17 +67,14 @@
   .timing-badge.nuechtern{ background: #f1f5f9; color: #475569; }
   .timing-badge.info     { background: #fff7ed; color: #9a3412; }
 
-  .check-wrap { display: flex; gap: 6px; align-items: center; flex-shrink: 0; position: relative; z-index: 1; }
+  /* DAILY CHECKBOXES */
+  .check-wrap { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
   .stock-wrap { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; }
   .day-panel { border-top: 1px solid #e5e7eb; background: #f9fafb; padding: 12px 18px; }
-  .day-chip {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent; display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:2px solid #d1d5db;background:#fff;font-size:12px;font-weight:800;cursor:pointer;color:#6b7280;transition:all 0.15s;user-select:none; }
+  .day-chip { display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:2px solid #d1d5db;background:#fff;font-size:12px;font-weight:800;cursor:pointer;color:#6b7280;transition:all 0.15s;user-select:none; }
   .day-chip.day-active { background:#1e3a5f;border-color:#1e3a5f;color:#fff; }
   .day-chip:hover { border-color:#1e3a5f; }
   .check-box {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
     width: 32px; height: 32px; border-radius: 7px;
     border: 2px solid #d1d5db; background: #fff;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -130,14 +87,13 @@
     text-transform: uppercase; white-space: nowrap; }
 
   .card-btns { display: flex; gap: 6px; flex-shrink: 0; }
-  .panel-btn {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px;
+  .panel-btn { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px;
     cursor: pointer; font-size: 12px; font-weight: 600; color: #6b7280;
     padding: 5px 10px; font-family: Georgia, serif; transition: all 0.15s; white-space: nowrap; }
   .panel-btn:hover { background: #e5e7eb; color: #374151; }
   .panel-btn.ev-open { background: #fffbeb; border-color: #fde68a; color: #92400e; }
 
+  /* NUTRIENT PANEL */
   .card-nutrients { padding: 12px 16px 16px; border-top: 1px solid #f3f4f6; background: #f9fafb; }
   .panel-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #9ca3af; margin-bottom: 10px; }
   .nut-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
@@ -153,6 +109,7 @@
   .nut-item-missing.danger { color: #dc2626; }
   .nut-item-missing.zero   { color: #d1d5db; }
 
+  /* EVIDENCE PANEL */
   .card-evidence { padding: 14px 16px 16px; border-top: 1px solid #fde68a; background: #fffdf5; }
   .ev-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #92400e; margin-bottom: 12px; }
   .ev-block { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #fef3c7; }
@@ -161,6 +118,7 @@
   .ev-text { font-size: 13px; color: #374151; line-height: 1.7; }
   .ev-src { font-size: 11px; color: #9ca3af; margin-top: 4px; font-style: italic; }
 
+  /* SAVE BAR */
   .save-bar { position: sticky; bottom: 0; background: #1e3a5f; color: #fff;
     padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
     font-size: 13px; box-shadow: 0 -2px 12px rgba(0,0,0,0.15); z-index: 10; }
@@ -170,6 +128,7 @@
   .save-btn:hover { background: #2563eb; }
   .save-status { font-size: 11px; opacity: 0.7; }
 
+  /* CUMULATIVE */
   .active-summary { background: #f8faff; border: 1px solid #dbeafe; border-radius: 10px;
     padding: 14px 18px; margin-bottom: 24px; }
   .active-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
@@ -191,6 +150,7 @@
   .study-rec { font-weight: 700; color: #374151; }
   .study-src { font-size: 11px; color: #9ca3af; font-style: italic; margin-top: 2px; }
 
+  /* MISSING BADGE (cum table) */
   .miss-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px;
     border-radius: 10px; margin-top: 4px; white-space: nowrap; }
   .miss-badge.ok     { background: #dcfce7; color: #15803d; }
@@ -229,17 +189,65 @@
     .dose-unit { min-width: 44px; }
     .nut-grid { grid-template-columns: 1fr 1fr; }
     .card-btns { flex-wrap: wrap; }
-    .section-nav-inner { gap: 6px; }
-    .nav-jump {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent; font-size: 12px; padding: 5px 10px; }
   }
+
+  /* EDIT MODAL */
+  .modal-overlay { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);
+    z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto; }
+  .modal { background:#fff;border-radius:12px;padding:24px;width:100%;max-width:560px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.2);margin:auto; }
+  .modal-title { font-size:16px;font-weight:800;color:#1e3a5f;margin-bottom:18px;
+    display:flex;justify-content:space-between;align-items:center; }
+  .modal-close { background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af;padding:2px 6px; }
+  .modal-close:hover { color:#374151; }
+  .field-row { margin-bottom:14px; }
+  .field-label { font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    color:#9ca3af;margin-bottom:5px; }
+  .field-input { width:100%;padding:8px 10px;border:1.5px solid #d1d5db;border-radius:7px;
+    font-size:14px;font-family:Georgia,serif;color:#111;outline:none; }
+  .field-input:focus { border-color:#1e3a5f;box-shadow:0 0 0 3px #bfdbfe; }
+  .field-row-2 { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px; }
+  .field-row-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px; }
+  .modal-section { font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+    color:#6b7280;margin:16px 0 8px;padding-top:14px;border-top:1px solid #f3f4f6; }
+  .nut-row { display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap; }
+  .nut-row input { padding:6px 8px;border:1.5px solid #d1d5db;border-radius:6px;
+    font-size:13px;font-family:Georgia,serif;outline:none; }
+  .nut-row input:focus { border-color:#1e3a5f; }
+  .nut-row input.nut-key { width:130px; }
+  .nut-row input.nut-label { width:150px; }
+  .nut-row input.nut-per { width:70px;text-align:center; }
+  .nut-row input.nut-unit { width:60px;text-align:center; }
+  .del-nut-btn { background:none;border:none;color:#d1d5db;cursor:pointer;font-size:16px;
+    padding:2px 4px;border-radius:4px;transition:all 0.15s;flex-shrink:0; }
+  .del-nut-btn:hover { color:#ef4444;background:#fef2f2; }
+  .modal-actions { display:flex;gap:8px;margin-top:20px;flex-wrap:wrap; }
+  .modal-save { background:#1e3a5f;color:#fff;border:none;padding:10px 20px;border-radius:8px;
+    font-size:14px;font-weight:700;cursor:pointer;font-family:Georgia,serif;flex:1; }
+  .modal-save:hover { background:#0f2644; }
+  .modal-delete { background:#fef2f2;color:#dc2626;border:1px solid #fecdd3;padding:10px 14px;
+    border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif; }
+  .modal-delete:hover { background:#fee2e2; }
+  .modal-cancel { background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:10px 14px;
+    border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif; }
+  .modal-cancel:hover { background:#e5e7eb; }
+
+  /* EDIT / ADD BUTTONS on cards */
+  .edit-card-btn { background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;
+    font-size:12px;font-weight:600;color:#6b7280;padding:5px 10px;font-family:Georgia,serif;
+    transition:all 0.15s;white-space:nowrap; }
+  .edit-card-btn:hover { background:#dbeafe;color:#1e3a5f;border-color:#93c5fd; }
+
+  /* ADD SUPPLEMENT BUTTON */
+  .add-supplement-btn { display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;padding:12px;border:2px dashed #d1d5db;border-radius:10px;
+    background:transparent;cursor:pointer;font-family:Georgia,serif;font-size:13px;
+    font-weight:700;color:#9ca3af;transition:all 0.2s;margin-top:8px; }
+  .add-supplement-btn:hover { border-color:#1e3a5f;color:#1e3a5f;background:#f0f7ff; }
+
 </style>
 </head>
 <body>
-
-<!-- Anker für "Nach oben" -->
-<div id="section-top"></div>
 
 <div class="header">
   <div class="header-inner">
@@ -247,13 +255,12 @@
       <div>
         <div class="header-label">Persönliche Übersicht</div>
         <h1>Supplement-Tracker</h1>
-        <div class="header-sub" id="header-sub">0 Produkte erfasst · 0 aktiv dosiert</div>
+        <div class="header-sub" id="header-sub">20 Produkte erfasst · 0 aktiv dosiert</div>
       </div>
       <div class="header-stats">
-        <!-- FIX 1: dynamisch berechnet -->
-        <div class="stat"><div class="stat-num" style="color:#60a5fa" id="stat-supplements">–</div><div class="stat-label">Supplements</div></div>
-        <div class="stat"><div class="stat-num" style="color:#fb923c" id="stat-medikamente">–</div><div class="stat-label">Medikamente</div></div>
-        <div class="stat"><div class="stat-num" style="color:#4ade80" id="stat-tee">–</div><div class="stat-label">Tee / Kraut</div></div>
+        <div class="stat"><div class="stat-num" style="color:#60a5fa">18</div><div class="stat-label">Supplements</div></div>
+        <div class="stat"><div class="stat-num" style="color:#fb923c">2</div><div class="stat-label">Medikamente</div></div>
+        <div class="stat"><div class="stat-num" style="color:#4ade80">1</div><div class="stat-label">Tee / Kraut</div></div>
         <div class="stat"><div class="stat-num" style="color:#f59e0b" id="streak-num">0</div><div class="stat-label">🔥 Streak</div></div>
       </div>
     </div>
@@ -265,21 +272,11 @@
   </div>
 </div>
 
-<!-- NEU: Sprungmarken-Leiste (nur im Produkte-Tab sichtbar) -->
-<div class="section-nav" id="section-nav">
-  <div class="section-nav-inner">
-    <span class="section-nav-label">Springen zu:</span>
-    <a class="nav-jump morgens" href="#section-morgens">🌅 Morgens</a>
-    <a class="nav-jump mittags" href="#section-mittags">☀️ Mittags</a>
-    <a class="nav-jump abends"  href="#section-abends">🌙 Abends</a>
-    <a class="nav-jump top"     href="#section-top">⬆ Anfang</a>
-  </div>
-</div>
-
 <div class="main">
   <div id="tab-produkte">
     <p class="intro">Trage deine tägliche Einnahmemenge ein. <strong>▼ Inhaltsstoffe</strong> zeigt Nährstoffe und die noch fehlende Menge (produktübergreifend). <strong>📖 Evidenz</strong> öffnet die Studienlage.</p>
 
+    <!-- DATUM & TAGESZÄHLER -->
     <div style="background:#f0f7ff;border:1px solid #bdd7f5;border-radius:10px;padding:12px 18px;margin-bottom:18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
       <div>
         <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#1e3a5f;margin-bottom:4px;">📅 Startdatum</div>
@@ -290,42 +287,77 @@
       <div id="day-counter" style="font-size:22px;font-weight:900;color:#1e3a5f;"></div>
     </div>
 
-    <!-- Anker + Gruppe Morgens -->
-    <div id="section-morgens" class="group">
+    <!-- KALENDER EXPORT -->
+
+    <!-- SPRUNGMARKEN NAVIGATION -->
+    <div class="jump-nav" id="jumpNav">
+      <button class="jump-btn" id="jump-morgens" onclick="scrollToSlot('morgens')">
+        🌅 Morgens<span class="jetzt-label">← jetzt</span>
+      </button>
+      <button class="jump-btn" id="jump-mittags" onclick="scrollToSlot('mittags')">
+        ☀️ Mittags<span class="jetzt-label">← jetzt</span>
+      </button>
+      <button class="jump-btn" id="jump-abends" onclick="scrollToSlot('abends')">
+        🌙 Abends<span class="jetzt-label">← jetzt</span>
+      </button>
+    </div>
+
+    <div class="group group-anchor" id="anchor-morgens">
       <div class="group-label">🌅 Morgens</div>
       <div id="group-morgens"></div>
-      <div class="group-nav-link">
-        <a class="group-nav-btn" href="#section-mittags">☀️ Weiter zu Mittags →</a>
-      </div>
+      <button class="add-supplement-btn" onclick="openAddModal('Morgens')">＋ Supplement hinzufügen</button>
     </div>
-
-    <!-- Anker + Gruppe Mittags -->
-    <div id="section-mittags" class="group">
+    <div class="group group-anchor" id="anchor-mittags">
       <div class="group-label">☀️ Mittags</div>
       <div id="group-mittags"></div>
-      <div class="group-nav-link">
-        <a class="group-nav-btn" href="#section-morgens">← 🌅 Morgens</a>
-        <a class="group-nav-btn" href="#section-abends">🌙 Weiter zu Abends →</a>
-      </div>
+      <button class="add-supplement-btn" onclick="openAddModal('Mittags')">＋ Supplement hinzufügen</button>
     </div>
-
-    <!-- Anker + Gruppe Abends -->
-    <div id="section-abends" class="group">
+    <div class="group group-anchor" id="anchor-abends">
       <div class="group-label">🌙 Abends</div>
       <div id="group-abends"></div>
-      <div class="group-nav-link">
-        <a class="group-nav-btn" href="#section-mittags">← ☀️ Mittags</a>
-        <a class="group-nav-btn" href="#section-top">⬆ Zurück zum Anfang</a>
-      </div>
+      <button class="add-supplement-btn" onclick="openAddModal('Abends')">＋ Supplement hinzufügen</button>
     </div>
   </div>
-
   <div id="tab-kumulierung" class="hidden">
     <p class="intro">Kumulierte Tageszufuhr basierend auf deinen eingetragenen Dosen. NRV = EU-Nährstoffbezugsmenge. Die Spalte <strong>Studienempfehlung</strong> zeigt die evidenzbasierte Zieldosis.</p>
     <div id="cum-content"></div>
   </div>
   <div id="tab-export" class="hidden">
+
     <div id="export-content"></div>
+
+    <!-- Kalender-Export -->
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;margin-top:16px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:10px;">📅 Kalender-Export (ICS)</div>
+      <p style="font-size:13px;color:#374151;margin-bottom:12px;">Tägliche Erinnerungen für Morgens, Mittags und Abends als Kalender-Datei exportieren.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="exportICS()" style="background:#1e3a5f;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">📅 ICS exportieren</button>
+        <button onclick="showICSHelp()" style="background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">❓ Hilfe</button>
+      </div>
+      <div id="ics-help" style="display:none;margin-top:12px;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:12px;font-size:13px;color:#374151;line-height:1.6;">
+        <strong>So importierst du die ICS-Datei:</strong><br>
+        📱 <strong>Android:</strong> Datei herunterladen → Google Kalender → Einstellungen → Importieren<br>
+        🍎 <strong>iPhone:</strong> Datei öffnen → automatisch in Kalender importiert<br>
+        💻 <strong>PC:</strong> Outlook / Google Kalender → Importieren
+      </div>
+      <div id="ics-fallback" style="display:none;margin-top:12px;">
+        <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Falls der Download nicht funktioniert, hier den Inhalt kopieren:</div>
+        <textarea id="ics-raw" style="width:100%;height:120px;font-size:11px;font-family:monospace;border:1px solid #e5e7eb;border-radius:6px;padding:8px;" readonly></textarea>
+      </div>
+    </div>
+
+    <!-- JSON Backup -->
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;margin-top:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:10px;">💾 Datensicherung (JSON)</div>
+      <p style="font-size:13px;color:#374151;margin-bottom:12px;">Alle Daten (Dosen, Bestände, Startdaten, Verlauf) sichern und wiederherstellen.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="exportJSON()" style="background:#16a34a;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">⬇️ Backup exportieren</button>
+        <button onclick="document.getElementById('json-import-input').click()" style="background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">⬆️ Backup importieren</button>
+        <input type="file" id="json-import-input" accept=".json" style="display:none" onchange="importJSON(this)">
+      </div>
+      <div id="import-status" style="margin-top:10px;font-size:13px;font-weight:700;display:none;"></div>
+    </div>
+
   </div>
 </div>
 
@@ -340,7 +372,7 @@
 <div class="footer">Supplement-Tracker · Kein Ersatz für ärztlichen Rat · Daten werden lokal im Browser gespeichert</div>
 
 <script>
-const PRODUCTS = [
+let PRODUCTS = [
   { id:1, name:"Magnesium Komplex", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
     timing:{zeit:"Abends", essen:"Zum Essen", uhrzeiten:{"abends": "19:00"}},
     nutrients:[{key:"magnesium",label:"Magnesium",per:200,unit:"mg"},{key:"vitamin_c",label:"Vitamin C",per:38,unit:"mg"}],
@@ -548,7 +580,7 @@ const PRODUCTS = [
     timing:{zeit:"Morgens + Mittags + Abends", essen:"Zum Essen", uhrzeiten:{"morgens": "08:00", "mittags": "13:00", "abends": "19:00"}},
     hinweis:"Tagesdosis = 3 Kapseln · je 1 Kapsel zu jeder Mahlzeit · Ersetzt altes Glucosamin-Komplex (Nr. 10)",
     nutrients:[
-      {key:"glucosamin",label:"Glucosaminsulfat",per:500,unit:"mg"},
+      {key:"glucosamin",label:"Glucosaminsulfat",per:466.7,unit:"mg"},
       {key:"chondroitin",label:"Chondroitinsulfat",per:400,unit:"mg"},
       {key:"vitamin_c",label:"Vitamin C (Hagebuttenextrakt)",per:26.7,unit:"mg"}],
     evidence:[
@@ -628,9 +660,12 @@ const PRODUCTS = [
         src:"EFSA UL Vitamin E 2006" }
     ]
   },
+
+  // ── GELENKPROTOKOLL ────────────────────────────────────────────────────────
   { id:22, name:"Vitamin C gepuffert (Calcium-L-Ascorbat)", hersteller:"Sunday Natural", einheit:"Messlöffel (½ = ~450mg)", typ:"supplement",
     timing:{zeit:"Morgens", essen:"Nüchtern (15 min vor allem anderen)", uhrzeiten:{"morgens": "07:15"}},
-    sortBonus: -998, defaultDose:1,
+    sortBonus: -998,
+    defaultDose:1,
     hinweis:"½ Messlöffel (ca. 450mg Vit C + 50mg Calcium) in 200ml Wasser · Cofaktor Kollagensynthese · vor Kollagen & Hyaluron einnehmen",
     nutrients:[
       {key:"vitamin_c", label:"Vitamin C (Calcium-L-Ascorbat)", per:450, unit:"mg"},
@@ -644,11 +679,13 @@ const PRODUCTS = [
         src:"Johnston et al., Am J Clin Nutr 1994" }
     ]
   },
+
   { id:23, name:"Hyaluronsäure 500mg", hersteller:"Sunday Natural", einheit:"Tabletten", typ:"supplement",
     timing:{zeit:"Morgens", essen:"Nüchtern (mit viel Wasser)", uhrzeiten:{"morgens": "07:25"}},
     defaultDose:2,
     hinweis:"2 Tabletten = 500mg · mindestens 400ml Wasser! · Molekulargewicht 800–1.300 kDa (mittel) · aus Fermentation (vegan)",
-    nutrients:[{key:"hyaluronsaeure", label:"Hyaluronsäure (800–1.300 kDa)", per:250, unit:"mg"}],
+    nutrients:[
+      {key:"hyaluronsaeure", label:"Hyaluronsäure (800–1.300 kDa)", per:250, unit:"mg"}],
     evidence:[
       { nut:"Orale Wirksamkeit bei Gelenken",
         text:"Orale Hyaluronsäure wird im Darm zu Oligosacchariden gespalten, die systemisch aufgenommen werden und die körpereigene HA-Synthese in Synovialzellen stimulieren. Studien zeigen bei 80–200mg/Tag Reduktion von Gelenkschmerzen nach 8 Wochen. 500mg ist ein großzügiges, sicheres Protokoll.",
@@ -658,11 +695,13 @@ const PRODUCTS = [
         src:"Litwiniuk et al., Wounds 2016 · Stern et al., Matrix Biol 2006" }
     ]
   },
+
   { id:24, name:"Kollagen SunGlow® Luxe (Typ I & III)", hersteller:"Sunday Natural", einheit:"Messlöffel (2g)", typ:"supplement",
     timing:{zeit:"Morgens", essen:"Nüchtern (nach Vit C & Hyaluron)", uhrzeiten:{"morgens": "07:30"}},
     defaultDose:1,
     hinweis:"1 Messlöffel = 2g · SunColl® Markenrohstoff · 500 Dalton · 80% Tripeptide · Grass-fed Rind · in 200ml Wasser auflösen",
-    nutrients:[{key:"kollagen_typ1_3", label:"Kollagenhydrolysat Typ I & III (SunColl®)", per:2000, unit:"mg"}],
+    nutrients:[
+      {key:"kollagen_typ1_3", label:"Kollagenhydrolysat Typ I & III (SunColl®)", per:2000, unit:"mg"}],
     evidence:[
       { nut:"Warum nur 2g statt 15–20g?",
         text:"SunGlow® Luxe verwendet einen proprietären Enzymprozess der das Kollagen auf 500 Dalton (Tripeptide) reduziert. Bei dieser Partikelgröße ist keine weitere Verdauung nötig – sofortige Resorption. Studien zeigen bei 2g Luxe-Kollagen äquivalente Signalwirkung wie bei 15–20g konventionellem Hydrolysat, da die Tripeptide direkt Fibroblasten stimulieren.",
@@ -672,6 +711,7 @@ const PRODUCTS = [
         src:"Di Lullo et al., J Biol Chem 2002 · Shoulders & Raines, Annu Rev Biochem 2009" }
     ]
   },
+
   { id:25, name:"UC-II® Kollagen Typ II + Boswellia", hersteller:"WFN / World Food Nutrition", einheit:"Kapseln", typ:"supplement",
     timing:{zeit:"Morgens", essen:"Nüchtern (unzerkaut schlucken!)", uhrzeiten:{"morgens": "07:30"}},
     defaultDose:1,
@@ -691,11 +731,13 @@ const PRODUCTS = [
         src:"Crowley et al., Int J Med Sci 2009" }
     ]
   },
+
   { id:26, name:"Kieselsäure (Diatomeenerde) 195mg Silizium", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
     timing:{zeit:"Morgens", essen:"Nüchtern", uhrzeiten:{"morgens": "07:30"}},
     defaultDose:1,
     hinweis:"1 Kapsel = 195mg elementares Silizium · Amorphe Diatomeenerde · ohne Nanopartikel · vernetzt Kollagenfasern im Bindegewebe",
-    nutrients:[{key:"silizium", label:"Silizium (aus Diatomeenerde)", per:195, unit:"mg"}],
+    nutrients:[
+      {key:"silizium", label:"Silizium (aus Diatomeenerde)", per:195, unit:"mg"}],
     evidence:[
       { nut:"Silizium: Kollagenvernetzung",
         text:"Silizium ist essenzieller Cofaktor für die Prolylhydroxylase und die Quervernetzung von Kollagenfasern im Bindegewebe. Ohne ausreichend Silizium bleibt die Kollagenmatrix strukturell schwächer – Sehnen, Knorpel und Knochen verlieren an Festigkeit. Der Körperspiegel sinkt ab dem 40. Lebensjahr kontinuierlich.",
@@ -705,6 +747,7 @@ const PRODUCTS = [
         src:"Sripanyakorn et al., Br J Nutr 2009" }
     ]
   },
+
   { id:27, name:"Omega-3 Algenöl (EPA 400mg + DHA 225mg)", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
     timing:{zeit:"Mittags", essen:"Zum Essen (Fettaufnahme nötig!)", uhrzeiten:{"mittags": "13:00"}},
     defaultDose:2,
@@ -721,6 +764,7 @@ const PRODUCTS = [
         src:"Arterburn et al., Am J Clin Nutr 2008" }
     ]
   },
+
   { id:28, name:"Zink-Bisglycinat 25mg + Vitamin C", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
     timing:{zeit:"Abends", essen:"Nüchtern (mind. 2h nach Kupfer falls ergänzt)", uhrzeiten:{"abends": "22:00"}},
     defaultDose:1,
@@ -742,433 +786,687 @@ const PRODUCTS = [
   },
 ];
 
+// EU NRV
 const NRV = {
-  magnesium:{value:375,unit:"mg"},vitamin_c:{value:80,unit:"mg"},vitamin_d3:{value:5,unit:"µg"},
-  vitamin_k2:{value:75,unit:"µg"},vitamin_k1:{value:75,unit:"µg"},vitamin_k:{value:75,unit:"µg"},
-  vitamin_b5:{value:6,unit:"mg"},vitamin_b1:{value:1.1,unit:"mg"},vitamin_b2:{value:1.4,unit:"mg"},
-  vitamin_b3:{value:16,unit:"mg NE"},vitamin_b6:{value:1.4,unit:"mg"},vitamin_b12:{value:2.5,unit:"µg"},
-  folat:{value:200,unit:"µg"},selen:{value:55,unit:"µg"},zink:{value:10,unit:"mg"},
-  mangan:{value:2,unit:"mg"},molybdaen:{value:50,unit:"µg"},vitamin_e:{value:12,unit:"mg"},
-  biotin:{value:50,unit:"µg"},kupfer:{value:1,unit:"mg"},eisen:{value:14,unit:"mg"},
-  jod:{value:150,unit:"µg"},chrom:{value:40,unit:"µg"},epa:{value:250,unit:"mg"},dha:{value:250,unit:"mg"},
-  hyaluronsaeure:{value:80,unit:"mg"},kollagen_typ1_3:{value:10000,unit:"mg"},
-  ucii_kollagen:{value:40,unit:"mg"},silizium:{value:20,unit:"mg"},
+  magnesium:   {value:375,  unit:"mg"},
+  vitamin_c:   {value:80,   unit:"mg"},
+  vitamin_d3:  {value:5,    unit:"µg"},
+  vitamin_k2:  {value:75,   unit:"µg"},
+  vitamin_k1:  {value:75,   unit:"µg"},
+  vitamin_k:   {value:75,   unit:"µg"},
+  vitamin_b5:  {value:6,    unit:"mg"},
+  vitamin_b1:  {value:1.1,  unit:"mg"},
+  vitamin_b2:  {value:1.4,  unit:"mg"},
+  vitamin_b3:  {value:16,   unit:"mg NE"},
+  vitamin_b6:  {value:1.4,  unit:"mg"},
+  vitamin_b12: {value:2.5,  unit:"µg"},
+  folat:       {value:200,  unit:"µg"},
+  selen:       {value:55,   unit:"µg"},
+  zink:        {value:10,   unit:"mg"},
+  mangan:      {value:2,    unit:"mg"},
+  molybdaen:   {value:50,   unit:"µg"},
+  vitamin_e:   {value:12,   unit:"mg"},
+  biotin:      {value:50,   unit:"µg"},
+  kupfer:      {value:1,    unit:"mg"},
+  eisen:       {value:14,   unit:"mg"},
+  jod:         {value:150,  unit:"µg"},
+  chrom:       {value:40,   unit:"µg"},
+  epa:         {value:250,  unit:"mg"},
+  dha:         {value:250,  unit:"mg"},
+  hyaluronsaeure: {value:80, unit:"mg"},
+  kollagen_typ1_3: {value:10000, unit:"mg"},
+  ucii_kollagen:   {value:40,    unit:"mg"},
+  silizium:        {value:20,    unit:"mg"},
 };
 
-const UL = {
-  vitamin_d3:{value:100,unit:"µg",src:"EFSA 2012"},vitamin_a:{value:800,unit:"µg RE",src:"EFSA 2006"},
-  vitamin_e:{value:300,unit:"mg",src:"EFSA 2006"},vitamin_b6:{value:25,unit:"mg",src:"EFSA 2006"},
-  folat:{value:1000,unit:"µg",src:"EFSA 2006"},vitamin_c:{value:2000,unit:"mg",src:"EFSA 2006"},
-  selen:{value:300,unit:"µg",src:"EFSA 2023"},zink:{value:25,unit:"mg",src:"EFSA 2023"},
-  jod:{value:600,unit:"µg",src:"EFSA 2006"},kupfer:{value:5,unit:"mg",src:"EFSA 2006"},
-  eisen:{value:40,unit:"mg",src:"EFSA 2006"},calcium:{value:2500,unit:"mg",src:"EFSA 2012"},
-  mangan:{value:8,unit:"mg",src:"EFSA 2013"},
-};
-
+// Studienempfehlungen
 const STUDY = {
-  magnesium:{text:"310–420 mg/Tag",src:"DGE · NIH ODS · Gröber et al., Nutrients 2015"},
-  vitamin_d3:{text:"37,5–50 µg (1.500–2.000 IU)",src:"Endocrine Society · Holick et al., JCEM 2011"},
-  vitamin_k2:{text:"90–200 µg MK-7/Tag",src:"EFSA 2017 · Geleijnse et al., NEJM 2004"},
-  vitamin_c:{text:"100–200 mg/Tag",src:"Carr & Maggini, Nutrients 2017 · Linus Pauling Inst."},
-  epa:{text:"≥500 mg EPA+DHA komb.",src:"AHA 2002 · ISSFAL · ESC Guidelines 2021"},
-  dha:{text:"≥500 mg EPA+DHA komb.",src:"AHA 2002 · ISSFAL · ESC Guidelines 2021"},
-  selen:{text:"55–100 µg/Tag",src:"Rayman, Lancet 2012 · NIH ODS"},
-  folat:{text:"400 µg/Tag (L-Methylfolat)",src:"Greenberg et al., AJOG 2011"},
-  vitamin_b12:{text:"3–5 µg/Tag (bioverfügbar)",src:"NIH ODS Vitamin B12 2023"},
-  vitamin_b5:{text:"5–7 mg/Tag",src:"NIH ODS Pantothenic Acid 2023"},
-  hyaluronsaeure:{text:"80–200 mg/Tag oral",src:"Tashiro et al., Nutrients 2012"},
-  kollagen_typ1_3:{text:"2.000mg Tripeptide (≙ 10–15g konv.)",src:"Shaw et al., Nutrients 2017"},
-  ucii_kollagen:{text:"40 mg/Tag (undenaturiert)",src:"Crowley et al., Int J Med Sci 2009"},
-  silizium:{text:"20–50 mg/Tag",src:"Jugdaohsingh et al., Am J Clin Nutr 2004"},
+  magnesium:   { text:"310–420 mg/Tag",     src:"DGE · NIH ODS · Gröber et al., Nutrients 2015" },
+  vitamin_d3:  { text:"37,5–50 µg (1.500–2.000 IU)",  src:"Endocrine Society · Holick et al., JCEM 2011" },
+  vitamin_k2:  { text:"90–200 µg MK-7/Tag",src:"EFSA 2017 · Geleijnse et al., NEJM 2004" },
+  vitamin_c:   { text:"100–200 mg/Tag",     src:"Carr & Maggini, Nutrients 2017 · Linus Pauling Inst." },
+  epa:         { text:"≥500 mg EPA+DHA komb.", src:"AHA 2002 · ISSFAL · ESC Guidelines 2021" },
+  dha:         { text:"≥500 mg EPA+DHA komb.", src:"AHA 2002 · ISSFAL · ESC Guidelines 2021" },
+  selen:       { text:"55–100 µg/Tag",      src:"Rayman, Lancet 2012 · NIH ODS" },
+  folat:       { text:"400 µg/Tag (L-Methylfolat)", src:"Greenberg et al., AJOG 2011" },
+  vitamin_b12: { text:"3–5 µg/Tag (bioverfügbar)", src:"NIH ODS Vitamin B12 2023" },
+  vitamin_b5:  { text:"5–7 mg/Tag",         src:"NIH ODS Pantothenic Acid 2023" },
+  hyaluronsaeure: { text:"80–200 mg/Tag oral", src:"Tashiro et al., Nutrients 2012" },
+  kollagen_typ1_3: { text:"2.000mg Tripeptide (≙ 10–15g konv.)", src:"Shaw et al., Nutrients 2017" },
+  ucii_kollagen:   { text:"40 mg/Tag (undenaturiert)", src:"Crowley et al., Int J Med Sci 2009" },
+  silizium:        { text:"20–50 mg/Tag", src:"Jugdaohsingh et al., Am J Clin Nutr 2004" },
 };
 
 const NRV_ORDER = ["magnesium","vitamin_c","vitamin_d3","vitamin_k2","vitamin_k1","vitamin_k","vitamin_b1","vitamin_b2","vitamin_b3","vitamin_b5","vitamin_b6","vitamin_b12","folat","vitamin_e","biotin","selen","zink","mangan","kupfer","eisen","jod","chrom","molybdaen","epa","dha"];
 
 const TYPE_COLORS = {
-  supplement:{bg:"#f0f7ff",border:"#bdd7f5",badge:"#2563eb",badgeBg:"#dbeafe",label:"Supplement"},
-  medikament:{bg:"#fff8f0",border:"#fcd4a0",badge:"#c2410c",badgeBg:"#ffedd5",label:"Rx-Medikament"},
-  tee:{bg:"#f0fdf4",border:"#a7f3d0",badge:"#166534",badgeBg:"#dcfce7",label:"Tee / Kraut"},
+  supplement: {bg:"#f0f7ff", border:"#bdd7f5", badge:"#2563eb", badgeBg:"#dbeafe", label:"Supplement"},
+  medikament: {bg:"#fff8f0", border:"#fcd4a0", badge:"#c2410c", badgeBg:"#ffedd5", label:"Rx-Medikament"},
+  tee:        {bg:"#f0fdf4", border:"#a7f3d0", badge:"#166534", badgeBg:"#dcfce7", label:"Tee / Kraut"},
 };
 
-let doses={}, expandedNut={}, expandedEv={}, checks={}, stock={}, history={}, productDays={}, productStart={};
+let doses = {};
+let expandedNut = {};
+let expandedEv = {};
+let checks = {}; // { productId: [false, false, false] }
+let stock = {}; // { productId: {amount: number} }
+let history = {}; // { "YYYY-MM-DD": {completed: bool, checkedCount: int} }
+let productDays = {}; // { productId: [0..6] true/false } – Wochentage aktiv
+let productStart = {}; // { stockGroupOrId: "YYYY-MM-DD" }
 
-// ══ FIX 2: Lokales Datum (verhindert +1-Tag-Bug in CET/CEST) ══
 function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function localDateStr(dateObj) {
-  return `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
+  return new Date().toISOString().slice(0, 10);
 }
 
 function loadChecks() {
   try {
     const saved = localStorage.getItem("supplement_checks");
     const savedDate = localStorage.getItem("supplement_checks_date");
-    if (saved && savedDate === todayStr()) { checks = JSON.parse(saved); }
-    else { checks = {}; localStorage.setItem("supplement_checks_date", todayStr()); localStorage.setItem("supplement_checks", JSON.stringify(checks)); }
+    if (saved && savedDate === todayStr()) {
+      checks = JSON.parse(saved);
+    } else {
+      // New day – reset all checkboxes
+      checks = {};
+      localStorage.setItem("supplement_checks_date", todayStr());
+      localStorage.setItem("supplement_checks", JSON.stringify(checks));
+    }
   } catch(e) { checks = {}; }
 }
+
 function saveChecks() {
-  try { localStorage.setItem("supplement_checks", JSON.stringify(checks)); localStorage.setItem("supplement_checks_date", todayStr()); } catch(e) {}
+  try {
+    localStorage.setItem("supplement_checks", JSON.stringify(checks));
+    localStorage.setItem("supplement_checks_date", todayStr());
+  } catch(e) {}
 }
-// Debounce-Guard: verhindert Doppel-Auslösung durch Touch+Click auf Mobile
-let _lastCheck = 0;
+
 function toggleCheck(productId, index) {
-  const now = Date.now();
-  if (now - _lastCheck < 400) return; // 400ms Mindestabstand
-  _lastCheck = now;
-  if (!checks[productId]) checks[productId] = [false,false,false];
+  if (!checks[productId]) checks[productId] = [false, false, false];
   const wasChecked = checks[productId][index];
   checks[productId][index] = !wasChecked;
-  saveChecks(); renderCheckboxes(productId);
-  if (!wasChecked) { deductStock(productId,-1); } else { deductStock(productId,+1); }
+  saveChecks();
+  renderCheckboxes(productId);
+  if (!wasChecked) {
+    deductStock(productId, -1); // subtract 1
+  } else {
+    deductStock(productId, +1); // add back 1
+  }
   recordDayCompletion();
 }
+
 function renderCheckboxes(productId) {
-  const state = checks[productId] || [false,false,false];
-  for (let i=0;i<3;i++) { document.querySelectorAll(`.chkbox-${productId}-${i}`).forEach(el => el.classList.toggle("checked", !!state[i])); }
-}
-function stockKey(id) { const p=PRODUCTS.find(x=>x.id===id); return p?.stockGroup||String(id); }
-function startKey(id) { return stockKey(id); }
-function loadProductStart() { try{const s=localStorage.getItem("supplement_product_start");if(s)productStart=JSON.parse(s);}catch(e){} }
-function saveProductStart() { try{localStorage.setItem("supplement_product_start",JSON.stringify(productStart));}catch(e){} }
-function setProductStart(id,val) { const key=startKey(id); productStart[key]=val; saveProductStart(); PRODUCTS.filter(p=>startKey(p.id)===key).forEach(p=>refreshProductStartDisplay(p.id)); }
-function calcProductDay(id) {
-  const key=startKey(id); const val=productStart[key]; if(!val)return null;
-  const start=new Date(val); const today=new Date();
-  start.setHours(0,0,0,0); today.setHours(0,0,0,0);
-  const diff=Math.floor((today-start)/86400000)+1; return diff>=1?diff:null;
-}
-function refreshProductStartDisplay(id) {
-  const key=startKey(id); const val=productStart[key]||""; const day=calcProductDay(id);
-  document.querySelectorAll(`.pstart-input-${id}`).forEach(el=>{if(document.activeElement!==el)el.value=val;});
-  document.querySelectorAll(`.pstart-day-${id}`).forEach(el=>{el.textContent=day?`Tag ${day} 🗓`:"";el.style.color="#1e3a5f";el.style.fontWeight="900";});
-}
-function loadStock() { try{const s=localStorage.getItem("supplement_stock");if(s)stock=JSON.parse(s);}catch(e){} }
-function saveStock() { try{localStorage.setItem("supplement_stock",JSON.stringify(stock));}catch(e){} }
-function setStock(id,val) {
-  const key=stockKey(id); if(!stock[key])stock[key]={amount:0};
-  stock[key].amount=Math.max(0,parseFloat(val)||0); saveStock();
-  PRODUCTS.filter(p=>stockKey(p.id)===key).forEach(p=>refreshStockDisplays(p.id));
-}
-function deductStock(id,delta) {
-  const key=stockKey(id); if(!stock[key])stock[key]={amount:0};
-  stock[key].amount=Math.max(0,(stock[key].amount||0)+delta); saveStock();
-  PRODUCTS.filter(p=>stockKey(p.id)===key).forEach(p=>refreshStockDisplays(p.id));
-}
-function refreshStockDisplays(id) {
-  const key=stockKey(id); const amt=stock[key]?.amount||0; const amtRounded=Math.round(amt);
-  const p=PRODUCTS.find(x=>x.id===id);
-  const unit=p?(p.einheit==="Kapseln"?"Kapseln":p.einheit==="Tabletten"?"Tabletten":p.einheit):"";
-  const dose=doses[id]||0; let rangeHtml="";
-  if(dose>0&&amtRounded>0){
-    const daysLeft=Math.floor(amtRounded/dose); const reorderDate=new Date();
-    reorderDate.setDate(reorderDate.getDate()+daysLeft);
-    const reorderStr=reorderDate.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
-    const color=daysLeft<=7?"#dc2626":daysLeft<=14?"#d97706":"#15803d";
-    rangeHtml=`<div style="font-size:11px;color:${color};font-weight:700;margin-top:2px;">⏳ Reicht noch ${daysLeft} Tage · Nachkaufen bis ${reorderStr}</div>`;
+  const state = checks[productId] || [false, false, false];
+  for (let i = 0; i < 3; i++) {
+    const el = document.getElementById(`chk-${productId}-${i}`);
+    if (el) el.classList.toggle("checked", !!state[i]);
   }
-  document.querySelectorAll(`.stock-display-${id}`).forEach(el=>{el.textContent=`📦 Bestand: ${amtRounded} ${unit}`;el.style.color=amtRounded<=5?"#dc2626":amtRounded<=15?"#d97706":"#15803d";el.style.fontWeight="700";});
-  document.querySelectorAll(`.stock-range-wrap-${id}`).forEach(el=>{el.innerHTML=dose>0&&amtRounded>0?rangeHtml:"";});
-  document.querySelectorAll(`.stock-input-${id}`).forEach(el=>{if(document.activeElement!==el)el.value=amtRounded||"";});
 }
-function fmt(val) { if(val===null||val===undefined)return"–"; if(val%1===0)return val.toString(); return parseFloat(val.toFixed(3)).toString(); }
 
-function loadProductDays() { try{const s=localStorage.getItem("supplement_days");if(s)productDays=JSON.parse(s);}catch(e){} }
-function saveProductDays() { try{localStorage.setItem("supplement_days",JSON.stringify(productDays));}catch(e){} }
-function toggleDay(id,dayIndex) {
-  if(!productDays[id])productDays[id]=[true,true,true,true,true,true,true];
-  productDays[id][dayIndex]=!productDays[id][dayIndex]; saveProductDays();
-  const chip=document.getElementById(`daychip-${id}-${dayIndex}`);
-  if(chip)chip.classList.toggle("day-active",productDays[id][dayIndex]);
+
+function stockKey(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  return p?.stockGroup || String(id);
 }
-function toggleDayPanel(id) { const panel=document.getElementById(`day-panel-${id}`);if(panel)panel.classList.toggle("hidden"); }
-function isTodayActive(id) { const days=productDays[id]||[true,true,true,true,true,true,true]; const dow=(new Date().getDay()+6)%7; return days[dow]; }
 
-function loadHistory() { try{const s=localStorage.getItem("supplement_history");if(s)history=JSON.parse(s);}catch(e){} }
-function saveHistory() { try{localStorage.setItem("supplement_history",JSON.stringify(history));}catch(e){} }
+function startKey(id) {
+  // Verbundene Karten (stockGroup) teilen dasselbe Startdatum
+  return stockKey(id);
+}
+
+function loadProductStart() {
+  try { const s = localStorage.getItem("supplement_product_start"); if (s) productStart = JSON.parse(s); } catch(e) {}
+}
+
+function saveProductStart() {
+  try { localStorage.setItem("supplement_product_start", JSON.stringify(productStart)); } catch(e) {}
+}
+
+function setProductStart(id, val) {
+  const key = startKey(id);
+  productStart[key] = val;
+  saveProductStart();
+  // Refresh all cards sharing this key
+  PRODUCTS.filter(p => startKey(p.id) === key).forEach(p => refreshProductStartDisplay(p.id));
+}
+
+function calcProductDay(id) {
+  const key = startKey(id);
+  const val = productStart[key];
+  if (!val) return null;
+  const start = new Date(val);
+  const today = new Date();
+  start.setHours(0,0,0,0);
+  today.setHours(0,0,0,0);
+  const diff = Math.floor((today - start) / 86400000) + 1;
+  return diff >= 1 ? diff : null;
+}
+
+function refreshProductStartDisplay(id) {
+  const key = startKey(id);
+  const val = productStart[key] || "";
+  const day = calcProductDay(id);
+  document.querySelectorAll(`.pstart-input-${id}`).forEach(el => {
+    if (document.activeElement !== el) el.value = val;
+  });
+  document.querySelectorAll(`.pstart-day-${id}`).forEach(el => {
+    el.textContent = day ? `Tag ${day} 🗓` : "";
+    el.style.color = "#1e3a5f";
+    el.style.fontWeight = "900";
+  });
+}
+
+function loadStock() {
+  try { const s = localStorage.getItem("supplement_stock"); if (s) stock = JSON.parse(s); } catch(e) {}
+}
+
+function saveStock() {
+  try { localStorage.setItem("supplement_stock", JSON.stringify(stock)); } catch(e) {}
+}
+
+function setStock(id, val) {
+  const key = stockKey(id);
+  if (!stock[key]) stock[key] = {amount: 0};
+  stock[key].amount = Math.max(0, parseFloat(val) || 0);
+  saveStock();
+  // Refresh all cards sharing this stockGroup
+  PRODUCTS.filter(p => stockKey(p.id) === key).forEach(p => refreshStockDisplays(p.id));
+}
+
+function deductStock(id, delta) {
+  const key = stockKey(id);
+  if (!stock[key]) stock[key] = {amount: 0};
+  stock[key].amount = Math.max(0, (stock[key].amount || 0) + delta);
+  saveStock();
+  PRODUCTS.filter(p => stockKey(p.id) === key).forEach(p => refreshStockDisplays(p.id));
+}
+
+function refreshStockDisplays(id) {
+  const key = stockKey(id);
+  const amt = stock[key]?.amount || 0;
+  const amtRounded = Math.round(amt);
+  const p = PRODUCTS.find(x => x.id === id);
+  const unit = p ? (p.einheit === "Kapseln" ? "Kapseln" : p.einheit === "Tabletten" ? "Tabletten" : p.einheit) : "";
+  const dose = doses[id] || 0;
+  let rangeHtml = "";
+  if (dose > 0 && amtRounded > 0) {
+    const daysLeft = Math.floor(amtRounded / dose);
+    const reorderDate = new Date();
+    reorderDate.setDate(reorderDate.getDate() + daysLeft);
+    const reorderStr = reorderDate.toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric"});
+    const color = daysLeft <= 7 ? "#dc2626" : daysLeft <= 14 ? "#d97706" : "#15803d";
+    rangeHtml = `<div style="font-size:11px;color:${color};font-weight:700;margin-top:2px;">⏳ Reicht noch ${daysLeft} Tage · Nachkaufen bis ${reorderStr}</div>`;
+  }
+  document.querySelectorAll(`.stock-display-${id}`).forEach(el => {
+    el.textContent = `📦 Bestand: ${amtRounded} ${unit}`;
+    el.style.color = amtRounded <= 5 ? "#dc2626" : amtRounded <= 15 ? "#d97706" : "#15803d";
+    el.style.fontWeight = "700";
+  });
+  document.querySelectorAll(`.stock-range-wrap-${id}`).forEach(el => {
+    el.innerHTML = dose > 0 && amtRounded > 0 ? rangeHtml : "";
+  });
+  document.querySelectorAll(`.stock-input-${id}`).forEach(el => {
+    if (document.activeElement !== el) el.value = amtRounded || "";
+  });
+}
+
+function fmt(val) {
+  if (val === null || val === undefined) return "–";
+  if (val % 1 === 0) return val.toString();
+  return parseFloat(val.toFixed(3)).toString();
+}
+
+// ── WOCHENTAGE ───────────────────────────────────────────
+function loadProductDays() {
+  try { const s = localStorage.getItem("supplement_days"); if (s) productDays = JSON.parse(s); } catch(e) {}
+}
+function saveProductDays() {
+  try { localStorage.setItem("supplement_days", JSON.stringify(productDays)); } catch(e) {}
+}
+function toggleDay(id, dayIndex) {
+  if (!productDays[id]) productDays[id] = [true,true,true,true,true,true,true];
+  productDays[id][dayIndex] = !productDays[id][dayIndex];
+  saveProductDays();
+  const chip = document.getElementById(`daychip-${id}-${dayIndex}`);
+  if (chip) chip.classList.toggle("day-active", productDays[id][dayIndex]);
+}
+function toggleDayPanel(id) {
+  const panel = document.getElementById(`day-panel-${id}`);
+  if (panel) panel.classList.toggle("hidden");
+}
+function isTodayActive(id) {
+  const days = productDays[id] || [true,true,true,true,true,true,true];
+  const dow = (new Date().getDay() + 6) % 7; // 0=Mo..6=So
+  return days[dow];
+}
+
+// ── VERLAUF & STREAK ─────────────────────────────────────
+function loadHistory() {
+  try { const s = localStorage.getItem("supplement_history"); if (s) history = JSON.parse(s); } catch(e) {}
+}
+function saveHistory() {
+  try { localStorage.setItem("supplement_history", JSON.stringify(history)); } catch(e) {}
+}
 function recordDayCompletion() {
-  const today=todayStr(); const activeDosed=PRODUCTS.filter(p=>(doses[p.id]||0)>0&&isTodayActive(p.id));
-  if(activeDosed.length===0)return;
-  const totalChecks=activeDosed.reduce((sum,p)=>sum+(checks[p.id]||[]).filter(Boolean).length,0);
-  const completed=totalChecks>0; history[today]={completed,checkedCount:totalChecks}; saveHistory(); updateStreak();
+  const today = todayStr();
+  const activeDosed = PRODUCTS.filter(p => (doses[p.id]||0) > 0 && isTodayActive(p.id));
+  if (activeDosed.length === 0) return;
+  const totalChecks = activeDosed.reduce((sum, p) => {
+    return sum + (checks[p.id]||[]).filter(Boolean).length;
+  }, 0);
+  const completed = totalChecks > 0;
+  history[today] = { completed, checkedCount: totalChecks };
+  saveHistory();
+  updateStreak();
 }
 function updateStreak() {
-  let streak=0; const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-1);
-  while(true){ const key=localDateStr(d); if(history[key]?.completed){streak++;d.setDate(d.getDate()-1);}else break; }
-  const el=document.getElementById("streak-num"); if(el)el.textContent=streak;
+  let streak = 0;
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  // Don't require today to be complete yet
+  d.setDate(d.getDate() - 1);
+  while (true) {
+    const key = d.toISOString().slice(0,10);
+    if (history[key]?.completed) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  const el = document.getElementById("streak-num");
+  if (el) el.textContent = streak;
 }
 
+// ── MONATSÜBERSICHT / EXPORT ─────────────────────────────
 function renderExport() {
-  const el=document.getElementById("export-content"); if(!el)return;
-  const now=new Date(); const year=now.getFullYear(); const month=now.getMonth();
-  const monthName=now.toLocaleDateString("de-DE",{month:"long",year:"numeric"});
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const startDay=localStorage.getItem("supplement_start_date")||"";
-  let rows="";
-  for(let d=1;d<=daysInMonth;d++){
-    const date=new Date(year,month,d);
-    const key=localDateStr(date); // FIX 2: lokales Datum
-    const h=history[key]; const isToday=key===todayStr();
-    const wday=date.toLocaleDateString("de-DE",{weekday:"short"});
-    const status=h?.completed?"✅":h?"⬜":(date<now&&!isToday?"–":"");
-    const bg=isToday?"#fef9c3":"";
-    rows+=`<tr style="background:${bg}">
-      <td style="padding:5px 10px;font-weight:${isToday?'800':'400'};color:#374151;">${wday} ${d}.</td>
-      <td style="padding:5px 10px;text-align:center;font-size:16px;">${status}</td>
-      <td style="padding:5px 10px;color:#6b7280;font-size:12px;">${h?.checkedCount?h.checkedCount+' Einnahmen':''}</td>
+  const el = document.getElementById("export-content");
+  if (!el) return;
+
+  // Reload history fresh from localStorage
+  try { const s = localStorage.getItem("supplement_history"); if (s) history = JSON.parse(s); } catch(e) {}
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const monthName = now.toLocaleDateString("de-DE", {month:"long", year:"numeric"});
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const startDay = localStorage.getItem("supplement_start_date") || "";
+
+  // Streak berechnen
+  let streak = 0;
+  const sd = new Date(); sd.setHours(0,0,0,0); sd.setDate(sd.getDate()-1);
+  while(true) { const k=sd.toISOString().slice(0,10); if(history[k]?.completed){streak++;sd.setDate(sd.getDate()-1);}else break; }
+
+  // Tag-Zähler
+  let dayCounterText = "";
+  if (startDay) {
+    const start = new Date(startDay); start.setHours(0,0,0,0);
+    const today2 = new Date(); today2.setHours(0,0,0,0);
+    const diff = Math.floor((today2 - start) / 86400000) + 1;
+    dayCounterText = diff >= 1 ? "Tag " + diff + " 🗓" : "";
+  }
+
+  let rows = "";
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    const key = date.toISOString().slice(0,10);
+    const h = history[key];
+    const isToday = key === todayStr();
+    const isFuture = date > now && !isToday;
+    const wday = date.toLocaleDateString("de-DE", {weekday:"short"});
+    const status = isFuture ? "" : h?.completed ? "✅" : h?.checkedCount > 0 ? "⬜" : isToday ? "📍" : "–";
+    const bg = isToday ? "#fef9c3" : (d % 2 === 0 ? "#f9fafb" : "#fff");
+    rows += `<tr style="background:${bg}">
+      <td style="padding:6px 10px;font-weight:${isToday?'800':'400'};color:#374151;">${wday} ${d}.</td>
+      <td style="padding:6px 10px;text-align:center;font-size:15px;">${status}</td>
+      <td style="padding:6px 10px;color:#6b7280;font-size:12px;">${h?.checkedCount ? h.checkedCount + ' Einnahmen' : isToday ? 'heute' : ''}</td>
     </tr>`;
   }
-  const streak=document.getElementById("streak-num")?.textContent||"0";
-  el.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
-      <div>
-        <div style="font-size:20px;font-weight:900;color:#1e3a5f;">${monthName}</div>
-        ${startDay?`<div style="font-size:13px;color:#6b7280;">Startdatum: ${new Date(startDay).toLocaleDateString("de-DE")} · Tag ${document.getElementById("day-counter")?.textContent||""}</div>`:""}
-      </div>
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-        <div style="text-align:center;background:#fef3c7;border-radius:10px;padding:8px 16px;">
-          <div style="font-size:24px;font-weight:900;color:#d97706;">${streak}</div>
-          <div style="font-size:11px;color:#92400e;font-weight:700;">🔥 STREAK</div>
+
+  // Monatsstatistik
+  let doneCount = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    if (date > now) break;
+    const key = date.toISOString().slice(0,10);
+    if (history[key]?.completed) doneCount++;
+  }
+  const daysSoFar = Math.min(now.getDate(), daysInMonth);
+
+  el.innerHTML = `
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9ca3af;margin-bottom:4px;">Monatsübersicht</div>
+          <div style="font-size:22px;font-weight:900;color:#1e3a5f;">${monthName}</div>
+          ${startDay ? `<div style="font-size:13px;color:#6b7280;margin-top:2px;">Start: ${new Date(startDay).toLocaleDateString("de-DE")} · ${dayCounterText}</div>` : ""}
         </div>
-        <button onclick="window.print()" style="background:#1e3a5f;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">🖨 Drucken / PDF</button>
-        <button onclick="exportData()" style="background:#059669;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">📤 Daten exportieren</button>
-        <label style="background:#7c3aed;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">
-          📥 Daten importieren
-          <input type="file" accept=".json" onchange="importData(event)" style="display:none;">
-        </label>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div style="text-align:center;background:#fef3c7;border-radius:10px;padding:8px 14px;">
+            <div style="font-size:22px;font-weight:900;color:#d97706;">${streak}</div>
+            <div style="font-size:10px;color:#92400e;font-weight:700;">🔥 STREAK</div>
+          </div>
+          <div style="text-align:center;background:#dcfce7;border-radius:10px;padding:8px 14px;">
+            <div style="font-size:22px;font-weight:900;color:#16a34a;">${doneCount}/${daysSoFar}</div>
+            <div style="font-size:10px;color:#166534;font-weight:700;">✅ TAGE</div>
+          </div>
+          <button onclick="window.print()" style="background:#1e3a5f;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">🖨 Drucken / PDF</button>
+        </div>
       </div>
     </div>
-    <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
-      <thead><tr style="background:#1e3a5f;color:#fff;">
-        <th style="padding:8px 10px;text-align:left;font-size:12px;letter-spacing:1px;">TAG</th>
-        <th style="padding:8px 10px;font-size:12px;letter-spacing:1px;">STATUS</th>
-        <th style="padding:8px 10px;text-align:left;font-size:12px;letter-spacing:1px;">DETAIL</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div style="margin-top:12px;font-size:12px;color:#9ca3af;">✅ = mindestens 1 Einnahme abgehakt · ⬜ = nichts abgehakt · – = noch keine Daten</div>`;
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:#1e3a5f;color:#fff;">
+            <th style="padding:9px 10px;text-align:left;font-size:11px;letter-spacing:1px;">TAG</th>
+            <th style="padding:9px 10px;font-size:11px;letter-spacing:1px;">STATUS</th>
+            <th style="padding:9px 10px;text-align:left;font-size:11px;letter-spacing:1px;">DETAIL</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:#9ca3af;">✅ = alles abgehakt · ⬜ = teilweise · 📍 = heute · – = keine Daten</div>`;
 }
 
-function saveStartDate(val) { localStorage.setItem("supplement_start_date",val); updateDayCounter(); }
-function loadStartDate() { const saved=localStorage.getItem("supplement_start_date"); if(saved)document.getElementById("start-date-input").value=saved; }
-function updateDayCounter() {
-  const val=localStorage.getItem("supplement_start_date"); const el=document.getElementById("day-counter");
-  if(!val){el.textContent="";return;}
-  const start=new Date(val); const today=new Date(); today.setHours(0,0,0,0); start.setHours(0,0,0,0);
-  const diff=Math.floor((today-start)/86400000)+1;
-  if(diff<1){el.textContent="Startet in "+Math.abs(diff-1)+" Tagen";return;}
-  el.textContent="Tag "+diff+" 🗓";
+// ── SHOWTAB (erweitert) ───────────────────────────────────
+function saveStartDate(val) {
+  localStorage.setItem("supplement_start_date", val);
+  updateDayCounter();
 }
+
+function loadStartDate() {
+  const saved = localStorage.getItem("supplement_start_date");
+  if (saved) {
+    document.getElementById("start-date-input").value = saved;
+  }
+}
+
+function updateDayCounter() {
+  const val = localStorage.getItem("supplement_start_date");
+  const el = document.getElementById("day-counter");
+  if (!val) { el.textContent = ""; return; }
+  const start = new Date(val);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  start.setHours(0,0,0,0);
+  const diff = Math.floor((today - start) / 86400000) + 1;
+  if (diff < 1) { el.textContent = "Startet in " + Math.abs(diff-1) + " Tagen"; return; }
+  el.textContent = "Tag " + diff + " 🗓";
+}
+
 function initDayCounter() {
   updateDayCounter();
-  const lastReset=localStorage.getItem("supplement_last_reset"); const today=todayStr();
-  if(lastReset!==today){
+  // Auto-reset checkboxes at midnight (without touching stock)
+  const lastReset = localStorage.getItem("supplement_last_reset");
+  const today = todayStr();
+  if (lastReset !== today) {
+    // Record yesterday's completion before clearing
     recordDayCompletion();
-    Object.keys(checks).forEach(id=>{checks[id]=[false,false,false];}); saveChecks();
-    localStorage.setItem("supplement_last_reset",today); renderProducts(); updateHeaderSub();
+    // New day – clear all checkboxes
+    Object.keys(checks).forEach(id => { checks[id] = [false, false, false]; });
+    saveChecks();
+    localStorage.setItem("supplement_last_reset", today);
+    // Re-render to show empty checkboxes
+    loadProducts();
+renderProducts();
+    updateHeaderSub();
   }
-  const now=new Date(); const msUntilMidnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1)-now;
-  setTimeout(()=>{initDayCounter();},msUntilMidnight+1000);
-}
-
-function exportData() {
-  const data={
-    _version:1,_exported:new Date().toISOString(),
-    doses:JSON.parse(localStorage.getItem("supplement_doses")||"{}"),
-    checks:JSON.parse(localStorage.getItem("supplement_checks")||"{}"),
-    checks_date:localStorage.getItem("supplement_checks_date")||"",
-    stock:JSON.parse(localStorage.getItem("supplement_stock")||"{}"),
-    history:JSON.parse(localStorage.getItem("supplement_history")||"{}"),
-    product_days:JSON.parse(localStorage.getItem("supplement_days")||"{}"),
-    product_start:JSON.parse(localStorage.getItem("supplement_product_start")||"{}"),
-    start_date:localStorage.getItem("supplement_start_date")||"",
-    last_reset:localStorage.getItem("supplement_last_reset")||"",
-    saved_at:localStorage.getItem("supplement_saved_at")||"",
-  };
-  const json=JSON.stringify(data,null,2); const date=new Date().toISOString().slice(0,10);
-  const a=document.createElement("a"); a.href="data:application/json;charset=utf-8,"+encodeURIComponent(json);
-  a.download=`supplement-daten-${date}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-}
-
-function importData(event) {
-  const file=event.target.files?.[0]; if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      const data=JSON.parse(e.target.result); if(!data._version)throw new Error("Ungültiges Format");
-      if(data.doses)localStorage.setItem("supplement_doses",JSON.stringify(data.doses));
-      if(data.checks)localStorage.setItem("supplement_checks",JSON.stringify(data.checks));
-      if(data.checks_date)localStorage.setItem("supplement_checks_date",data.checks_date);
-      if(data.stock)localStorage.setItem("supplement_stock",JSON.stringify(data.stock));
-      if(data.history)localStorage.setItem("supplement_history",JSON.stringify(data.history));
-      if(data.product_days)localStorage.setItem("supplement_days",JSON.stringify(data.product_days));
-      if(data.product_start)localStorage.setItem("supplement_product_start",JSON.stringify(data.product_start));
-      if(data.start_date)localStorage.setItem("supplement_start_date",data.start_date);
-      if(data.last_reset)localStorage.setItem("supplement_last_reset",data.last_reset);
-      if(data.saved_at)localStorage.setItem("supplement_saved_at",data.saved_at);
-      doses=data.doses||{}; checks=data.checks||{}; stock=data.stock||{};
-      history=data.history||{}; productDays=data.product_days||{}; productStart=data.product_start||{};
-      renderProducts(); updateHeaderSub(); updateHeaderStats(); updateStreak(); loadStartDate(); updateDayCounter();
-      const exportedOn=data._exported?new Date(data._exported).toLocaleString("de-DE"):"unbekannt";
-      alert(`✅ Import erfolgreich!\nExportiert am: ${exportedOn}\n\nAlle Bestände, Dosen und Einnahmedaten wurden wiederhergestellt.`);
-      showTab("produkte");
-    }catch(err){alert("❌ Import fehlgeschlagen: "+err.message);}
-    event.target.value="";
-  };
-  reader.readAsText(file);
+  // Check again at midnight
+  const now = new Date();
+  const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1) - now;
+  setTimeout(() => { initDayCounter();
+updateJumpNav();
+autoScrollToCurrentSlot();
+// Update jump nav every minute
+setInterval(updateJumpNav, 60000); }, msUntilMidnight + 1000);
 }
 
 function loadDoses() {
-  try{const saved=localStorage.getItem("supplement_doses");if(saved)doses=JSON.parse(saved);
-  const ts=localStorage.getItem("supplement_saved_at");if(ts)document.getElementById("save-status").textContent="Zuletzt gespeichert: "+ts;}catch(e){}
-  PRODUCTS.forEach(p=>{if(p.defaultDose!==undefined&&(doses[p.id]===undefined||doses[p.id]===0))doses[p.id]=p.defaultDose;});
-}
-function saveNow() {
-  try{localStorage.setItem("supplement_doses",JSON.stringify(doses));
-  const now=new Date().toLocaleString("de-DE"); localStorage.setItem("supplement_saved_at",now);
-  document.getElementById("save-status").textContent="Zuletzt gespeichert: "+now;}catch(e){}
-}
-function calcAcc() {
-  const acc={};
-  PRODUCTS.forEach(p=>{const dose=doses[p.id]||0;if(!dose)return;
-    p.nutrients.forEach(n=>{if(n.per===null)return;
-      if(!acc[n.key])acc[n.key]={label:n.label,total:0,unit:n.unit,sources:[]};
-      acc[n.key].total+=n.per*dose; acc[n.key].sources.push({name:p.name,amount:n.per*dose,unit:n.unit});
-    });
-  }); return acc;
-}
-function updateDose(id,val) {
-  const n=parseFloat(val); doses[id]=isNaN(n)||n<0?0:n;
-  const inp=document.getElementById("inp-"+id); if(inp)inp.classList.toggle("has-value",doses[id]>0);
-  PRODUCTS.forEach(p=>{if(expandedNut[p.id])updateNutPanel(p.id);}); updateHeaderSub(); saveNow();
-  if(!document.getElementById("tab-kumulierung").classList.contains("hidden"))renderCumulative();
-}
-function updateNutPanel(id) {
-  const p=PRODUCTS.find(x=>x.id===id); if(!p||!expandedNut[id])return;
-  const dose=doses[id]||0; const acc=calcAcc();
-  p.nutrients.forEach(n=>{
-    const elTotal=document.getElementById(`nt-${id}-${n.key}`); const elMiss=document.getElementById(`nm-${id}-${n.key}`);
-    if(!elTotal)return;
-    const thisAmount=(dose>0&&n.per!==null)?n.per*dose:0; const cumTotal=acc[n.key]?.total||0;
-    if(thisAmount>0){elTotal.textContent=`→ ${fmt(thisAmount)} ${n.unit} heute`;elTotal.classList.remove("zero");}
-    else{elTotal.textContent="– nicht dosiert";elTotal.classList.add("zero");}
-    if(!elMiss)return;
-    const nrvMeta=NRV[n.key]; if(!nrvMeta||cumTotal===0){elMiss.textContent="";elMiss.className="nut-item-missing zero";return;}
-    const refVal=nrvMeta.value; const diff=refVal-cumTotal; const pct=Math.round((cumTotal/refVal)*100);
-    const otherSources=cumTotal-thisAmount; const cumNote=otherSources>0.001?` (gesamt alle Präp.: ${fmt(cumTotal)} ${n.unit})`:"";
-    if(diff<=0){elMiss.textContent=`✓ NRV erreicht${cumNote}`;elMiss.className="nut-item-missing ok";}
-    else{const cls=pct>=60?"warn":"danger";elMiss.textContent=`Noch ${fmt(diff)} ${n.unit} bis NRV${cumNote}`;elMiss.className=`nut-item-missing ${cls}`;}
+  try {
+    const saved = localStorage.getItem("supplement_doses");
+    if (saved) doses = JSON.parse(saved);
+    const ts = localStorage.getItem("supplement_saved_at");
+    if (ts) document.getElementById("save-status").textContent = "Zuletzt gespeichert: " + ts;
+  } catch(e) {}
+  PRODUCTS.forEach(p => {
+    if (p.defaultDose !== undefined && (doses[p.id] === undefined || doses[p.id] === 0)) {
+      doses[p.id] = p.defaultDose;
+    }
   });
-}
-function toggleNut(id) {
-  expandedNut[id]=!expandedNut[id]; document.getElementById("nut-panel-"+id)?.classList.toggle("hidden",!expandedNut[id]);
-  const btn=document.getElementById("nut-btn-"+id); if(btn)btn.textContent=expandedNut[id]?"▲ Inhaltsstoffe":"▼ Inhaltsstoffe";
-  updateNutPanel(id);
-}
-function toggleEv(id) {
-  expandedEv[id]=!expandedEv[id]; document.getElementById("ev-panel-"+id)?.classList.toggle("hidden",!expandedEv[id]);
-  const btn=document.getElementById("ev-btn-"+id);
-  if(btn){btn.textContent=expandedEv[id]?"📖 Evidenz ▲":"📖 Evidenz";btn.classList.toggle("ev-open",expandedEv[id]);}
 }
 
-// ══ FIX 1: Header-Statistiken dynamisch ══
-function updateHeaderStats() {
-  const seen=new Set(); const counts={supplement:0,medikament:0,tee:0};
-  PRODUCTS.forEach(p=>{
-    const key=p.stockGroup||String(p.id);
-    if(!seen.has(key)){seen.add(key);if(counts[p.typ]!==undefined)counts[p.typ]++;}
+function saveNow() {
+  try {
+    localStorage.setItem("supplement_doses", JSON.stringify(doses));
+    const now = new Date().toLocaleString("de-DE");
+    localStorage.setItem("supplement_saved_at", now);
+    document.getElementById("save-status").textContent = "Zuletzt gespeichert: " + now;
+  } catch(e) {}
+}
+
+function calcAcc() {
+  const acc = {};
+  PRODUCTS.forEach(p => {
+    const dose = doses[p.id] || 0;
+    if (!dose) return;
+    p.nutrients.forEach(n => {
+      if (n.per === null) return;
+      if (!acc[n.key]) acc[n.key] = {label:n.label, total:0, unit:n.unit, sources:[]};
+      acc[n.key].total += n.per * dose;
+      acc[n.key].sources.push({name: p.name, amount: n.per * dose, unit: n.unit});
+    });
   });
-  const s=document.getElementById('stat-supplements'); if(s)s.textContent=counts.supplement;
-  const m=document.getElementById('stat-medikamente'); if(m)m.textContent=counts.medikament;
-  const t=document.getElementById('stat-tee'); if(t)t.textContent=counts.tee;
+  return acc;
+}
+
+function updateDose(id, val) {
+  const n = parseFloat(val);
+  doses[id] = isNaN(n) || n < 0 ? 0 : n;
+  const inp = document.getElementById("inp-" + id);
+  if (inp) inp.classList.toggle("has-value", doses[id] > 0);
+  // Update all open nut panels (dose change affects cumulative totals everywhere)
+  PRODUCTS.forEach(p => { if (expandedNut[p.id]) updateNutPanel(p.id); });
+  updateHeaderSub();
+  saveNow();
+  if (!document.getElementById("tab-kumulierung").classList.contains("hidden")) renderCumulative();
+}
+
+function updateNutPanel(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p || !expandedNut[id]) return;
+  const dose = doses[id] || 0;
+  const acc = calcAcc();
+
+  p.nutrients.forEach(n => {
+    const elTotal = document.getElementById(`nt-${id}-${n.key}`);
+    const elMiss  = document.getElementById(`nm-${id}-${n.key}`);
+    if (!elTotal) return;
+
+    const thisAmount = (dose > 0 && n.per !== null) ? n.per * dose : 0;
+    const cumTotal   = acc[n.key]?.total || 0;
+
+    // Today line
+    if (thisAmount > 0) {
+      elTotal.textContent = `→ ${fmt(thisAmount)} ${n.unit} heute`;
+      elTotal.classList.remove("zero");
+    } else {
+      elTotal.textContent = "– nicht dosiert";
+      elTotal.classList.add("zero");
+    }
+
+    if (!elMiss) return;
+    // Get reference value (study or NRV)
+    const studyVal = STUDY[n.key] ? null : null; // we use the numeric NRV for calculation
+    const nrvMeta  = NRV[n.key];
+    if (!nrvMeta || cumTotal === 0) { elMiss.textContent = ""; elMiss.className = "nut-item-missing zero"; return; }
+
+    const refVal  = nrvMeta.value; // use NRV as base; study is shown as text
+    const diff    = refVal - cumTotal;
+    const pct     = Math.round((cumTotal / refVal) * 100);
+    const otherSources = cumTotal - thisAmount;
+    const cumNote = otherSources > 0.001 ? ` (gesamt alle Präp.: ${fmt(cumTotal)} ${n.unit})` : "";
+
+    if (diff <= 0) {
+      elMiss.textContent = `✓ NRV erreicht${cumNote}`;
+      elMiss.className = "nut-item-missing ok";
+    } else {
+      const cls = pct >= 60 ? "warn" : "danger";
+      elMiss.textContent = `Noch ${fmt(diff)} ${n.unit} bis NRV${cumNote}`;
+      elMiss.className = `nut-item-missing ${cls}`;
+    }
+  });
+}
+
+function toggleNut(id) {
+  expandedNut[id] = !expandedNut[id];
+  document.getElementById("nut-panel-" + id)?.classList.toggle("hidden", !expandedNut[id]);
+  const btn = document.getElementById("nut-btn-" + id);
+  if (btn) btn.textContent = expandedNut[id] ? "▲ Inhaltsstoffe" : "▼ Inhaltsstoffe";
+  updateNutPanel(id);
+}
+
+function toggleEv(id) {
+  expandedEv[id] = !expandedEv[id];
+  document.getElementById("ev-panel-" + id)?.classList.toggle("hidden", !expandedEv[id]);
+  const btn = document.getElementById("ev-btn-" + id);
+  if (btn) {
+    btn.textContent = expandedEv[id] ? "📖 Evidenz ▲" : "📖 Evidenz";
+    btn.classList.toggle("ev-open", expandedEv[id]);
+  }
 }
 
 function updateHeaderSub() {
-  const active=PRODUCTS.filter(p=>(doses[p.id]||0)>0).length;
-  document.getElementById("header-sub").textContent=`${PRODUCTS.length} Produkte erfasst · ${active} aktiv dosiert`;
+  const active = PRODUCTS.filter(p => (doses[p.id] || 0) > 0).length;
+  document.getElementById("header-sub").textContent = `${PRODUCTS.length} Produkte erfasst · ${active} aktiv dosiert`;
 }
 
 function renderProducts() {
-  function getSlots(p){const z=p.timing?.zeit||"";const slots=[];if(z.includes("Morgens"))slots.push("morgens");if(z.includes("Mittags"))slots.push("mittags");if(z.includes("Abends"))slots.push("abends");return slots.length?slots:["morgens"];}
-  function essenRank(p){const e=p.timing?.essen||"";if(e.startsWith("Nüchtern"))return 0;if(e==="Unabhängig")return 1;return 2;}
-  function bonusRank(p){return p.sortBonus||0;}
+  function getSlots(p) {
+    const z = p.timing?.zeit || "";
+    const slots = [];
+    if (z.includes("Morgens")) slots.push("morgens");
+    if (z.includes("Mittags")) slots.push("mittags");
+    if (z.includes("Abends")) slots.push("abends");
+    return slots.length ? slots : ["morgens"];
+  }
+  function essenRank(p) {
+    const e = p.timing?.essen || "";
+    if (e.startsWith("Nüchtern")) return 0;
+    if (e === "Unabhängig") return 1;
+    return 2;
+  }
+  function bonusRank(p) { return p.sortBonus || 0; }
 
-  ["morgens","mittags","abends"].forEach(slot=>{
-    const container=document.getElementById("group-"+slot); container.innerHTML="";
-    PRODUCTS.filter(p=>getSlots(p).includes(slot)).sort((a,b)=>bonusRank(a)-bonusRank(b)||essenRank(a)-essenRank(b)).forEach(p=>{
-      const c=TYPE_COLORS[p.typ]; const dose=doses[p.id]||0;
-      const einheitSingular=p.einheit==="Kapseln"?"Kapsel":p.einheit==="Tabletten"?"Tablette":p.einheit;
-      const slotIcon=slot==="morgens"?"🌅":slot==="mittags"?"☀️":"🌙";
-      const slotLabel=slot==="morgens"?"Morgens":slot==="mittags"?"Mittags":"Abends";
-      const uhrzeit=p.timing?.uhrzeiten?.[slot]||"";
-      const nutItems=p.nutrients.map(n=>{
-        const nrvMeta=NRV[n.key]; const studyMeta=STUDY[n.key];
-        const recText=studyMeta?`Empfohlen: ${studyMeta.text}`:(nrvMeta?`NRV: ${nrvMeta.value} ${nrvMeta.unit}`:"");
+  ["morgens","mittags","abends"].forEach(slot => {
+    const container = document.getElementById("group-" + slot);
+    container.innerHTML = "";
+    PRODUCTS
+      .filter(p => getSlots(p).includes(slot))
+      .sort((a, b) => {
+        // Primär: sortBonus (Weidenröschen zuerst/zuletzt)
+        const bDiff = bonusRank(a) - bonusRank(b);
+        if (bDiff !== 0) return bDiff;
+        // Sekundär: Uhrzeit aufsteigend
+        const tA = (a.timing?.uhrzeiten?.[slot] || "99:99").replace(":","");
+        const tB = (b.timing?.uhrzeiten?.[slot] || "99:99").replace(":","");
+        return parseInt(tA) - parseInt(tB);
+      })
+      .forEach(p => {
+      const c = TYPE_COLORS[p.typ];
+      const dose = doses[p.id] || 0;
+      const einheitSingular = p.einheit === "Kapseln" ? "Kapsel" : p.einheit === "Tabletten" ? "Tablette" : p.einheit;
+      const slotIcon = slot === "morgens" ? "🌅" : slot === "mittags" ? "☀️" : "🌙";
+      const slotLabel = slot === "morgens" ? "Morgens" : slot === "mittags" ? "Mittags" : "Abends";
+      const slotIdx = slot === "morgens" ? 0 : slot === "mittags" ? 1 : 2;
+      const uhrzeit = p.timing?.uhrzeiten?.[slot] || "";
+
+      // Nutrient grid items
+      const nutItems = p.nutrients.map(n => {
+        const nrvMeta = NRV[n.key];
+        const studyMeta = STUDY[n.key];
+        const recText = studyMeta ? `Empfohlen: ${studyMeta.text}` : (nrvMeta ? `NRV: ${nrvMeta.value} ${nrvMeta.unit}` : "");
         return `<div class="nut-item">
           <div class="nut-item-name">${n.label}</div>
-          <div class="nut-item-per">${n.per!==null?fmt(n.per)+" "+n.unit+" / "+einheitSingular:"Menge k. A."}</div>
+          <div class="nut-item-per">${n.per !== null ? fmt(n.per) + " " + n.unit + " / " + einheitSingular : "Menge k. A."}</div>
           <div class="nut-item-total zero" id="nt-${p.id}-${n.key}">– nicht dosiert</div>
-          ${recText?`<div class="nut-item-rec">${recText}</div>`:""}
+          ${recText ? `<div class="nut-item-rec">${recText}</div>` : ""}
           <div class="nut-item-missing zero" id="nm-${p.id}-${n.key}"></div>
         </div>`;
       }).join("");
-      const evBlocks=(p.evidence||[]).map(e=>`
+
+      // Evidence blocks
+      const evBlocks = (p.evidence || []).map(e => `
         <div class="ev-block">
           <div class="ev-nut">▸ ${e.nut}</div>
           <div class="ev-text">${e.text}</div>
           <div class="ev-src">Quellen: ${e.src}</div>
         </div>`).join("");
-      const div=document.createElement("div"); div.className="card"; div.id="card-"+p.id; div.style.border=`1px solid ${c.border}`;
-      div.innerHTML=`
+
+      const div = document.createElement("div");
+      div.className = "card";
+      div.id = "card-" + p.id;
+      div.style.border = `1px solid ${c.border}`;
+      div.innerHTML = `
         <div class="card-head" style="background:${c.bg}">
-          <span class="badge" style="background:${c.badgeBg};color:${c.badge}">${c.label}</span>
-          <div class="card-name"><strong>${p.name}</strong><small>${p.hersteller}${p.hinweis?' · '+p.hinweis:''}</small></div>
-          <div class="dose-wrap">
-            <input type="number" id="inp-${p.id}" class="dose-input${dose?' has-value':''}" min="0" step="1" value="${dose||""}" placeholder="0" oninput="updateDose(${p.id},this.value)">
-            <span class="dose-unit">${p.einheit}/Tag</span>
-          </div>
-          ${p.timing?`<div class="timing-wrap">
-            <span class="timing-badge ${slot}">${slotIcon} ${slotLabel}${uhrzeit?` · <strong>${uhrzeit}</strong>`:""}</span>
-            <span class="timing-badge ${p.timing.essen.startsWith('Nüchtern')?'nuechtern':p.timing.essen==='Unabhängig'?'info':'essen'}">
-              ${p.timing.essen.startsWith('Nüchtern')?'🚫':p.timing.essen==='Unabhängig'?'ℹ️':'🍽️'} ${p.timing.essen}
-            </span>
-          </div>`:""}
-          <div class="check-wrap">
-            <span class="check-label">Heute</span>
-            <div class="check-box chkbox-${p.id}-0 ${(checks[p.id]||[])[0]?'checked':''}" onclick="toggleCheck(${p.id},0)" title="Dosis 1"></div>
-            <div class="check-box chkbox-${p.id}-1 ${(checks[p.id]||[])[1]?'checked':''}" onclick="toggleCheck(${p.id},1)" title="Dosis 2"></div>
-            <div class="check-box chkbox-${p.id}-2 ${(checks[p.id]||[])[2]?'checked':''}" onclick="toggleCheck(${p.id},2)" title="Dosis 3"></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;width:100%;flex-wrap:nowrap;">
+            <span class="badge" style="background:${c.badgeBg};color:${c.badge};flex-shrink:0;margin-top:2px">${c.label}</span>
+            <div class="card-name" style="flex:1;min-width:0;">
+              <strong>${p.name}</strong>
+              <small>${p.hersteller}${p.hinweis ? ' · ' + p.hinweis : ''}</small>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+                <input type="number" id="inp-${p.id}" class="dose-input${dose ? ' has-value':''}"
+                  min="0" step="1" value="${dose || ""}" placeholder="0"
+                  oninput="updateDose(${p.id}, this.value)">
+                <span class="dose-unit">${p.einheit}/Tag</span>
+                ${p.timing ? `
+                <span class="timing-badge ${slot}">
+                  ${slotIcon} ${slotLabel}${uhrzeit ? ` · <strong>${uhrzeit}</strong>` : ""}
+                </span>
+                <span class="timing-badge ${p.timing.essen.startsWith('Nüchtern') ? 'nuechtern' : p.timing.essen === 'Unabhängig' ? 'info' : 'essen'}">
+                  ${p.timing.essen.startsWith('Nüchtern') ? '🚫' : p.timing.essen === 'Unabhängig' ? 'ℹ️' : '🍽️'} ${p.timing.essen}
+                </span>` : ""}
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;">
+              <button class="edit-card-btn" onclick="openEditModal(${p.id})" title="Bearbeiten" style="padding:4px 8px;font-size:13px;border-radius:6px;">✏️</button>
+              <div class="check-wrap" style="flex-shrink:0;">
+                <span class="check-label">Heute</span>
+                <div class="check-box ${(checks[p.id]||[])[slotIdx] ? 'checked' : ''}" id="chk-${p.id}-${slotIdx}" onclick="toggleCheck(${p.id},${slotIdx})" title="${slotLabel}"></div>
+              </div>
+            </div>
           </div>
           <div class="stock-wrap">
             <div class="stock-display-${p.id}" style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:2px;">📦 Bestand: ${Math.round(stock[p.stockGroup||String(p.id)]?.amount||0)} ${p.einheit}</div>
             <div class="stock-range-wrap-${p.id}"></div>
             <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:4px;">
-              <input type="number" min="0" step="1" placeholder="Bestand eingeben" value="${Math.round(stock[p.stockGroup||String(p.id)]?.amount||0)||''}" class="stock-input-${p.id}"
+              <input type="number" min="0" step="1" placeholder="Bestand eingeben"
+                value="${Math.round(stock[p.stockGroup||String(p.id)]?.amount||0)||''}"
+                class="stock-input-${p.id}"
                 style="width:120px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:Georgia,serif;"
-                onchange="setStock(${p.id},this.value)" oninput="setStock(${p.id},this.value)">
+                onchange="setStock(${p.id}, this.value)"
+                oninput="setStock(${p.id}, this.value)">
               <span style="font-size:11px;color:#6b7280;">${p.einheit}</span>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0;">
               <div>
                 <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;margin-bottom:3px;">📅 Startdatum</div>
-                <input type="date" class="pstart-input-${p.id}" value="${productStart[p.stockGroup||String(p.id)]||''}"
+                <input type="date" class="pstart-input-${p.id}"
+                  value="${productStart[p.stockGroup||String(p.id)]||''}"
                   style="padding:4px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:Georgia,serif;color:#1e3a5f;"
-                  onchange="setProductStart(${p.id},this.value)">
+                  onchange="setProductStart(${p.id}, this.value)">
               </div>
               <div class="pstart-day-${p.id}" style="font-size:16px;font-weight:900;color:#1e3a5f;">${(()=>{const d=calcProductDay(p.id);return d?'Tag '+d+' 🗓':''})()}</div>
             </div>
           </div>
           <div class="card-btns">
             <button class="panel-btn" id="nut-btn-${p.id}" onclick="toggleNut(${p.id})">▼ Inhaltsstoffe</button>
-            ${evBlocks?`<button class="panel-btn" id="ev-btn-${p.id}" onclick="toggleEv(${p.id})">📖 Evidenz</button>`:""}
+            ${evBlocks ? `<button class="panel-btn" id="ev-btn-${p.id}" onclick="toggleEv(${p.id})">📖 Evidenz</button>` : ""}
             <button class="panel-btn" onclick="toggleDayPanel(${p.id})" id="day-btn-${p.id}" title="Einnahmetage konfigurieren">📆 Tage</button>
           </div>
           <div class="day-panel hidden" id="day-panel-${p.id}">
             <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#6b7280;margin-bottom:8px;">An welchen Tagen nehmen?</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              ${["Mo","Di","Mi","Do","Fr","Sa","So"].map((d,i)=>{const active=(productDays[p.id]||[true,true,true,true,true,true,true])[i];return`<div class="day-chip${active?' day-active':''}" id="daychip-${p.id}-${i}" onclick="toggleDay(${p.id},${i})">${d}</div>`;}).join("")}
+              ${["Mo","Di","Mi","Do","Fr","Sa","So"].map((d,i) => {
+                const active = (productDays[p.id] || [true,true,true,true,true,true,true])[i];
+                return `<div class="day-chip${active?' day-active':''}" id="daychip-${p.id}-${i}" onclick="toggleDay(${p.id},${i})">${d}</div>`;
+              }).join("")}
             </div>
           </div>
         </div>
@@ -1176,79 +1474,620 @@ function renderProducts() {
           <div class="panel-label">Nährstoffe pro ${einheitSingular} &amp; heutige Zufuhr (produktübergreifend)</div>
           <div class="nut-grid">${nutItems}</div>
         </div>
-        ${evBlocks?`<div class="card-evidence hidden" id="ev-panel-${p.id}">
-          <div class="ev-title">📖 Wissenschaftliche Evidenz</div>${evBlocks}
-        </div>`:""}`;
+        ${evBlocks ? `<div class="card-evidence hidden" id="ev-panel-${p.id}">
+          <div class="ev-title">📖 Wissenschaftliche Evidenz</div>
+          ${evBlocks}
+        </div>` : ""}`;
       container.appendChild(div);
     });
   });
 }
 
 function renderCumulative() {
-  const container=document.getElementById("cum-content");
-  const activeProducts=PRODUCTS.filter(p=>(doses[p.id]||0)>0);
-  if(activeProducts.length===0){container.innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Noch keine Dosen eingetragen</div><div class="empty-sub">Gehe zum Tab „Produkte & Dosierung" und trage deine tägliche Einnahmemenge ein.</div></div>`;return;}
-  const acc=calcAcc();
-  function sourcesTooltip(sources){if(sources.length<=1)return'';return sources.map(s=>`<span style="display:inline-block;background:#f0f7ff;border:1px solid #bdd7f5;border-radius:5px;padding:2px 8px;margin:2px 2px 0 0;font-size:11px;color:#1e3a5f;white-space:nowrap;">${s.name} <span style="font-weight:700;color:#2563eb">${fmt(s.amount)} ${s.unit}</span></span>`).join('');}
-  function missBadge(total,refVal,unit,ulMeta){
-    if(ulMeta&&total>ulMeta.value)return`<span class="miss-badge danger" title="EFSA UL: ${ulMeta.value} ${unit} (${ulMeta.src})">⛔ UL überschritten +${fmt(total-ulMeta.value)} ${unit}</span>`;
-    if(ulMeta&&total>ulMeta.value*0.8)return`<span class="miss-badge warn" title="EFSA UL: ${ulMeta.value} ${unit} (${ulMeta.src})">⚠️ ${Math.round((total/ulMeta.value)*100)}% des UL (${ulMeta.value} ${unit})</span>`;
-    if(!refVal||total===0)return`<span class="miss-badge zero">–</span>`;
-    const diff=refVal-total;const pct=Math.round((total/refVal)*100);
-    if(diff<=0)return`<span class="miss-badge ok">✓ Erreicht</span>`;
-    const cls=pct>=60?"warn":"danger";return`<span class="miss-badge ${cls}">Noch ${fmt(diff)} ${unit}</span>`;
+  const container = document.getElementById("cum-content");
+  const activeProducts = PRODUCTS.filter(p => (doses[p.id] || 0) > 0);
+
+  if (activeProducts.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <div class="empty-title">Noch keine Dosen eingetragen</div>
+        <div class="empty-sub">Gehe zum Tab „Produkte & Dosierung" und trage deine tägliche Einnahmemenge ein.</div>
+      </div>`;
+    return;
   }
-  const chips=activeProducts.map(p=>`<div class="chip"><strong>${doses[p.id]}</strong> × ${p.name}</div>`).join("");
-  const nrvEntries=Object.entries(acc).filter(([k])=>NRV[k]);
-  nrvEntries.sort(([a],[b])=>{const ia=NRV_ORDER.indexOf(a);const ib=NRV_ORDER.indexOf(b);return(ia<0?99:ia)-(ib<0?99:ib);});
-  const nrvRows=nrvEntries.map(([key,data],i)=>{
-    const nrv=NRV[key];const study=STUDY[key];const ul=UL[key];const pct=(data.total/nrv.value)*100;
-    const ulExceeded=ul&&data.total>ul.value;const ulNear=ul&&data.total>ul.value*0.8;
-    const color=ulExceeded?"#dc2626":ulNear?"#f59e0b":pct>150?"#f59e0b":"#22c55e";
-    const barW=Math.min(pct/4,100);const hasMultiple=data.sources.length>1;
-    const sourcesHtml=hasMultiple?`<tr class="${i%2===1?'alt':''}"><td colspan="5" style="padding:0 16px 10px 16px;"><div style="display:flex;flex-wrap:wrap;gap:0;">${sourcesTooltip(data.sources)}</div></td></tr>`:'';
-    const badge=missBadge(data.total,nrv.value,nrv.unit,ul);
-    return`<tr class="${i%2===1?'alt':''}">
-      <td class="name">${data.label}${hasMultiple?`<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:6px;font-weight:700;">${data.sources.length} Quellen</span>`:''}</td>
+
+  const acc = calcAcc();
+
+  function sourcesTooltip(sources) {
+    if (sources.length <= 1) return '';
+    return sources.map(s => `<span style="display:inline-block;background:#f0f7ff;border:1px solid #bdd7f5;border-radius:5px;padding:2px 8px;margin:2px 2px 0 0;font-size:11px;color:#1e3a5f;white-space:nowrap;">
+      ${s.name} <span style="font-weight:700;color:#2563eb">${fmt(s.amount)} ${s.unit}</span>
+    </span>`).join('');
+  }
+
+  function missBadge(total, refVal, unit) {
+    if (!refVal || total === 0) return `<span class="miss-badge zero">–</span>`;
+    const diff = refVal - total;
+    const pct = Math.round((total / refVal) * 100);
+    if (diff <= 0) return `<span class="miss-badge ok">✓ Erreicht</span>`;
+    const cls = pct >= 60 ? "warn" : "danger";
+    return `<span class="miss-badge ${cls}">Noch ${fmt(diff)} ${unit}</span>`;
+  }
+
+  const chips = activeProducts.map(p =>
+    `<div class="chip"><strong>${doses[p.id]}</strong> × ${p.name}</div>`).join("");
+
+  const nrvEntries = Object.entries(acc).filter(([k]) => NRV[k]);
+  nrvEntries.sort(([a],[b]) => {
+    const ia = NRV_ORDER.indexOf(a); const ib = NRV_ORDER.indexOf(b);
+    return (ia<0?99:ia)-(ib<0?99:ib);
+  });
+
+  const nrvRows = nrvEntries.map(([key,data], i) => {
+    const nrv = NRV[key];
+    const study = STUDY[key];
+    const pct = (data.total / nrv.value) * 100;
+    const color = pct > 300 ? "#dc2626" : pct > 150 ? "#f59e0b" : "#22c55e";
+    const barW = Math.min(pct/4, 100);
+    const hasMultiple = data.sources.length > 1;
+    const sourcesHtml = hasMultiple ? `<tr class="${i%2===1?'alt':''}">
+      <td colspan="5" style="padding:0 16px 10px 16px;">
+        <div style="display:flex;flex-wrap:wrap;gap:0;">${sourcesTooltip(data.sources)}</div>
+      </td>
+    </tr>` : '';
+    const badge = missBadge(data.total, nrv.value, nrv.unit);
+    return `<tr class="${i%2===1?'alt':''}">
+      <td class="name">
+        ${data.label}
+        ${hasMultiple ? `<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:6px;font-weight:700;">${data.sources.length} Quellen</span>` : ''}
+      </td>
       <td class="total right">${fmt(data.total)} ${data.unit}</td>
-      <td class="nrv-val right">${fmt(nrv.value)} ${nrv.unit}${ul?`<br><span style="font-size:10px;color:#dc2626;font-weight:700;" title="${ul.src}">UL: ${ul.value} ${ul.unit}</span>`:''}</td>
-      <td class="study-col">${study?`<div class="study-rec">${study.text}</div><div class="study-src">${study.src}</div>`:'<span style="color:#d1d5db;font-size:11px;">–</span>'}${badge}</td>
-      <td><div class="nrv-bar-wrap"><div class="nrv-bar-track"><div class="nrv-bar-fill" style="width:${barW}%;background:${color}"></div></div><span class="nrv-pct" style="color:${color}">${Math.round(pct)}%</span></div></td>
+      <td class="nrv-val right">${fmt(nrv.value)} ${nrv.unit}</td>
+      <td class="study-col">
+        ${study ? `<div class="study-rec">${study.text}</div><div class="study-src">${study.src}</div>` : '<span style="color:#d1d5db;font-size:11px;">–</span>'}
+        ${badge}
+      </td>
+      <td>
+        <div class="nrv-bar-wrap">
+          <div class="nrv-bar-track"><div class="nrv-bar-fill" style="width:${barW}%;background:${color}"></div></div>
+          <span class="nrv-pct" style="color:${color}">${Math.round(pct)}%</span>
+        </div>
+      </td>
     </tr>${sourcesHtml}`;
   }).join("");
-  const otherEntries=Object.entries(acc).filter(([k])=>!NRV[k]);
-  const otherRows=otherEntries.map(([key,data],i)=>{
-    const hasMultiple=data.sources.length>1;
-    const sourcesHtml=hasMultiple?`<tr class="${i%2===1?'alt':''}"><td colspan="5" style="padding:0 16px 10px 16px;"><div style="display:flex;flex-wrap:wrap;gap:0;">${sourcesTooltip(data.sources)}</div></td></tr>`:'';
-    return`<tr class="${i%2===1?'alt':''}"><td class="name">${data.label}${hasMultiple?`<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:6px;font-weight:700;">${data.sources.length} Quellen</span>`:''}</td><td class="total right">${fmt(data.total)} ${data.unit}</td><td></td><td></td><td></td></tr>${sourcesHtml}`;
+
+  const otherEntries = Object.entries(acc).filter(([k]) => !NRV[k]);
+  const otherRows = otherEntries.map(([key,data], i) => {
+    const hasMultiple = data.sources.length > 1;
+    const sourcesHtml = hasMultiple ? `<tr class="${i%2===1?'alt':''}">
+      <td colspan="5" style="padding:0 16px 10px 16px;">
+        <div style="display:flex;flex-wrap:wrap;gap:0;">${sourcesTooltip(data.sources)}</div>
+      </td>
+    </tr>` : '';
+    return `<tr class="${i%2===1?'alt':''}">
+      <td class="name">
+        ${data.label}
+        ${hasMultiple ? `<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:6px;font-weight:700;">${data.sources.length} Quellen</span>` : ''}
+      </td>
+      <td class="total right">${fmt(data.total)} ${data.unit}</td><td></td><td></td><td></td>
+    </tr>${sourcesHtml}`;
   }).join("");
-  const longevityActive=(doses[11]||0)>0;
-  container.innerHTML=`
-    <div class="active-summary"><div class="active-title">Aktive Dosierungen</div><div class="active-chips">${chips}</div></div>
-    ${nrvRows?`<div class="group-label" style="margin-bottom:12px">Vitamine &amp; Mineralstoffe (mit NRV)</div>
-    <div class="table-card"><table class="cum-table"><thead><tr><th>Nährstoff</th><th class="right">Tageszufuhr</th><th class="right">EU NRV</th><th>Studienempfehlung &amp; Noch fehlend</th><th></th></tr></thead><tbody>${nrvRows}</tbody></table></div>`:""}
-    ${otherRows?`<div class="group-label" style="margin-bottom:12px">Weitere Wirkstoffe (kein EU-NRV)</div>
-    <div class="table-card"><table class="cum-table"><thead><tr><th>Wirkstoff</th><th class="right">Tageszufuhr</th><th></th><th></th><th></th></tr></thead><tbody>${otherRows}</tbody></table></div>`:""}
-    ${longevityActive?`<div class="warning-box">⚠️ Der <strong>Longevity Schlaf-Komplex</strong> enthält Magnesium Bisglycinat und aktives B6 (P5P), wurde aber nicht in die Nährstoffkumulierung einbezogen, da die genauen mg-Mengen nicht auf dem Label angegeben sind.</div>`:""}
-    <div class="interaction-box" style="margin-top:12px">⚠️ <strong>Interaktionshinweis:</strong> Bei gleichzeitiger Einnahme von Mirtazapin (Nr. 14) bitte serotonerge Supplemente (L-Tryptophan + Safran in Nr. 7 und Safr'Inside™ in Nr. 11) nur nach Rücksprache mit dem Arzt einnehmen.</div>`;
+
+  const longevityActive = (doses[11] || 0) > 0;
+
+  container.innerHTML = `
+    <div class="active-summary">
+      <div class="active-title">Aktive Dosierungen</div>
+      <div class="active-chips">${chips}</div>
+    </div>
+
+    ${nrvRows ? `
+    <div class="group-label" style="margin-bottom:12px">Vitamine &amp; Mineralstoffe (mit NRV)</div>
+    <div class="table-card">
+      <table class="cum-table">
+        <thead><tr>
+          <th>Nährstoff</th>
+          <th class="right">Tageszufuhr</th>
+          <th class="right">EU NRV</th>
+          <th>Studienempfehlung &amp; Noch fehlend</th>
+          <th></th>
+        </tr></thead>
+        <tbody>${nrvRows}</tbody>
+      </table>
+    </div>` : ""}
+
+    ${otherRows ? `
+    <div class="group-label" style="margin-bottom:12px">Weitere Wirkstoffe (kein EU-NRV)</div>
+    <div class="table-card">
+      <table class="cum-table">
+        <thead><tr><th>Wirkstoff</th><th class="right">Tageszufuhr</th><th></th><th></th><th></th></tr></thead>
+        <tbody>${otherRows}</tbody>
+      </table>
+    </div>` : ""}
+
+    ${longevityActive ? `
+    <div class="warning-box">
+      ⚠️ Der <strong>Longevity Schlaf-Komplex</strong> enthält Magnesium Bisglycinat und aktives B6 (P5P), wurde aber nicht in die Nährstoffkumulierung einbezogen, da die genauen mg-Mengen nicht auf dem Label angegeben sind.
+    </div>` : ""}
+
+    <div class="interaction-box" style="margin-top:12px">
+      ⚠️ <strong>Interaktionshinweis:</strong> Bei gleichzeitiger Einnahme von Mirtazapin (Nr. 14) bitte serotonerge Supplemente (L-Tryptophan + Safran in Nr. 7 und Safr'Inside™ in Nr. 11) nur nach Rücksprache mit dem Arzt einnehmen.
+    </div>`;
 }
 
 function showTab(tab) {
-  document.getElementById("tab-produkte").classList.toggle("hidden",tab!=="produkte");
-  document.getElementById("tab-kumulierung").classList.toggle("hidden",tab!=="kumulierung");
-  document.getElementById("tab-export").classList.toggle("hidden",tab!=="export");
-  // Sprungmarken-Nav nur im Produkte-Tab anzeigen
-  document.getElementById("section-nav").classList.toggle("hidden",tab!=="produkte");
-  document.querySelectorAll(".tab-btn").forEach((btn,i)=>{
-    btn.classList.toggle("active",(i===0&&tab==="produkte")||(i===1&&tab==="kumulierung")||(i===2&&tab==="export"));
-    btn.classList.toggle("inactive",!btn.classList.contains("active"));
+  document.getElementById("tab-produkte").classList.toggle("hidden", tab !== "produkte");
+  document.getElementById("tab-kumulierung").classList.toggle("hidden", tab !== "kumulierung");
+  document.getElementById("tab-export").classList.toggle("hidden", tab !== "export");
+  document.querySelectorAll(".tab-btn").forEach((btn, i) => {
+    btn.classList.toggle("active", (i===0 && tab==="produkte") || (i===1 && tab==="kumulierung") || (i===2 && tab==="export"));
+    btn.classList.toggle("inactive", !btn.classList.contains("active"));
   });
-  if(tab==="kumulierung")renderCumulative();
-  if(tab==="export")renderExport();
+  if (tab === "kumulierung") renderCumulative();
+  if (tab === "export") renderExport();
 }
 
-loadDoses(); loadChecks(); loadStock(); loadHistory(); loadProductDays(); loadProductStart();
-loadStartDate(); renderProducts(); updateHeaderSub(); updateHeaderStats(); updateStreak(); initDayCounter();
+function showICSHelp() {
+  const el = document.getElementById("ics-help");
+  el.style.display = el.style.display === "none" ? "block" : "none";
+}
+
+function exportICS() {
+  // Group products by time slot
+  const groups = { Morgens: [], Mittags: [], Abends: [] };
+  PRODUCTS.forEach(p => {
+    if (!p.timing) return;
+    const z = p.timing.zeit;
+    if (z.includes("Morgens")) groups.Morgens.push(p);
+    else if (z.includes("Mittags")) groups.Mittags.push(p);
+    else if (z.includes("Abends")) groups.Abends.push(p);
+  });
+
+  const times = { Morgens: "070000", Mittags: "120000", Abends: "210000" };
+  const timesEnd = { Morgens: "070500", Mittags: "120500", Abends: "210500" };
+  const emojis = { Morgens: "🌅", Mittags: "☀️", Abends: "🌙" };
+
+  // Start date: tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dateStr = tomorrow.toISOString().slice(0,10).replace(/-/g,"");
+
+  function icsDate(date, time) { return date + "T" + time; }
+  function uid() { return Math.random().toString(36).substr(2,9).toUpperCase(); }
+  function escText(s) { return s.replace(/,/g,"\\,").replace(/;/g,"\\;").replace(/\n/g,"\\n"); }
+
+  let icsLines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Supplement-Tracker Friedhelm//DE",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "X-WR-CALNAME:Supplement-Erinnerungen",
+    "X-WR-TIMEZONE:Europe/Berlin",
+  ];
+
+  Object.entries(groups).forEach(([slot, products]) => {
+    if (products.length === 0) return;
+    const title = `${emojis[slot]} ${slot}s-Supplemente`;
+    const lines = products.map(p => {
+      const essen = p.timing?.essen || "";
+      return `• ${p.name} (${p.einheit}) – ${essen}`;
+    });
+    const description = lines.join("\\n");
+
+    icsLines = icsLines.concat([
+      "BEGIN:VEVENT",
+      `UID:${uid()}@supplement-tracker`,
+      `DTSTART;TZID=Europe/Berlin:${icsDate(dateStr, times[slot])}`,
+      `DTEND;TZID=Europe/Berlin:${icsDate(dateStr, timesEnd[slot])}`,
+      "RRULE:FREQ=DAILY",
+      `SUMMARY:${escText(title)}`,
+      `DESCRIPTION:${escText(description)}`,
+      "BEGIN:VALARM",
+      "TRIGGER:-PT5M",
+      "ACTION:DISPLAY",
+      `DESCRIPTION:${escText(title)} – jetzt einnehmen!`,
+      "END:VALARM",
+      "END:VEVENT",
+    ]);
+  });
+
+  icsLines.push("END:VCALENDAR");
+
+  const icsContent = icsLines.join("\r\n");
+
+  // Data URI method – works on Android where blob URLs are blocked
+  const dataUri = "data:text/calendar;charset=utf-8," + encodeURIComponent(icsContent);
+  const a = document.createElement("a");
+  a.href = dataUri;
+  a.download = "supplement-erinnerungen.ics";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  // Fallback: show content in new tab if download didn't trigger
+  document.getElementById("ics-fallback").style.display = "block";
+  document.getElementById("ics-raw").textContent = icsContent;
+}
+
+function exportJSON() {
+  const data = {
+    version: 1,
+    datum: new Date().toISOString(),
+    doses: localStorage.getItem("supplement_doses"),
+    stock: localStorage.getItem("supplement_stock"),
+    history: localStorage.getItem("supplement_history"),
+    checks: localStorage.getItem("supplement_checks"),
+    checks_date: localStorage.getItem("supplement_checks_date"),
+    days: localStorage.getItem("supplement_days"),
+    product_start: localStorage.getItem("supplement_product_start"),
+    start_date: localStorage.getItem("supplement_start_date"),
+    last_reset: localStorage.getItem("supplement_last_reset"),
+  };
+  const json = JSON.stringify(data, null, 2);
+  const a = document.createElement("a");
+  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(json);
+  a.download = "supplement-backup-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.doses)         localStorage.setItem("supplement_doses", data.doses);
+      if (data.stock)         localStorage.setItem("supplement_stock", data.stock);
+      if (data.history)       localStorage.setItem("supplement_history", data.history);
+      if (data.checks)        localStorage.setItem("supplement_checks", data.checks);
+      if (data.checks_date)   localStorage.setItem("supplement_checks_date", data.checks_date);
+      if (data.days)          localStorage.setItem("supplement_days", data.days);
+      if (data.product_start) localStorage.setItem("supplement_product_start", data.product_start);
+      if (data.start_date)    localStorage.setItem("supplement_start_date", data.start_date);
+      if (data.last_reset)    localStorage.setItem("supplement_last_reset", data.last_reset);
+      const el = document.getElementById("import-status");
+      el.style.display = "block";
+      el.style.color = "#16a34a";
+      el.textContent = "✅ Import erfolgreich! Seite wird neu geladen...";
+      setTimeout(() => location.reload(), 1500);
+    } catch(err) {
+      const el = document.getElementById("import-status");
+      el.style.display = "block";
+      el.style.color = "#dc2626";
+      el.textContent = "❌ Fehler beim Import: " + err.message;
+    }
+  };
+  reader.readAsText(file);
+}
+
+function getCurrentSlot() {
+  const h = new Date().getHours();
+  const m = new Date().getMinutes();
+  const t = h * 60 + m;
+  if (t >= 6*60 && t < 11*60)  return 'morgens';
+  if (t >= 11*60 && t < 16*60) return 'mittags';
+  if (t >= 16*60 || t < 6*60)  return 'abends';
+  return 'morgens';
+}
+
+function scrollToSlot(slot) {
+  const el = document.getElementById('anchor-' + slot);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateJumpNav() {
+  const current = getCurrentSlot();
+  ['morgens','mittags','abends'].forEach(slot => {
+    const btn = document.getElementById('jump-' + slot);
+    if (!btn) return;
+    btn.classList.toggle('jetzt', slot === current);
+  });
+}
+
+function autoScrollToCurrentSlot() {
+  // Only auto-scroll on initial load if on Produkte tab
+  const slot = getCurrentSlot();
+  setTimeout(() => {
+    scrollToSlot(slot);
+  }, 400);
+}
+
+
+// ── PRODUCTS PERSISTENCE ─────────────────────────────────────────────────
+function saveProducts() {
+  localStorage.setItem('supplement_products', JSON.stringify(PRODUCTS));
+}
+
+function loadProducts() {
+  try {
+    const saved = localStorage.getItem('supplement_products');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        PRODUCTS.length = 0;
+        parsed.forEach(p => PRODUCTS.push(p));
+      }
+    }
+  } catch(e) {}
+}
+
+function getNextId() {
+  return PRODUCTS.length > 0 ? Math.max(...PRODUCTS.map(p => p.id)) + 1 : 1;
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────────────────────
+function closeModal(event) {
+  if (event.target === document.getElementById('editModal')) closeEditModal();
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+}
+
+function addNutRow(key='', label='', per='', unit='mg') {
+  const div = document.createElement('div');
+  div.className = 'nut-row';
+  div.innerHTML = `
+    <input class="nut-key" placeholder="key" value="${key}" title="Interner Schlüssel (z.B. vitamin_c)">
+    <input class="nut-label" placeholder="Bezeichnung" value="${label}">
+    <input class="nut-per" type="number" placeholder="Menge" value="${per}">
+    <input class="nut-unit" placeholder="mg" value="${unit}">
+    <button class="del-nut-btn" onclick="this.parentElement.remove()" title="Entfernen">✕</button>
+  `;
+  document.getElementById('nutRows').appendChild(div);
+}
+
+function openEditModal(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+
+  document.getElementById('modalTitle').textContent = 'Supplement bearbeiten';
+  document.getElementById('editId').value = id;
+  document.getElementById('editName').value = p.name || '';
+  document.getElementById('editHersteller').value = p.hersteller || '';
+  document.getElementById('editTyp').value = p.typ || 'supplement';
+  document.getElementById('editEinheit').value = p.einheit || '';
+  document.getElementById('editDefaultDose').value = p.defaultDose || '';
+  document.getElementById('editHinweis').value = p.hinweis || '';
+  document.getElementById('editEssen').value = p.timing?.essen || '';
+
+  const zeit = p.timing?.zeit || '';
+  document.getElementById('slotMorgens').checked = zeit.includes('Morgens');
+  document.getElementById('slotMittags').checked = zeit.includes('Mittags');
+  document.getElementById('slotAbends').checked  = zeit.includes('Abends');
+  document.getElementById('uhrzeitMorgens').value = p.timing?.uhrzeiten?.morgens || '';
+  document.getElementById('uhrzeitMittags').value = p.timing?.uhrzeiten?.mittags || '';
+  document.getElementById('uhrzeitAbends').value  = p.timing?.uhrzeiten?.abends  || '';
+
+  // Nährstoffe
+  const nutRows = document.getElementById('nutRows');
+  nutRows.innerHTML = '';
+  (p.nutrients || []).forEach(n => addNutRow(n.key, n.label, n.per, n.unit));
+
+  document.getElementById('modalDeleteBtn').style.display = 'inline-block';
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function openAddModal(defaultSlot) {
+  document.getElementById('modalTitle').textContent = 'Neues Supplement';
+  document.getElementById('editId').value = '';
+  document.getElementById('editName').value = '';
+  document.getElementById('editHersteller').value = '';
+  document.getElementById('editTyp').value = 'supplement';
+  document.getElementById('editEinheit').value = 'Kapseln';
+  document.getElementById('editDefaultDose').value = '1';
+  document.getElementById('editHinweis').value = '';
+  document.getElementById('editEssen').value = '';
+  document.getElementById('slotMorgens').checked = defaultSlot === 'Morgens';
+  document.getElementById('slotMittags').checked = defaultSlot === 'Mittags';
+  document.getElementById('slotAbends').checked  = defaultSlot === 'Abends';
+  document.getElementById('uhrzeitMorgens').value = '';
+  document.getElementById('uhrzeitMittags').value = '';
+  document.getElementById('uhrzeitAbends').value  = '';
+  document.getElementById('nutRows').innerHTML = '';
+  document.getElementById('modalDeleteBtn').style.display = 'none';
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function saveProduct() {
+  const idVal = document.getElementById('editId').value;
+  const name = document.getElementById('editName').value.trim();
+  if (!name) { alert('Name ist Pflichtfeld!'); return; }
+
+  // Slots + Uhrzeiten zusammenbauen
+  const slots = [];
+  if (document.getElementById('slotMorgens').checked) slots.push('Morgens');
+  if (document.getElementById('slotMittags').checked) slots.push('Mittags');
+  if (document.getElementById('slotAbends').checked)  slots.push('Abends');
+  if (slots.length === 0) { alert('Bitte mindestens einen Zeitslot wählen!'); return; }
+
+  const uhrzeiten = {};
+  const uM = document.getElementById('uhrzeitMorgens').value.trim();
+  const uMi = document.getElementById('uhrzeitMittags').value.trim();
+  const uA = document.getElementById('uhrzeitAbends').value.trim();
+  if (uM)  uhrzeiten.morgens = uM;
+  if (uMi) uhrzeiten.mittags = uMi;
+  if (uA)  uhrzeiten.abends  = uA;
+
+  // Nährstoffe
+  const nutrients = [];
+  document.querySelectorAll('#nutRows .nut-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const key   = inputs[0].value.trim().replace(/\s+/g,'_');
+    const label = inputs[1].value.trim();
+    const per   = parseFloat(inputs[2].value) || null;
+    const unit  = inputs[3].value.trim() || 'mg';
+    if (key && label) nutrients.push({ key, label, per, unit });
+  });
+
+  const timing = {
+    zeit: slots.join(' + '),
+    essen: document.getElementById('editEssen').value.trim() || 'Unabhängig',
+    uhrzeiten
+  };
+
+  if (idVal) {
+    // Edit existing
+    const idx = PRODUCTS.findIndex(p => p.id === parseInt(idVal));
+    if (idx >= 0) {
+      PRODUCTS[idx] = {
+        ...PRODUCTS[idx],
+        name,
+        hersteller: document.getElementById('editHersteller').value.trim(),
+        typ:        document.getElementById('editTyp').value,
+        einheit:    document.getElementById('editEinheit').value.trim() || 'Stück',
+        defaultDose: parseFloat(document.getElementById('editDefaultDose').value) || 1,
+        hinweis:    document.getElementById('editHinweis').value.trim(),
+        timing,
+        nutrients,
+      };
+    }
+  } else {
+    // New product
+    const newP = {
+      id: getNextId(),
+      name,
+      hersteller: document.getElementById('editHersteller').value.trim(),
+      typ:        document.getElementById('editTyp').value,
+      einheit:    document.getElementById('editEinheit').value.trim() || 'Stück',
+      defaultDose: parseFloat(document.getElementById('editDefaultDose').value) || 1,
+      hinweis:    document.getElementById('editHinweis').value.trim(),
+      timing,
+      nutrients,
+      evidence: [],
+    };
+    PRODUCTS.push(newP);
+  }
+
+  saveProducts();
+  closeEditModal();
+  renderProducts();
+}
+
+function deleteProduct() {
+  const idVal = parseInt(document.getElementById('editId').value);
+  if (!idVal) return;
+  const p = PRODUCTS.find(x => x.id === idVal);
+  if (!p) return;
+  if (!confirm('Supplement "' + p.name + '" wirklich löschen?')) return;
+  const idx = PRODUCTS.findIndex(x => x.id === idVal);
+  PRODUCTS.splice(idx, 1);
+  saveProducts();
+  closeEditModal();
+  renderProducts();
+}
+
+loadDoses();
+loadChecks();
+loadStock();
+loadHistory();
+loadProductDays();
+loadProductStart();
+loadStartDate();
+renderProducts();
+updateHeaderSub();
+updateStreak();
+initDayCounter();
 </script>
+
+<!-- EDIT / ADD MODAL -->
+<div class="modal-overlay" id="editModal" style="display:none" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">
+      <span id="modalTitle">Supplement bearbeiten</span>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+
+    <input type="hidden" id="editId">
+
+    <div class="field-row">
+      <div class="field-label">Name *</div>
+      <input class="field-input" id="editName" placeholder="z.B. Vitamin D3+K2">
+    </div>
+    <div class="field-row-2">
+      <div>
+        <div class="field-label">Hersteller</div>
+        <input class="field-input" id="editHersteller" placeholder="z.B. Sunday Natural">
+      </div>
+      <div>
+        <div class="field-label">Typ</div>
+        <select class="field-input" id="editTyp">
+          <option value="supplement">Supplement</option>
+          <option value="medikament">Rx-Medikament</option>
+          <option value="tee">Tee / Kraut</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row-2">
+      <div>
+        <div class="field-label">Einheit</div>
+        <input class="field-input" id="editEinheit" placeholder="z.B. Kapseln, ml, g">
+      </div>
+      <div>
+        <div class="field-label">Standard-Dosis</div>
+        <input class="field-input" type="number" id="editDefaultDose" placeholder="1" min="0">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Hinweis (kurz)</div>
+      <input class="field-input" id="editHinweis" placeholder="z.B. Dosierung, Besonderheiten...">
+    </div>
+
+    <div class="modal-section">⏰ Einnahme-Zeitplan</div>
+    <div class="field-row">
+      <div class="field-label">Zeitslots (mehrere möglich)</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="slotMorgens"> 🌅 Morgens
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="slotMittags"> ☀️ Mittags
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="slotAbends"> 🌙 Abends
+        </label>
+      </div>
+    </div>
+    <div class="field-row-3">
+      <div>
+        <div class="field-label">Uhrzeit Morgens</div>
+        <input class="field-input" id="uhrzeitMorgens" placeholder="07:00" style="text-align:center;">
+      </div>
+      <div>
+        <div class="field-label">Uhrzeit Mittags</div>
+        <input class="field-input" id="uhrzeitMittags" placeholder="13:00" style="text-align:center;">
+      </div>
+      <div>
+        <div class="field-label">Uhrzeit Abends</div>
+        <input class="field-input" id="uhrzeitAbends" placeholder="19:00" style="text-align:center;">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Einnahme (Nüchtern / Zum Essen etc.)</div>
+      <input class="field-input" id="editEssen" placeholder="z.B. Nüchtern, Zum Essen, Unabhängig">
+    </div>
+
+    <div class="modal-section">💊 Nährstoffe / Inhaltsstoffe</div>
+    <div style="font-size:11px;color:#9ca3af;margin-bottom:8px;">
+      Key (intern, keine Leerzeichen) · Bezeichnung · Pro Einheit · Einheit
+    </div>
+    <div id="nutRows"></div>
+    <button onclick="addNutRow()" style="background:#f0f7ff;border:1px solid #bdd7f5;border-radius:6px;
+      padding:6px 12px;font-size:12px;font-weight:700;color:#1e3a5f;cursor:pointer;
+      font-family:Georgia,serif;margin-top:4px;">+ Nährstoff hinzufügen</button>
+
+    <div class="modal-actions">
+      <button class="modal-save" onclick="saveProduct()">💾 Speichern</button>
+      <button class="modal-cancel" onclick="closeEditModal()">Abbrechen</button>
+      <button class="modal-delete" id="modalDeleteBtn" onclick="deleteProduct()" style="display:none">🗑 Löschen</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
