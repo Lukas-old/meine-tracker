@@ -188,6 +188,61 @@
     .nut-grid { grid-template-columns: 1fr 1fr; }
     .card-btns { flex-wrap: wrap; }
   }
+
+  /* EDIT MODAL */
+  .modal-overlay { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);
+    z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto; }
+  .modal { background:#fff;border-radius:12px;padding:24px;width:100%;max-width:560px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.2);margin:auto; }
+  .modal-title { font-size:16px;font-weight:800;color:#1e3a5f;margin-bottom:18px;
+    display:flex;justify-content:space-between;align-items:center; }
+  .modal-close { background:none;border:none;font-size:20px;cursor:pointer;color:#9ca3af;padding:2px 6px; }
+  .modal-close:hover { color:#374151; }
+  .field-row { margin-bottom:14px; }
+  .field-label { font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    color:#9ca3af;margin-bottom:5px; }
+  .field-input { width:100%;padding:8px 10px;border:1.5px solid #d1d5db;border-radius:7px;
+    font-size:14px;font-family:Georgia,serif;color:#111;outline:none; }
+  .field-input:focus { border-color:#1e3a5f;box-shadow:0 0 0 3px #bfdbfe; }
+  .field-row-2 { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px; }
+  .field-row-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px; }
+  .modal-section { font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+    color:#6b7280;margin:16px 0 8px;padding-top:14px;border-top:1px solid #f3f4f6; }
+  .nut-row { display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap; }
+  .nut-row input { padding:6px 8px;border:1.5px solid #d1d5db;border-radius:6px;
+    font-size:13px;font-family:Georgia,serif;outline:none; }
+  .nut-row input:focus { border-color:#1e3a5f; }
+  .nut-row input.nut-key { width:130px; }
+  .nut-row input.nut-label { width:150px; }
+  .nut-row input.nut-per { width:70px;text-align:center; }
+  .nut-row input.nut-unit { width:60px;text-align:center; }
+  .del-nut-btn { background:none;border:none;color:#d1d5db;cursor:pointer;font-size:16px;
+    padding:2px 4px;border-radius:4px;transition:all 0.15s;flex-shrink:0; }
+  .del-nut-btn:hover { color:#ef4444;background:#fef2f2; }
+  .modal-actions { display:flex;gap:8px;margin-top:20px;flex-wrap:wrap; }
+  .modal-save { background:#1e3a5f;color:#fff;border:none;padding:10px 20px;border-radius:8px;
+    font-size:14px;font-weight:700;cursor:pointer;font-family:Georgia,serif;flex:1; }
+  .modal-save:hover { background:#0f2644; }
+  .modal-delete { background:#fef2f2;color:#dc2626;border:1px solid #fecdd3;padding:10px 14px;
+    border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif; }
+  .modal-delete:hover { background:#fee2e2; }
+  .modal-cancel { background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:10px 14px;
+    border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif; }
+  .modal-cancel:hover { background:#e5e7eb; }
+
+  /* EDIT / ADD BUTTONS on cards */
+  .edit-card-btn { background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;
+    font-size:12px;font-weight:600;color:#6b7280;padding:5px 10px;font-family:Georgia,serif;
+    transition:all 0.15s;white-space:nowrap; }
+  .edit-card-btn:hover { background:#dbeafe;color:#1e3a5f;border-color:#93c5fd; }
+
+  /* ADD SUPPLEMENT BUTTON */
+  .add-supplement-btn { display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;padding:12px;border:2px dashed #d1d5db;border-radius:10px;
+    background:transparent;cursor:pointer;font-family:Georgia,serif;font-size:13px;
+    font-weight:700;color:#9ca3af;transition:all 0.2s;margin-top:8px; }
+  .add-supplement-btn:hover { border-color:#1e3a5f;color:#1e3a5f;background:#f0f7ff; }
+
 </style>
 </head>
 <body>
@@ -232,16 +287,75 @@
 
     <!-- KALENDER EXPORT -->
 
-    <div class="group"><div class="group-label">🌅 Morgens</div><div id="group-morgens"></div></div>
-    <div class="group"><div class="group-label">☀️ Mittags</div><div id="group-mittags"></div></div>
-    <div class="group"><div class="group-label">🌙 Abends</div><div id="group-abends"></div></div>
+    <!-- SPRUNGMARKEN NAVIGATION -->
+    <div class="jump-nav" id="jumpNav">
+      <button class="jump-btn" id="jump-morgens" onclick="scrollToSlot('morgens')">
+        🌅 Morgens<span class="jetzt-label">← jetzt</span>
+      </button>
+      <button class="jump-btn" id="jump-mittags" onclick="scrollToSlot('mittags')">
+        ☀️ Mittags<span class="jetzt-label">← jetzt</span>
+      </button>
+      <button class="jump-btn" id="jump-abends" onclick="scrollToSlot('abends')">
+        🌙 Abends<span class="jetzt-label">← jetzt</span>
+      </button>
+    </div>
+
+    <div class="group group-anchor" id="anchor-morgens">
+      <div class="group-label">🌅 Morgens</div>
+      <div id="group-morgens"></div>
+      <button class="add-supplement-btn" onclick="openAddModal('Morgens')">＋ Supplement hinzufügen</button>
+    </div>
+    <div class="group group-anchor" id="anchor-mittags">
+      <div class="group-label">☀️ Mittags</div>
+      <div id="group-mittags"></div>
+      <button class="add-supplement-btn" onclick="openAddModal('Mittags')">＋ Supplement hinzufügen</button>
+    </div>
+    <div class="group group-anchor" id="anchor-abends">
+      <div class="group-label">🌙 Abends</div>
+      <div id="group-abends"></div>
+      <button class="add-supplement-btn" onclick="openAddModal('Abends')">＋ Supplement hinzufügen</button>
+    </div>
   </div>
   <div id="tab-kumulierung" class="hidden">
     <p class="intro">Kumulierte Tageszufuhr basierend auf deinen eingetragenen Dosen. NRV = EU-Nährstoffbezugsmenge. Die Spalte <strong>Studienempfehlung</strong> zeigt die evidenzbasierte Zieldosis.</p>
     <div id="cum-content"></div>
   </div>
   <div id="tab-export" class="hidden">
+
     <div id="export-content"></div>
+
+    <!-- Kalender-Export -->
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;margin-top:16px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:10px;">📅 Kalender-Export (ICS)</div>
+      <p style="font-size:13px;color:#374151;margin-bottom:12px;">Tägliche Erinnerungen für Morgens, Mittags und Abends als Kalender-Datei exportieren.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="exportICS()" style="background:#1e3a5f;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">📅 ICS exportieren</button>
+        <button onclick="showICSHelp()" style="background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">❓ Hilfe</button>
+      </div>
+      <div id="ics-help" style="display:none;margin-top:12px;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:12px;font-size:13px;color:#374151;line-height:1.6;">
+        <strong>So importierst du die ICS-Datei:</strong><br>
+        📱 <strong>Android:</strong> Datei herunterladen → Google Kalender → Einstellungen → Importieren<br>
+        🍎 <strong>iPhone:</strong> Datei öffnen → automatisch in Kalender importiert<br>
+        💻 <strong>PC:</strong> Outlook / Google Kalender → Importieren
+      </div>
+      <div id="ics-fallback" style="display:none;margin-top:12px;">
+        <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Falls der Download nicht funktioniert, hier den Inhalt kopieren:</div>
+        <textarea id="ics-raw" style="width:100%;height:120px;font-size:11px;font-family:monospace;border:1px solid #e5e7eb;border-radius:6px;padding:8px;" readonly></textarea>
+      </div>
+    </div>
+
+    <!-- JSON Backup -->
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;margin-top:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;margin-bottom:10px;">💾 Datensicherung (JSON)</div>
+      <p style="font-size:13px;color:#374151;margin-bottom:12px;">Alle Daten (Dosen, Bestände, Startdaten, Verlauf) sichern und wiederherstellen.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="exportJSON()" style="background:#16a34a;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">⬇️ Backup exportieren</button>
+        <button onclick="document.getElementById('json-import-input').click()" style="background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">⬆️ Backup importieren</button>
+        <input type="file" id="json-import-input" accept=".json" style="display:none" onchange="importJSON(this)">
+      </div>
+      <div id="import-status" style="margin-top:10px;font-size:13px;font-weight:700;display:none;"></div>
+    </div>
+
   </div>
 </div>
 
@@ -256,7 +370,7 @@
 <div class="footer">Supplement-Tracker · Kein Ersatz für ärztlichen Rat · Daten werden lokal im Browser gespeichert</div>
 
 <script>
-const PRODUCTS = [
+let PRODUCTS = [
   { id:1, name:"Magnesium Komplex", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
     timing:{zeit:"Abends", essen:"Zum Essen", uhrzeiten:{"abends": "19:00"}},
     nutrients:[{key:"magnesium",label:"Magnesium",per:200,unit:"mg"},{key:"vitamin_c",label:"Vitamin C",per:38,unit:"mg"}],
@@ -464,7 +578,7 @@ const PRODUCTS = [
     timing:{zeit:"Morgens + Mittags + Abends", essen:"Zum Essen", uhrzeiten:{"morgens": "08:00", "mittags": "13:00", "abends": "19:00"}},
     hinweis:"Tagesdosis = 3 Kapseln · je 1 Kapsel zu jeder Mahlzeit · Ersetzt altes Glucosamin-Komplex (Nr. 10)",
     nutrients:[
-      {key:"glucosamin",label:"Glucosaminsulfat",per:500,unit:"mg"},
+      {key:"glucosamin",label:"Glucosaminsulfat",per:466.7,unit:"mg"},
       {key:"chondroitin",label:"Chondroitinsulfat",per:400,unit:"mg"},
       {key:"vitamin_c",label:"Vitamin C (Hagebuttenextrakt)",per:26.7,unit:"mg"}],
     evidence:[
@@ -703,23 +817,6 @@ const NRV = {
   silizium:        {value:20,    unit:"mg"},
 };
 
-// EFSA Tolerable Upper Intake Levels (UL) – nur für supplementierbare Nährstoffe
-const UL = {
-  vitamin_d3:  { value: 100,   unit: "µg",  src: "EFSA 2012" },
-  vitamin_a:   { value: 800,   unit: "µg RE",src: "EFSA 2006" },
-  vitamin_e:   { value: 300,   unit: "mg",   src: "EFSA 2006" },
-  vitamin_b6:  { value: 25,    unit: "mg",   src: "EFSA 2006" },
-  folat:       { value: 1000,  unit: "µg",   src: "EFSA 2006" },
-  vitamin_c:   { value: 2000,  unit: "mg",   src: "EFSA 2006" },
-  selen:       { value: 300,   unit: "µg",   src: "EFSA 2023" },
-  zink:        { value: 25,    unit: "mg",   src: "EFSA 2023" },
-  jod:         { value: 600,   unit: "µg",   src: "EFSA 2006" },
-  kupfer:      { value: 5,     unit: "mg",   src: "EFSA 2006" },
-  eisen:       { value: 40,    unit: "mg",   src: "EFSA 2006" },
-  calcium:     { value: 2500,  unit: "mg",   src: "EFSA 2012" },
-  mangan:      { value: 8,     unit: "mg",   src: "EFSA 2013" },
-};
-
 // Studienempfehlungen
 const STUDY = {
   magnesium:   { text:"310–420 mg/Tag",     src:"DGE · NIH ODS · Gröber et al., Nutrients 2015" },
@@ -802,6 +899,7 @@ function renderCheckboxes(productId) {
     if (el) el.classList.toggle("checked", !!state[i]);
   }
 }
+
 
 function stockKey(id) {
   const p = PRODUCTS.find(x => x.id === id);
@@ -977,6 +1075,10 @@ function updateStreak() {
 function renderExport() {
   const el = document.getElementById("export-content");
   if (!el) return;
+
+  // Reload history fresh from localStorage
+  try { const s = localStorage.getItem("supplement_history"); if (s) history = JSON.parse(s); } catch(e) {}
+
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
@@ -984,54 +1086,81 @@ function renderExport() {
   const daysInMonth = new Date(year, month+1, 0).getDate();
   const startDay = localStorage.getItem("supplement_start_date") || "";
 
+  // Streak berechnen
+  let streak = 0;
+  const sd = new Date(); sd.setHours(0,0,0,0); sd.setDate(sd.getDate()-1);
+  while(true) { const k=sd.toISOString().slice(0,10); if(history[k]?.completed){streak++;sd.setDate(sd.getDate()-1);}else break; }
+
+  // Tag-Zähler
+  let dayCounterText = "";
+  if (startDay) {
+    const start = new Date(startDay); start.setHours(0,0,0,0);
+    const today2 = new Date(); today2.setHours(0,0,0,0);
+    const diff = Math.floor((today2 - start) / 86400000) + 1;
+    dayCounterText = diff >= 1 ? "Tag " + diff + " 🗓" : "";
+  }
+
   let rows = "";
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(year, month, d);
     const key = date.toISOString().slice(0,10);
     const h = history[key];
     const isToday = key === todayStr();
+    const isFuture = date > now && !isToday;
     const wday = date.toLocaleDateString("de-DE", {weekday:"short"});
-    const status = h?.completed ? "✅" : h ? "⬜" : (date < now && !isToday ? "–" : "");
-    const bg = isToday ? "#fef9c3" : "";
+    const status = isFuture ? "" : h?.completed ? "✅" : h?.checkedCount > 0 ? "⬜" : isToday ? "📍" : "–";
+    const bg = isToday ? "#fef9c3" : (d % 2 === 0 ? "#f9fafb" : "#fff");
     rows += `<tr style="background:${bg}">
-      <td style="padding:5px 10px;font-weight:${isToday?'800':'400'};color:#374151;">${wday} ${d}.</td>
-      <td style="padding:5px 10px;text-align:center;font-size:16px;">${status}</td>
-      <td style="padding:5px 10px;color:#6b7280;font-size:12px;">${h?.checkedCount ? h.checkedCount + ' Einnahmen' : ''}</td>
+      <td style="padding:6px 10px;font-weight:${isToday?'800':'400'};color:#374151;">${wday} ${d}.</td>
+      <td style="padding:6px 10px;text-align:center;font-size:15px;">${status}</td>
+      <td style="padding:6px 10px;color:#6b7280;font-size:12px;">${h?.checkedCount ? h.checkedCount + ' Einnahmen' : isToday ? 'heute' : ''}</td>
     </tr>`;
   }
 
-  const streak = document.getElementById("streak-num")?.textContent || "0";
+  // Monatsstatistik
+  let doneCount = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    if (date > now) break;
+    const key = date.toISOString().slice(0,10);
+    if (history[key]?.completed) doneCount++;
+  }
+  const daysSoFar = Math.min(now.getDate(), daysInMonth);
 
   el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
-      <div>
-        <div style="font-size:20px;font-weight:900;color:#1e3a5f;">${monthName}</div>
-        ${startDay ? `<div style="font-size:13px;color:#6b7280;">Startdatum: ${new Date(startDay).toLocaleDateString("de-DE")} · Tag ${document.getElementById("day-counter")?.textContent||""}</div>` : ""}
-      </div>
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-        <div style="text-align:center;background:#fef3c7;border-radius:10px;padding:8px 16px;">
-          <div style="font-size:24px;font-weight:900;color:#d97706;">${streak}</div>
-          <div style="font-size:11px;color:#92400e;font-weight:700;">🔥 STREAK</div>
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9ca3af;margin-bottom:4px;">Monatsübersicht</div>
+          <div style="font-size:22px;font-weight:900;color:#1e3a5f;">${monthName}</div>
+          ${startDay ? `<div style="font-size:13px;color:#6b7280;margin-top:2px;">Start: ${new Date(startDay).toLocaleDateString("de-DE")} · ${dayCounterText}</div>` : ""}
         </div>
-        <button onclick="window.print()" style="background:#1e3a5f;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">🖨 Drucken / PDF</button>
-        <button onclick="exportData()" style="background:#059669;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">📤 Daten exportieren</button>
-        <label style="background:#7c3aed;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">
-          📥 Daten importieren
-          <input type="file" accept=".json" onchange="importData(event)" style="display:none;">
-        </label>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div style="text-align:center;background:#fef3c7;border-radius:10px;padding:8px 14px;">
+            <div style="font-size:22px;font-weight:900;color:#d97706;">${streak}</div>
+            <div style="font-size:10px;color:#92400e;font-weight:700;">🔥 STREAK</div>
+          </div>
+          <div style="text-align:center;background:#dcfce7;border-radius:10px;padding:8px 14px;">
+            <div style="font-size:22px;font-weight:900;color:#16a34a;">${doneCount}/${daysSoFar}</div>
+            <div style="font-size:10px;color:#166534;font-weight:700;">✅ TAGE</div>
+          </div>
+          <button onclick="window.print()" style="background:#1e3a5f;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">🖨 Drucken / PDF</button>
+        </div>
       </div>
     </div>
-    <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
-      <thead>
-        <tr style="background:#1e3a5f;color:#fff;">
-          <th style="padding:8px 10px;text-align:left;font-size:12px;letter-spacing:1px;">TAG</th>
-          <th style="padding:8px 10px;font-size:12px;letter-spacing:1px;">STATUS</th>
-          <th style="padding:8px 10px;text-align:left;font-size:12px;letter-spacing:1px;">DETAIL</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div style="margin-top:12px;font-size:12px;color:#9ca3af;">✅ = mindestens 1 Einnahme abgehakt · ⬜ = nichts abgehakt · – = noch keine Daten</div>`;
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:#1e3a5f;color:#fff;">
+            <th style="padding:9px 10px;text-align:left;font-size:11px;letter-spacing:1px;">TAG</th>
+            <th style="padding:9px 10px;font-size:11px;letter-spacing:1px;">STATUS</th>
+            <th style="padding:9px 10px;text-align:left;font-size:11px;letter-spacing:1px;">DETAIL</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:#9ca3af;">✅ = alles abgehakt · ⬜ = teilweise · 📍 = heute · – = keine Daten</div>`;
 }
 
 // ── SHOWTAB (erweitert) ───────────────────────────────────
@@ -1073,84 +1202,18 @@ function initDayCounter() {
     saveChecks();
     localStorage.setItem("supplement_last_reset", today);
     // Re-render to show empty checkboxes
-    renderProducts();
+    loadProducts();
+renderProducts();
     updateHeaderSub();
   }
   // Check again at midnight
   const now = new Date();
   const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1) - now;
-  setTimeout(() => { initDayCounter(); }, msUntilMidnight + 1000);
-}
-
-// ── DATEN EXPORT / IMPORT ────────────────────────────────
-function exportData() {
-  const data = {
-    _version: 1,
-    _exported: new Date().toISOString(),
-    doses:        JSON.parse(localStorage.getItem("supplement_doses")        || "{}"),
-    checks:       JSON.parse(localStorage.getItem("supplement_checks")       || "{}"),
-    checks_date:  localStorage.getItem("supplement_checks_date")             || "",
-    stock:        JSON.parse(localStorage.getItem("supplement_stock")        || "{}"),
-    history:      JSON.parse(localStorage.getItem("supplement_history")      || "{}"),
-    product_days: JSON.parse(localStorage.getItem("supplement_days")         || "{}"),
-    product_start:JSON.parse(localStorage.getItem("supplement_product_start")|| "{}"),
-    start_date:   localStorage.getItem("supplement_start_date")              || "",
-    last_reset:   localStorage.getItem("supplement_last_reset")              || "",
-    saved_at:     localStorage.getItem("supplement_saved_at")                || "",
-  };
-  const json = JSON.stringify(data, null, 2);
-  const date = new Date().toISOString().slice(0,10);
-  const a = document.createElement("a");
-  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(json);
-  a.download = `supplement-daten-${date}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-
-function importData(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!data._version) throw new Error("Ungültiges Format");
-
-      if (data.doses)         localStorage.setItem("supplement_doses",          JSON.stringify(data.doses));
-      if (data.checks)        localStorage.setItem("supplement_checks",         JSON.stringify(data.checks));
-      if (data.checks_date)   localStorage.setItem("supplement_checks_date",    data.checks_date);
-      if (data.stock)         localStorage.setItem("supplement_stock",          JSON.stringify(data.stock));
-      if (data.history)       localStorage.setItem("supplement_history",        JSON.stringify(data.history));
-      if (data.product_days)  localStorage.setItem("supplement_days",           JSON.stringify(data.product_days));
-      if (data.product_start) localStorage.setItem("supplement_product_start",  JSON.stringify(data.product_start));
-      if (data.start_date)    localStorage.setItem("supplement_start_date",     data.start_date);
-      if (data.last_reset)    localStorage.setItem("supplement_last_reset",     data.last_reset);
-      if (data.saved_at)      localStorage.setItem("supplement_saved_at",       data.saved_at);
-
-      // Alles neu laden
-      doses = data.doses || {};
-      checks = data.checks || {};
-      stock = data.stock || {};
-      history = data.history || {};
-      productDays = data.product_days || {};
-      productStart = data.product_start || {};
-
-      renderProducts();
-      updateHeaderSub();
-      updateStreak();
-      loadStartDate();
-      updateDayCounter();
-
-      const exportedOn = data._exported ? new Date(data._exported).toLocaleString("de-DE") : "unbekannt";
-      alert(`✅ Import erfolgreich!\nExportiert am: ${exportedOn}\n\nAlle Bestände, Dosen und Einnahmedaten wurden wiederhergestellt.`);
-      showTab("produkte");
-    } catch(err) {
-      alert("❌ Import fehlgeschlagen: " + err.message);
-    }
-    event.target.value = ""; // Reset file input
-  };
-  reader.readAsText(file);
+  setTimeout(() => { initDayCounter();
+updateJumpNav();
+autoScrollToCurrentSlot();
+// Update jump nav every minute
+setInterval(updateJumpNav, 60000); }, msUntilMidnight + 1000);
 }
 
 function loadDoses() {
@@ -1294,13 +1357,22 @@ function renderProducts() {
     container.innerHTML = "";
     PRODUCTS
       .filter(p => getSlots(p).includes(slot))
-      .sort((a, b) => bonusRank(a) - bonusRank(b) || essenRank(a) - essenRank(b))
+      .sort((a, b) => {
+        // Primär: sortBonus (Weidenröschen zuerst/zuletzt)
+        const bDiff = bonusRank(a) - bonusRank(b);
+        if (bDiff !== 0) return bDiff;
+        // Sekundär: Uhrzeit aufsteigend
+        const tA = (a.timing?.uhrzeiten?.[slot] || "99:99").replace(":","");
+        const tB = (b.timing?.uhrzeiten?.[slot] || "99:99").replace(":","");
+        return parseInt(tA) - parseInt(tB);
+      })
       .forEach(p => {
       const c = TYPE_COLORS[p.typ];
       const dose = doses[p.id] || 0;
       const einheitSingular = p.einheit === "Kapseln" ? "Kapsel" : p.einheit === "Tabletten" ? "Tablette" : p.einheit;
       const slotIcon = slot === "morgens" ? "🌅" : slot === "mittags" ? "☀️" : "🌙";
       const slotLabel = slot === "morgens" ? "Morgens" : slot === "mittags" ? "Mittags" : "Abends";
+      const slotIdx = slot === "morgens" ? 0 : slot === "mittags" ? 1 : 2;
       const uhrzeit = p.timing?.uhrzeiten?.[slot] || "";
 
       // Nutrient grid items
@@ -1331,30 +1403,32 @@ function renderProducts() {
       div.style.border = `1px solid ${c.border}`;
       div.innerHTML = `
         <div class="card-head" style="background:${c.bg}">
-          <span class="badge" style="background:${c.badgeBg};color:${c.badge}">${c.label}</span>
-          <div class="card-name">
-            <strong>${p.name}</strong>
-            <small>${p.hersteller}${p.hinweis ? ' · ' + p.hinweis : ''}</small>
-          </div>
-          <div class="dose-wrap">
-            <input type="number" id="inp-${p.id}" class="dose-input${dose ? ' has-value':''}"
-              min="0" step="1" value="${dose || ""}" placeholder="0"
-              oninput="updateDose(${p.id}, this.value)">
-            <span class="dose-unit">${p.einheit}/Tag</span>
-          </div>
-          ${p.timing ? `<div class="timing-wrap">
-            <span class="timing-badge ${slot}">
-              ${slotIcon} ${slotLabel}${uhrzeit ? ` · <strong>${uhrzeit}</strong>` : ""}
-            </span>
-            <span class="timing-badge ${p.timing.essen.startsWith('Nüchtern') ? 'nuechtern' : p.timing.essen === 'Unabhängig' ? 'info' : 'essen'}">
-              ${p.timing.essen.startsWith('Nüchtern') ? '🚫' : p.timing.essen === 'Unabhängig' ? 'ℹ️' : '🍽️'} ${p.timing.essen}
-            </span>
-          </div>` : ""}
-          <div class="check-wrap">
-            <span class="check-label">Heute</span>
-            <div class="check-box ${(checks[p.id]||[])[0] ? 'checked' : ''}" id="chk-${p.id}-0" onclick="toggleCheck(${p.id},0)" title="Dosis 1"></div>
-            <div class="check-box ${(checks[p.id]||[])[1] ? 'checked' : ''}" id="chk-${p.id}-1" onclick="toggleCheck(${p.id},1)" title="Dosis 2"></div>
-            <div class="check-box ${(checks[p.id]||[])[2] ? 'checked' : ''}" id="chk-${p.id}-2" onclick="toggleCheck(${p.id},2)" title="Dosis 3"></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;width:100%;flex-wrap:nowrap;">
+            <span class="badge" style="background:${c.badgeBg};color:${c.badge};flex-shrink:0;margin-top:2px">${c.label}</span>
+            <div class="card-name" style="flex:1;min-width:0;">
+              <strong>${p.name}</strong>
+              <small>${p.hersteller}${p.hinweis ? ' · ' + p.hinweis : ''}</small>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+                <input type="number" id="inp-${p.id}" class="dose-input${dose ? ' has-value':''}"
+                  min="0" step="1" value="${dose || ""}" placeholder="0"
+                  oninput="updateDose(${p.id}, this.value)">
+                <span class="dose-unit">${p.einheit}/Tag</span>
+                ${p.timing ? `
+                <span class="timing-badge ${slot}">
+                  ${slotIcon} ${slotLabel}${uhrzeit ? ` · <strong>${uhrzeit}</strong>` : ""}
+                </span>
+                <span class="timing-badge ${p.timing.essen.startsWith('Nüchtern') ? 'nuechtern' : p.timing.essen === 'Unabhängig' ? 'info' : 'essen'}">
+                  ${p.timing.essen.startsWith('Nüchtern') ? '🚫' : p.timing.essen === 'Unabhängig' ? 'ℹ️' : '🍽️'} ${p.timing.essen}
+                </span>` : ""}
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;">
+              <button class="edit-card-btn" onclick="openEditModal(${p.id})" title="Bearbeiten" style="padding:4px 8px;font-size:13px;border-radius:6px;">✏️</button>
+              <div class="check-wrap" style="flex-shrink:0;">
+                <span class="check-label">Heute</span>
+                <div class="check-box ${(checks[p.id]||[])[slotIdx] ? 'checked' : ''}" id="chk-${p.id}-${slotIdx}" onclick="toggleCheck(${p.id},${slotIdx})" title="${slotLabel}"></div>
+              </div>
+            </div>
           </div>
           <div class="stock-wrap">
             <div class="stock-display-${p.id}" style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:2px;">📦 Bestand: ${Math.round(stock[p.stockGroup||String(p.id)]?.amount||0)} ${p.einheit}</div>
@@ -1430,16 +1504,7 @@ function renderCumulative() {
     </span>`).join('');
   }
 
-  function missBadge(total, refVal, unit, ulMeta) {
-    // UL-Überschreitung hat höchste Priorität
-    if (ulMeta && total > ulMeta.value) {
-      const overBy = fmt(total - ulMeta.value);
-      return `<span class="miss-badge danger" title="EFSA UL: ${ulMeta.value} ${unit} (${ulMeta.src})">⛔ UL überschritten +${overBy} ${unit}</span>`;
-    }
-    if (ulMeta && total > ulMeta.value * 0.8) {
-      const pctUL = Math.round((total / ulMeta.value) * 100);
-      return `<span class="miss-badge warn" title="EFSA UL: ${ulMeta.value} ${unit} (${ulMeta.src})">⚠️ ${pctUL}% des UL (${ulMeta.value} ${unit})</span>`;
-    }
+  function missBadge(total, refVal, unit) {
     if (!refVal || total === 0) return `<span class="miss-badge zero">–</span>`;
     const diff = refVal - total;
     const pct = Math.round((total / refVal) * 100);
@@ -1460,12 +1525,8 @@ function renderCumulative() {
   const nrvRows = nrvEntries.map(([key,data], i) => {
     const nrv = NRV[key];
     const study = STUDY[key];
-    const ul = UL[key];
     const pct = (data.total / nrv.value) * 100;
-    // Farbe: rot wenn UL überschritten, orange wenn >80% UL oder >150% NRV, sonst grün
-    const ulExceeded = ul && data.total > ul.value;
-    const ulNear     = ul && data.total > ul.value * 0.8;
-    const color = ulExceeded ? "#dc2626" : ulNear ? "#f59e0b" : pct > 150 ? "#f59e0b" : "#22c55e";
+    const color = pct > 300 ? "#dc2626" : pct > 150 ? "#f59e0b" : "#22c55e";
     const barW = Math.min(pct/4, 100);
     const hasMultiple = data.sources.length > 1;
     const sourcesHtml = hasMultiple ? `<tr class="${i%2===1?'alt':''}">
@@ -1473,14 +1534,14 @@ function renderCumulative() {
         <div style="display:flex;flex-wrap:wrap;gap:0;">${sourcesTooltip(data.sources)}</div>
       </td>
     </tr>` : '';
-    const badge = missBadge(data.total, nrv.value, nrv.unit, ul);
+    const badge = missBadge(data.total, nrv.value, nrv.unit);
     return `<tr class="${i%2===1?'alt':''}">
       <td class="name">
         ${data.label}
         ${hasMultiple ? `<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:6px;font-weight:700;">${data.sources.length} Quellen</span>` : ''}
       </td>
       <td class="total right">${fmt(data.total)} ${data.unit}</td>
-      <td class="nrv-val right">${fmt(nrv.value)} ${nrv.unit}${ul ? `<br><span style="font-size:10px;color:#dc2626;font-weight:700;" title="${ul.src}">UL: ${ul.value} ${ul.unit}</span>` : ''}</td>
+      <td class="nrv-val right">${fmt(nrv.value)} ${nrv.unit}</td>
       <td class="study-col">
         ${study ? `<div class="study-rec">${study.text}</div><div class="study-src">${study.src}</div>` : '<span style="color:#d1d5db;font-size:11px;">–</span>'}
         ${badge}
@@ -1648,6 +1709,277 @@ function exportICS() {
   document.getElementById("ics-raw").textContent = icsContent;
 }
 
+function exportJSON() {
+  const data = {
+    version: 1,
+    datum: new Date().toISOString(),
+    doses: localStorage.getItem("supplement_doses"),
+    stock: localStorage.getItem("supplement_stock"),
+    history: localStorage.getItem("supplement_history"),
+    checks: localStorage.getItem("supplement_checks"),
+    checks_date: localStorage.getItem("supplement_checks_date"),
+    days: localStorage.getItem("supplement_days"),
+    product_start: localStorage.getItem("supplement_product_start"),
+    start_date: localStorage.getItem("supplement_start_date"),
+    last_reset: localStorage.getItem("supplement_last_reset"),
+  };
+  const json = JSON.stringify(data, null, 2);
+  const a = document.createElement("a");
+  a.href = "data:application/json;charset=utf-8," + encodeURIComponent(json);
+  a.download = "supplement-backup-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.doses)         localStorage.setItem("supplement_doses", data.doses);
+      if (data.stock)         localStorage.setItem("supplement_stock", data.stock);
+      if (data.history)       localStorage.setItem("supplement_history", data.history);
+      if (data.checks)        localStorage.setItem("supplement_checks", data.checks);
+      if (data.checks_date)   localStorage.setItem("supplement_checks_date", data.checks_date);
+      if (data.days)          localStorage.setItem("supplement_days", data.days);
+      if (data.product_start) localStorage.setItem("supplement_product_start", data.product_start);
+      if (data.start_date)    localStorage.setItem("supplement_start_date", data.start_date);
+      if (data.last_reset)    localStorage.setItem("supplement_last_reset", data.last_reset);
+      const el = document.getElementById("import-status");
+      el.style.display = "block";
+      el.style.color = "#16a34a";
+      el.textContent = "✅ Import erfolgreich! Seite wird neu geladen...";
+      setTimeout(() => location.reload(), 1500);
+    } catch(err) {
+      const el = document.getElementById("import-status");
+      el.style.display = "block";
+      el.style.color = "#dc2626";
+      el.textContent = "❌ Fehler beim Import: " + err.message;
+    }
+  };
+  reader.readAsText(file);
+}
+
+function getCurrentSlot() {
+  const h = new Date().getHours();
+  const m = new Date().getMinutes();
+  const t = h * 60 + m;
+  if (t >= 6*60 && t < 11*60)  return 'morgens';
+  if (t >= 11*60 && t < 16*60) return 'mittags';
+  if (t >= 16*60 || t < 6*60)  return 'abends';
+  return 'morgens';
+}
+
+function scrollToSlot(slot) {
+  const el = document.getElementById('anchor-' + slot);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateJumpNav() {
+  const current = getCurrentSlot();
+  ['morgens','mittags','abends'].forEach(slot => {
+    const btn = document.getElementById('jump-' + slot);
+    if (!btn) return;
+    btn.classList.toggle('jetzt', slot === current);
+  });
+}
+
+function autoScrollToCurrentSlot() {
+  // Only auto-scroll on initial load if on Produkte tab
+  const slot = getCurrentSlot();
+  setTimeout(() => {
+    scrollToSlot(slot);
+  }, 400);
+}
+
+
+// ── PRODUCTS PERSISTENCE ─────────────────────────────────────────────────
+function saveProducts() {
+  localStorage.setItem('supplement_products', JSON.stringify(PRODUCTS));
+}
+
+function loadProducts() {
+  try {
+    const saved = localStorage.getItem('supplement_products');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        PRODUCTS.length = 0;
+        parsed.forEach(p => PRODUCTS.push(p));
+      }
+    }
+  } catch(e) {}
+}
+
+function getNextId() {
+  return PRODUCTS.length > 0 ? Math.max(...PRODUCTS.map(p => p.id)) + 1 : 1;
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────────────────────
+function closeModal(event) {
+  if (event.target === document.getElementById('editModal')) closeEditModal();
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+}
+
+function addNutRow(key='', label='', per='', unit='mg') {
+  const div = document.createElement('div');
+  div.className = 'nut-row';
+  div.innerHTML = `
+    <input class="nut-key" placeholder="key" value="${key}" title="Interner Schlüssel (z.B. vitamin_c)">
+    <input class="nut-label" placeholder="Bezeichnung" value="${label}">
+    <input class="nut-per" type="number" placeholder="Menge" value="${per}">
+    <input class="nut-unit" placeholder="mg" value="${unit}">
+    <button class="del-nut-btn" onclick="this.parentElement.remove()" title="Entfernen">✕</button>
+  `;
+  document.getElementById('nutRows').appendChild(div);
+}
+
+function openEditModal(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+
+  document.getElementById('modalTitle').textContent = 'Supplement bearbeiten';
+  document.getElementById('editId').value = id;
+  document.getElementById('editName').value = p.name || '';
+  document.getElementById('editHersteller').value = p.hersteller || '';
+  document.getElementById('editTyp').value = p.typ || 'supplement';
+  document.getElementById('editEinheit').value = p.einheit || '';
+  document.getElementById('editDefaultDose').value = p.defaultDose || '';
+  document.getElementById('editHinweis').value = p.hinweis || '';
+  document.getElementById('editEssen').value = p.timing?.essen || '';
+
+  const zeit = p.timing?.zeit || '';
+  document.getElementById('slotMorgens').checked = zeit.includes('Morgens');
+  document.getElementById('slotMittags').checked = zeit.includes('Mittags');
+  document.getElementById('slotAbends').checked  = zeit.includes('Abends');
+  document.getElementById('uhrzeitMorgens').value = p.timing?.uhrzeiten?.morgens || '';
+  document.getElementById('uhrzeitMittags').value = p.timing?.uhrzeiten?.mittags || '';
+  document.getElementById('uhrzeitAbends').value  = p.timing?.uhrzeiten?.abends  || '';
+
+  // Nährstoffe
+  const nutRows = document.getElementById('nutRows');
+  nutRows.innerHTML = '';
+  (p.nutrients || []).forEach(n => addNutRow(n.key, n.label, n.per, n.unit));
+
+  document.getElementById('modalDeleteBtn').style.display = 'inline-block';
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function openAddModal(defaultSlot) {
+  document.getElementById('modalTitle').textContent = 'Neues Supplement';
+  document.getElementById('editId').value = '';
+  document.getElementById('editName').value = '';
+  document.getElementById('editHersteller').value = '';
+  document.getElementById('editTyp').value = 'supplement';
+  document.getElementById('editEinheit').value = 'Kapseln';
+  document.getElementById('editDefaultDose').value = '1';
+  document.getElementById('editHinweis').value = '';
+  document.getElementById('editEssen').value = '';
+  document.getElementById('slotMorgens').checked = defaultSlot === 'Morgens';
+  document.getElementById('slotMittags').checked = defaultSlot === 'Mittags';
+  document.getElementById('slotAbends').checked  = defaultSlot === 'Abends';
+  document.getElementById('uhrzeitMorgens').value = '';
+  document.getElementById('uhrzeitMittags').value = '';
+  document.getElementById('uhrzeitAbends').value  = '';
+  document.getElementById('nutRows').innerHTML = '';
+  document.getElementById('modalDeleteBtn').style.display = 'none';
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function saveProduct() {
+  const idVal = document.getElementById('editId').value;
+  const name = document.getElementById('editName').value.trim();
+  if (!name) { alert('Name ist Pflichtfeld!'); return; }
+
+  // Slots + Uhrzeiten zusammenbauen
+  const slots = [];
+  if (document.getElementById('slotMorgens').checked) slots.push('Morgens');
+  if (document.getElementById('slotMittags').checked) slots.push('Mittags');
+  if (document.getElementById('slotAbends').checked)  slots.push('Abends');
+  if (slots.length === 0) { alert('Bitte mindestens einen Zeitslot wählen!'); return; }
+
+  const uhrzeiten = {};
+  const uM = document.getElementById('uhrzeitMorgens').value.trim();
+  const uMi = document.getElementById('uhrzeitMittags').value.trim();
+  const uA = document.getElementById('uhrzeitAbends').value.trim();
+  if (uM)  uhrzeiten.morgens = uM;
+  if (uMi) uhrzeiten.mittags = uMi;
+  if (uA)  uhrzeiten.abends  = uA;
+
+  // Nährstoffe
+  const nutrients = [];
+  document.querySelectorAll('#nutRows .nut-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const key   = inputs[0].value.trim().replace(/\s+/g,'_');
+    const label = inputs[1].value.trim();
+    const per   = parseFloat(inputs[2].value) || null;
+    const unit  = inputs[3].value.trim() || 'mg';
+    if (key && label) nutrients.push({ key, label, per, unit });
+  });
+
+  const timing = {
+    zeit: slots.join(' + '),
+    essen: document.getElementById('editEssen').value.trim() || 'Unabhängig',
+    uhrzeiten
+  };
+
+  if (idVal) {
+    // Edit existing
+    const idx = PRODUCTS.findIndex(p => p.id === parseInt(idVal));
+    if (idx >= 0) {
+      PRODUCTS[idx] = {
+        ...PRODUCTS[idx],
+        name,
+        hersteller: document.getElementById('editHersteller').value.trim(),
+        typ:        document.getElementById('editTyp').value,
+        einheit:    document.getElementById('editEinheit').value.trim() || 'Stück',
+        defaultDose: parseFloat(document.getElementById('editDefaultDose').value) || 1,
+        hinweis:    document.getElementById('editHinweis').value.trim(),
+        timing,
+        nutrients,
+      };
+    }
+  } else {
+    // New product
+    const newP = {
+      id: getNextId(),
+      name,
+      hersteller: document.getElementById('editHersteller').value.trim(),
+      typ:        document.getElementById('editTyp').value,
+      einheit:    document.getElementById('editEinheit').value.trim() || 'Stück',
+      defaultDose: parseFloat(document.getElementById('editDefaultDose').value) || 1,
+      hinweis:    document.getElementById('editHinweis').value.trim(),
+      timing,
+      nutrients,
+      evidence: [],
+    };
+    PRODUCTS.push(newP);
+  }
+
+  saveProducts();
+  closeEditModal();
+  renderProducts();
+}
+
+function deleteProduct() {
+  const idVal = parseInt(document.getElementById('editId').value);
+  if (!idVal) return;
+  const p = PRODUCTS.find(x => x.id === idVal);
+  if (!p) return;
+  if (!confirm('Supplement "' + p.name + '" wirklich löschen?')) return;
+  const idx = PRODUCTS.findIndex(x => x.id === idVal);
+  PRODUCTS.splice(idx, 1);
+  saveProducts();
+  closeEditModal();
+  renderProducts();
+}
+
 loadDoses();
 loadChecks();
 loadStock();
@@ -1660,5 +1992,102 @@ updateHeaderSub();
 updateStreak();
 initDayCounter();
 </script>
+
+<!-- EDIT / ADD MODAL -->
+<div class="modal-overlay" id="editModal" style="display:none" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">
+      <span id="modalTitle">Supplement bearbeiten</span>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+
+    <input type="hidden" id="editId">
+
+    <div class="field-row">
+      <div class="field-label">Name *</div>
+      <input class="field-input" id="editName" placeholder="z.B. Vitamin D3+K2">
+    </div>
+    <div class="field-row-2">
+      <div>
+        <div class="field-label">Hersteller</div>
+        <input class="field-input" id="editHersteller" placeholder="z.B. Sunday Natural">
+      </div>
+      <div>
+        <div class="field-label">Typ</div>
+        <select class="field-input" id="editTyp">
+          <option value="supplement">Supplement</option>
+          <option value="medikament">Rx-Medikament</option>
+          <option value="tee">Tee / Kraut</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row-2">
+      <div>
+        <div class="field-label">Einheit</div>
+        <input class="field-input" id="editEinheit" placeholder="z.B. Kapseln, ml, g">
+      </div>
+      <div>
+        <div class="field-label">Standard-Dosis</div>
+        <input class="field-input" type="number" id="editDefaultDose" placeholder="1" min="0">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Hinweis (kurz)</div>
+      <input class="field-input" id="editHinweis" placeholder="z.B. Dosierung, Besonderheiten...">
+    </div>
+
+    <div class="modal-section">⏰ Einnahme-Zeitplan</div>
+    <div class="field-row">
+      <div class="field-label">Zeitslots (mehrere möglich)</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="slotMorgens"> 🌅 Morgens
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="slotMittags"> ☀️ Mittags
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="slotAbends"> 🌙 Abends
+        </label>
+      </div>
+    </div>
+    <div class="field-row-3">
+      <div>
+        <div class="field-label">Uhrzeit Morgens</div>
+        <input class="field-input" id="uhrzeitMorgens" placeholder="07:00" style="text-align:center;">
+      </div>
+      <div>
+        <div class="field-label">Uhrzeit Mittags</div>
+        <input class="field-input" id="uhrzeitMittags" placeholder="13:00" style="text-align:center;">
+      </div>
+      <div>
+        <div class="field-label">Uhrzeit Abends</div>
+        <input class="field-input" id="uhrzeitAbends" placeholder="19:00" style="text-align:center;">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Einnahme (Nüchtern / Zum Essen etc.)</div>
+      <input class="field-input" id="editEssen" placeholder="z.B. Nüchtern, Zum Essen, Unabhängig">
+    </div>
+
+    <div class="modal-section">💊 Nährstoffe / Inhaltsstoffe</div>
+    <div style="font-size:11px;color:#9ca3af;margin-bottom:8px;">
+      Key (intern, keine Leerzeichen) · Bezeichnung · Pro Einheit · Einheit
+    </div>
+    <div id="nutRows"></div>
+    <button onclick="addNutRow()" style="background:#f0f7ff;border:1px solid #bdd7f5;border-radius:6px;
+      padding:6px 12px;font-size:12px;font-weight:700;color:#1e3a5f;cursor:pointer;
+      font-family:Georgia,serif;margin-top:4px;">+ Nährstoff hinzufügen</button>
+
+    <div class="modal-actions">
+      <button class="modal-save" onclick="saveProduct()">💾 Speichern</button>
+      <button class="modal-cancel" onclick="closeEditModal()">Abbrechen</button>
+      <button class="modal-delete" id="modalDeleteBtn" onclick="deleteProduct()" style="display:none">🗑 Löschen</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
+supplement-tracker.html
+supplement-tracker.html wird angezeigt. 
