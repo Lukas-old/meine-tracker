@@ -1125,10 +1125,16 @@ function renderProducts() {
   function getSlots(p){const z=p.timing?.zeit||"";const slots=[];if(z.includes("Morgens"))slots.push("morgens");if(z.includes("Mittags"))slots.push("mittags");if(z.includes("Abends"))slots.push("abends");return slots.length?slots:["morgens"];}
   function essenRank(p){const e=p.timing?.essen||"";if(e.startsWith("Nüchtern"))return 0;if(e==="Unabhängig")return 1;return 2;}
   function bonusRank(p){return p.sortBonus||0;}
+  function timeRank(p,slot){
+    const t=p.timing?.uhrzeiten?.[slot];
+    if(!t)return 99*60;
+    const parts=t.split(':');
+    return parseInt(parts[0])*60+(parseInt(parts[1])||0);
+  }
 
   ["morgens","mittags","abends"].forEach(slot=>{
     const container=document.getElementById("group-"+slot); container.innerHTML="";
-    PRODUCTS.filter(p=>getSlots(p).includes(slot)).sort((a,b)=>bonusRank(a)-bonusRank(b)||essenRank(a)-essenRank(b)).forEach(p=>{
+    PRODUCTS.filter(p=>getSlots(p).includes(slot)).sort((a,b)=>bonusRank(a)-bonusRank(b)||timeRank(a,slot)-timeRank(b,slot)||essenRank(a)-essenRank(b)).forEach(p=>{
       const c=TYPE_COLORS[p.typ]; const dose=doses[p.id]||0;
       const einheitSingular=p.einheit==="Kapseln"?"Kapsel":p.einheit==="Tabletten"?"Tablette":p.einheit;
       const slotIcon=slot==="morgens"?"🌅":slot==="mittags"?"☀️":"🌙";
