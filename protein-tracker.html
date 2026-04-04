@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protein-Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; background: #fafaf8; color: #1a1a1a; min-height: 100vh; overscroll-behavior-y: none; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #1e3a5f 0%, #0f2644 100%); padding: 24px 20px 0; color: #fff; }
+  .header-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px; }
+  h1 { font-size: 24px; font-weight: 700; }
+  .header-sub { font-size: 13px; opacity: 0.65; margin-top: 4px; margin-bottom: 16px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; margin-top: 16px; }
+  .tab-btn { padding: 10px 18px; border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+    border-radius: 8px 8px 0 0; transition: all 0.2s; font-family: Georgia, serif; }
+  .tab-btn.active { background: #fff; color: #1e3a5f; }
+  .tab-btn.inactive { background: transparent; color: rgba(255,255,255,0.65); }
+
+  /* MAIN */
+  .main { max-width: 680px; margin: 0 auto; padding: 20px 16px 100px; }
+
+  /* PROGRESS CARD */
+  .progress-card { background: #fff; border-radius: 14px; padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; border: 1px solid #e5e7eb; }
+  .progress-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: #9ca3af; margin-bottom: 14px; }
+  .progress-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+  .progress-val { font-size: 36px; font-weight: 900; color: #1e3a5f; line-height: 1; }
+  .progress-target { font-size: 13px; color: #6b7280; }
+  .progress-missing { font-size: 14px; font-weight: 700; }
+  .bar-track { width: 100%; height: 12px; background: #e5e7eb; border-radius: 6px; overflow: hidden; margin-bottom: 6px; }
+  .bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; }
+  .bar-pct { font-size: 12px; font-weight: 700; text-align: right; }
+
+  .dual-progress { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+  /* QUICK ADD */
+  .section-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: #9ca3af; margin-bottom: 10px; margin-top: 20px; }
+
+  .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .quick-btn { background: #f0f7ff; border: 1.5px solid #bdd7f5; border-radius: 10px;
+    padding: 10px 8px; cursor: pointer; font-family: Georgia, serif; text-align: center;
+    transition: all 0.15s; }
+  .quick-btn:hover { background: #dbeafe; border-color: #93c5fd; }
+  .quick-btn:active { transform: scale(0.97); }
+  .quick-btn .qb-icon { font-size: 22px; display: block; margin-bottom: 3px; }
+  .quick-btn .qb-name { font-size: 12px; font-weight: 700; color: #1e3a5f; display: block; }
+  .quick-btn .qb-info { font-size: 10px; color: #6b7280; display: block; margin-top: 1px; }
+
+  /* CUSTOM ENTRY */
+  .entry-form { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 16px; margin-bottom: 16px; }
+  .entry-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .entry-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 120px; }
+  .entry-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #9ca3af; }
+  .entry-input { padding: 8px 10px; border: 1.5px solid #d1d5db; border-radius: 8px;
+    font-size: 14px; font-family: Georgia, serif; color: #111; outline: none; }
+  .entry-input:focus { border-color: #1e3a5f; box-shadow: 0 0 0 3px #bfdbfe; }
+  .entry-btn { background: #1e3a5f; color: #fff; border: none; padding: 9px 18px;
+    border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
+    font-family: Georgia, serif; white-space: nowrap; align-self: flex-end; }
+  .entry-btn:hover { background: #0f2644; }
+
+  .slot-select { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .slot-chip { padding: 5px 12px; border: 1.5px solid #d1d5db; border-radius: 20px;
+    font-size: 12px; font-weight: 700; cursor: pointer; font-family: Georgia, serif;
+    transition: all 0.15s; color: #6b7280; background: #fff; }
+  .slot-chip.active { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+
+  /* MEAL LIST */
+  .meal-list { display: flex; flex-direction: column; gap: 8px; }
+  .meal-item { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+  .meal-slot { font-size: 18px; flex-shrink: 0; }
+  .meal-info { flex: 1; min-width: 0; }
+  .meal-name { font-size: 14px; font-weight: 700; color: #111; }
+  .meal-detail { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  .meal-protein { font-size: 16px; font-weight: 900; color: #1e3a5f; flex-shrink: 0; }
+  .meal-kcal { font-size: 11px; color: #9ca3af; text-align: right; }
+  .meal-delete { background: none; border: none; color: #d1d5db; cursor: pointer;
+    font-size: 18px; padding: 2px 4px; border-radius: 4px; transition: all 0.15s; flex-shrink: 0; }
+  .meal-delete:hover { color: #ef4444; background: #fef2f2; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: #9ca3af; }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+  /* HISTORY */
+  .history-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    overflow: hidden; margin-bottom: 12px; }
+  .history-header { background: #f8fafc; padding: 12px 16px; display: flex;
+    justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; }
+  .history-date { font-size: 13px; font-weight: 700; color: #374151; }
+  .history-badges { display: flex; gap: 8px; }
+  .hbadge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 10px; }
+  .hbadge.ok { background: #dcfce7; color: #166534; }
+  .hbadge.warn { background: #fef9c3; color: #854d0e; }
+  .hbadge.miss { background: #fee2e2; color: #991b1b; }
+  .history-meals { padding: 10px 16px; }
+  .history-meal-row { display: flex; justify-content: space-between; padding: 4px 0;
+    border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+  .history-meal-row:last-child { border-bottom: none; }
+
+  /* SETTINGS */
+  .settings-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+  .settings-title { font-size: 13px; font-weight: 700; color: #1e3a5f; margin-bottom: 14px; }
+  .settings-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .settings-label { font-size: 13px; color: #374151; flex: 1; }
+  .settings-input { width: 100px; padding: 7px 10px; border: 1.5px solid #d1d5db;
+    border-radius: 8px; font-size: 14px; font-family: Georgia, serif; text-align: center; outline: none; }
+  .settings-input:focus { border-color: #1e3a5f; }
+  .settings-save { background: #1e3a5f; color: #fff; border: none; padding: 8px 16px;
+    border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: Georgia, serif; }
+
+  /* FOOD DB MODAL */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 1000; display: flex;
+    align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; }
+  .modal { background: #fff; border-radius: 14px; padding: 20px; width: 100%;
+    max-width: 500px; margin: auto; box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+  .modal-title { font-size: 16px; font-weight: 800; color: #1e3a5f; margin-bottom: 6px;
+    display: flex; justify-content: space-between; align-items: center; }
+  .modal-food-name { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #9ca3af; }
+  .modal-close:hover { color: #374151; }
+  .amount-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .amount-input { width: 100px; padding: 10px; border: 1.5px solid #d1d5db; border-radius: 8px;
+    font-size: 20px; font-weight: 700; text-align: center; font-family: Georgia, serif; outline: none; }
+  .amount-input:focus { border-color: #1e3a5f; }
+  .amount-unit { font-size: 14px; color: #6b7280; }
+  .amount-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .preset-btn { padding: 5px 12px; border: 1.5px solid #d1d5db; border-radius: 16px;
+    background: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: Georgia, serif;
+    transition: all 0.15s; color: #374151; }
+  .preset-btn:hover { background: #f0f7ff; border-color: #93c5fd; }
+  .calc-result { background: #f0f7ff; border: 1px solid #bdd7f5; border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 14px; }
+  .calc-protein { font-size: 24px; font-weight: 900; color: #1e3a5f; }
+  .calc-kcal { font-size: 13px; color: #6b7280; margin-top: 2px; }
+  .modal-slot { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .modal-add-btn { width: 100%; background: #1e3a5f; color: #fff; border: none;
+    padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: Georgia, serif; }
+  .modal-add-btn:hover { background: #0f2644; }
+
+  .hidden { display: none; }
+
+  @media (max-width: 480px) {
+    .quick-grid { grid-template-columns: repeat(3, 1fr); }
+    .dual-progress { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Persönliche Übersicht</div>
+  <h1>🥩 Protein-Tracker</h1>
+  <div class="header-sub" id="header-sub">Heute: 0 g Protein · 0 kcal</div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('heute')">Heute</button>
+    <button class="tab-btn inactive" onclick="showTab('verlauf')">Verlauf</button>
+    <button class="tab-btn inactive" onclick="showTab('einstellungen')">⚙️ Ziele</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- TAB: HEUTE -->
+  <div id="tab-heute">
+
+    <!-- FORTSCHRITT -->
+    <div class="dual-progress">
+      <div class="progress-card">
+        <div class="progress-title">🥩 Protein</div>
+        <div class="progress-row">
+          <div>
+            <div class="progress-val" id="prot-val">0</div>
+            <div class="progress-target">von <span id="prot-target">120</span> g</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="progress-missing" id="prot-missing" style="color:#dc2626;">120 g fehlen</div>
+          </div>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="prot-bar" style="width:0%;background:#1e3a5f;"></div></div>
+        <div class="bar-pct" id="prot-pct" style="color:#1e3a5f;">0%</div>
+      </div>
+      <div class="progress-card">
+        <div class="progress-title">🔥 Kalorien</div>
+        <div class="progress-row">
+          <div>
+            <div class="progress-val" id="kcal-val">0</div>
+            <div class="progress-target">von <span id="kcal-target">2100</span> kcal</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="progress-missing" id="kcal-missing" style="color:#dc2626;">2100 fehlen</div>
+          </div>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="kcal-bar" style="width:0%;background:#f59e0b;"></div></div>
+        <div class="bar-pct" id="kcal-pct" style="color:#f59e0b;">0%</div>
+      </div>
+    </div>
+
+    <!-- SCHNELLEINGABE -->
+    <div class="section-title">⚡ Schnelleingabe</div>
+    <div class="quick-grid">
+      <button class="quick-btn" onclick="openModal('Ei', 6.3, 78, 'g', 50)">
+        <span class="qb-icon">🥚</span>
+        <span class="qb-name">Ei</span>
+        <span class="qb-info">6,3 g / 50 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Hähnchenbrust', 23.3, 110, 'g', 100)">
+        <span class="qb-icon">🍗</span>
+        <span class="qb-name">Hähnchen</span>
+        <span class="qb-info">23 g / 100 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Lachs', 20, 142, 'g', 100)">
+        <span class="qb-icon">🐟</span>
+        <span class="qb-name">Lachs</span>
+        <span class="qb-info">20 g / 100 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Magerquark', 12, 67, 'g', 100)">
+        <span class="qb-icon">🥛</span>
+        <span class="qb-name">Quark</span>
+        <span class="qb-info">12 g / 100 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Linsen (gekocht)', 9, 116, 'g', 100)">
+        <span class="qb-icon">🫘</span>
+        <span class="qb-name">Hülsenfrüchte</span>
+        <span class="qb-info">9 g / 100 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Rinderhack', 20, 218, 'g', 100)">
+        <span class="qb-icon">🥩</span>
+        <span class="qb-name">Rindfleisch</span>
+        <span class="qb-info">20 g / 100 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Gouda', 25, 356, 'g', 100)">
+        <span class="qb-icon">🧀</span>
+        <span class="qb-name">Käse</span>
+        <span class="qb-info">25 g / 100 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Mandeln', 21, 579, 'g', 100)">
+        <span class="qb-icon">🥜</span>
+        <span class="qb-name">Nüsse</span>
+        <span class="qb-info">21 g / 100 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Thunfisch (Dose)', 25, 116, 'g', 100)">
+        <span class="qb-icon">🐠</span>
+        <span class="qb-name">Thunfisch</span>
+        <span class="qb-info">25 g / 100 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Griechischer Joghurt', 9, 97, 'g', 100)">
+        <span class="qb-icon">🍶</span>
+        <span class="qb-name">Joghurt</span>
+        <span class="qb-info">9 g / 100 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Tofu', 8, 76, 'g', 100)">
+        <span class="qb-icon">🟨</span>
+        <span class="qb-name">Tofu</span>
+        <span class="qb-info">8 g / 100 g</span>
+      </button>
+      <button class="quick-btn" onclick="openModal('Vollkornbrot', 8.5, 247, 'g', 100)">
+        <span class="qb-icon">🍞</span>
+        <span class="qb-name">Brot</span>
+        <span class="qb-info">8,5 g / 100 g</span>
+      </button>
+    </div>
+
+    <!-- MANUELLE EINGABE -->
+    <div class="section-title">✏️ Eigenes Lebensmittel</div>
+    <div class="entry-form">
+      <div class="slot-select" id="manual-slots">
+        <div class="slot-chip active" data-slot="🌅 Morgens" onclick="selectManualSlot(this)">🌅 Morgens</div>
+        <div class="slot-chip" data-slot="☀️ Mittags" onclick="selectManualSlot(this)">☀️ Mittags</div>
+        <div class="slot-chip" data-slot="🌙 Abends" onclick="selectManualSlot(this)">🌙 Abends</div>
+        <div class="slot-chip" data-slot="🍎 Snack" onclick="selectManualSlot(this)">🍎 Snack</div>
+      </div>
+      <div class="entry-row">
+        <div class="entry-field">
+          <div class="entry-label">Lebensmittel</div>
+          <input class="entry-input" id="manual-name" placeholder="z.B. Schweineschnitzel" type="text">
+        </div>
+        <div class="entry-field" style="max-width:90px;">
+          <div class="entry-label">Protein (g)</div>
+          <input class="entry-input" id="manual-prot" placeholder="0" type="number" min="0" step="0.1">
+        </div>
+        <div class="entry-field" style="max-width:90px;">
+          <div class="entry-label">Kalorien</div>
+          <input class="entry-input" id="manual-kcal" placeholder="0" type="number" min="0">
+        </div>
+        <button class="entry-btn" onclick="addManualEntry()">+ Hinzufügen</button>
+      </div>
+    </div>
+
+    <!-- HEUTIGE MAHLZEITEN -->
+    <div class="section-title">📋 Heute eingetragen</div>
+    <div class="meal-list" id="meal-list">
+      <div class="empty-state">
+        <div class="empty-icon">🍽️</div>
+        <div style="font-size:14px;font-weight:600;">Noch nichts eingetragen</div>
+        <div style="font-size:12px;margin-top:4px;">Nutze die Schnelleingabe oben</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: VERLAUF -->
+  <div id="tab-verlauf" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div class="section-title" style="margin-top:0;margin-bottom:0;">📅 Letzte 14 Tage</div>
+      <button onclick="window.print()" style="background:#1e3a5f;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">🖨 Drucken / PDF</button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- TAB: EINSTELLUNGEN -->
+  <div id="tab-einstellungen" class="hidden">
+    <div class="settings-card">
+      <div class="settings-title">🎯 Persönliche Ziele</div>
+      <div class="settings-row">
+        <div class="settings-label">Protein-Tagesziel (g)</div>
+        <input class="settings-input" id="set-prot" type="number" value="120" min="50" max="300">
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">Kalorien-Tagesziel (kcal)</div>
+        <input class="settings-input" id="set-kcal" type="number" value="2100" min="1000" max="4000">
+      </div>
+      <div class="settings-row">
+        <div class="settings-label">Körpergewicht (kg)</div>
+        <input class="settings-input" id="set-weight" type="number" value="86" min="40" max="200">
+      </div>
+      <button class="settings-save" onclick="saveSettings()">💾 Speichern</button>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">💡 Dein Proteinbedarf</div>
+      <div id="protein-calc" style="font-size:13px;color:#374151;line-height:1.8;"></div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-title">💾 Datensicherung</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="exportData()" style="background:#16a34a;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">⬇️ Backup exportieren</button>
+        <button onclick="document.getElementById('import-input').click()" style="background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">⬆️ Backup importieren</button>
+        <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(this)">
+      </div>
+      <div id="import-status" style="margin-top:10px;font-size:13px;font-weight:700;display:none;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: LEBENSMITTEL EINGABE -->
+<div class="modal-overlay hidden" id="foodModal" onclick="closeModalOutside(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">
+      <span id="modal-food-icon">🥚</span> <span id="modal-food-title">Ei hinzufügen</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-food-name" id="modal-food-sub">6,3 g Protein pro 50 g</div>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;margin-bottom:6px;">Menge</div>
+    <div class="amount-row">
+      <input class="amount-input" id="modal-amount" type="number" value="100" min="1" oninput="updateCalc()">
+      <span class="amount-unit" id="modal-unit">g</span>
+    </div>
+    <div class="amount-presets" id="modal-presets"></div>
+
+    <div class="calc-result">
+      <div class="calc-protein"><span id="calc-prot">0</span> g Protein</div>
+      <div class="calc-kcal"><span id="calc-kcal">0</span> kcal</div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;margin-bottom:6px;">Mahlzeit</div>
+    <div class="modal-slot" id="modal-slots">
+      <div class="slot-chip active" data-slot="🌅 Morgens" onclick="selectModalSlot(this)">🌅 Morgens</div>
+      <div class="slot-chip" data-slot="☀️ Mittags" onclick="selectModalSlot(this)">☀️ Mittags</div>
+      <div class="slot-chip" data-slot="🌙 Abends" onclick="selectModalSlot(this)">🌙 Abends</div>
+      <div class="slot-chip" data-slot="🍎 Snack" onclick="selectModalSlot(this)">🍎 Snack</div>
+    </div>
+
+    <button class="modal-add-btn" onclick="confirmAdd()">✓ Hinzufügen</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────
+let settings = { protTarget: 120, kcalTarget: 2100, weight: 86 };
+let todayMeals = []; // [{id, name, slot, protein, kcal, time}]
+let history = {}; // { "YYYY-MM-DD": [{...meals}] }
+
+// Modal state
+let modalFood = { name: '', protPer100: 0, kcalPer100: 0, unit: 'g', defaultAmount: 100 };
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+// ── STORAGE ───────────────────────────────────────────────────────────────
+function save() {
+  localStorage.setItem('pt_settings', JSON.stringify(settings));
+  localStorage.setItem('pt_today', todayStr());
+  localStorage.setItem('pt_today_meals', JSON.stringify(todayMeals));
+  localStorage.setItem('pt_history', JSON.stringify(history));
+}
+
+function load() {
+  try {
+    const s = localStorage.getItem('pt_settings');
+    if (s) settings = { ...settings, ...JSON.parse(s) };
+    document.getElementById('set-prot').value = settings.protTarget;
+    document.getElementById('set-kcal').value = settings.kcalTarget;
+    document.getElementById('set-weight').value = settings.weight;
+    document.getElementById('prot-target').textContent = settings.protTarget;
+    document.getElementById('kcal-target').textContent = settings.kcalTarget;
+  } catch(e) {}
+
+  try {
+    const savedDate = localStorage.getItem('pt_today');
+    const savedMeals = localStorage.getItem('pt_today_meals');
+    if (savedDate === todayStr() && savedMeals) {
+      todayMeals = JSON.parse(savedMeals);
+    } else {
+      // Archive yesterday's meals
+      if (savedDate && savedMeals) {
+        const h = JSON.parse(localStorage.getItem('pt_history') || '{}');
+        h[savedDate] = JSON.parse(savedMeals);
+        localStorage.setItem('pt_history', JSON.stringify(h));
+      }
+      todayMeals = [];
+    }
+  } catch(e) { todayMeals = []; }
+
+  try {
+    const h = localStorage.getItem('pt_history');
+    if (h) history = JSON.parse(h);
+  } catch(e) {}
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────
+function saveSettings() {
+  settings.protTarget = parseInt(document.getElementById('set-prot').value) || 120;
+  settings.kcalTarget = parseInt(document.getElementById('set-kcal').value) || 2100;
+  settings.weight     = parseInt(document.getElementById('set-weight').value) || 86;
+  document.getElementById('prot-target').textContent = settings.protTarget;
+  document.getElementById('kcal-target').textContent = settings.kcalTarget;
+  save();
+  updateProgress();
+  updateProteinCalc();
+  alert('✅ Ziele gespeichert!');
+}
+
+function updateProteinCalc() {
+  const w = settings.weight;
+  const el = document.getElementById('protein-calc');
+  el.innerHTML = `
+    Körpergewicht: <strong>${w} kg</strong><br>
+    Mindestbedarf (0,8 g/kg): <strong>${Math.round(w * 0.8)} g/Tag</strong><br>
+    Empfehlung 70+, aktiv (1,2 g/kg): <strong>${Math.round(w * 1.2)} g/Tag</strong><br>
+    Empfehlung mit Krebstherapie (1,5 g/kg): <strong>${Math.round(w * 1.5)} g/Tag</strong><br>
+    <br>
+    <span style="color:#1e3a5f;font-weight:700;">Dein Ziel: ${settings.protTarget} g/Tag</span>
+  `;
+}
+
+// ── PROGRESS ──────────────────────────────────────────────────────────────
+function updateProgress() {
+  const totalProt = todayMeals.reduce((s, m) => s + m.protein, 0);
+  const totalKcal = todayMeals.reduce((s, m) => s + m.kcal, 0);
+
+  // Protein
+  const protPct = Math.min((totalProt / settings.protTarget) * 100, 100);
+  const protMiss = Math.max(settings.protTarget - totalProt, 0);
+  document.getElementById('prot-val').textContent = Math.round(totalProt);
+  document.getElementById('prot-bar').style.width = protPct + '%';
+  document.getElementById('prot-pct').textContent = Math.round(protPct) + '%';
+  const pm = document.getElementById('prot-missing');
+  if (protMiss <= 0) {
+    pm.textContent = '✓ Ziel erreicht!';
+    pm.style.color = '#16a34a';
+    document.getElementById('prot-bar').style.background = '#16a34a';
+  } else {
+    pm.textContent = Math.round(protMiss) + ' g fehlen';
+    pm.style.color = protPct >= 60 ? '#d97706' : '#dc2626';
+    document.getElementById('prot-bar').style.background = '#1e3a5f';
+  }
+
+  // Kalorien
+  const kcalPct = Math.min((totalKcal / settings.kcalTarget) * 100, 100);
+  const kcalMiss = Math.max(settings.kcalTarget - totalKcal, 0);
+  document.getElementById('kcal-val').textContent = Math.round(totalKcal);
+  document.getElementById('kcal-bar').style.width = kcalPct + '%';
+  document.getElementById('kcal-pct').textContent = Math.round(kcalPct) + '%';
+  const km = document.getElementById('kcal-missing');
+  if (kcalMiss <= 0) {
+    km.textContent = '✓ Ziel erreicht!';
+    km.style.color = '#16a34a';
+    document.getElementById('kcal-bar').style.background = '#16a34a';
+  } else {
+    km.textContent = Math.round(kcalMiss) + ' fehlen';
+    km.style.color = '#d97706';
+    document.getElementById('kcal-bar').style.background = '#f59e0b';
+  }
+
+  document.getElementById('header-sub').textContent =
+    `Heute: ${Math.round(totalProt)} g Protein · ${Math.round(totalKcal)} kcal`;
+}
+
+// ── MEAL LIST ─────────────────────────────────────────────────────────────
+function slotIcon(slot) {
+  if (slot.includes('Morgens')) return '🌅';
+  if (slot.includes('Mittags')) return '☀️';
+  if (slot.includes('Abends')) return '🌙';
+  return '🍎';
+}
+
+function renderMeals() {
+  const list = document.getElementById('meal-list');
+  if (todayMeals.length === 0) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🍽️</div>
+      <div style="font-size:14px;font-weight:600;">Noch nichts eingetragen</div>
+      <div style="font-size:12px;margin-top:4px;">Nutze die Schnelleingabe oben</div>
+    </div>`;
+    return;
+  }
+
+  // Sort by slot order
+  const order = ['🌅 Morgens', '☀️ Mittags', '🌙 Abends', '🍎 Snack'];
+  const sorted = [...todayMeals].sort((a, b) => {
+    const ia = order.findIndex(o => a.slot.includes(o.replace(/[🌅☀️🌙🍎]\s/,'')));
+    const ib = order.findIndex(o => b.slot.includes(o.replace(/[🌅☀️🌙🍎]\s/,'')));
+    return ia - ib;
+  });
+
+  list.innerHTML = sorted.map(m => `
+    <div class="meal-item">
+      <div class="meal-slot">${slotIcon(m.slot)}</div>
+      <div class="meal-info">
+        <div class="meal-name">${m.name}</div>
+        <div class="meal-detail">${m.slot} · ${m.amount ? m.amount + ' g' : ''}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div class="meal-protein">${m.protein % 1 === 0 ? m.protein : m.protein.toFixed(1)} g</div>
+        <div class="meal-kcal">${m.kcal > 0 ? m.kcal + ' kcal' : '–'}</div>
+      </div>
+      <button class="meal-delete" onclick="deleteMeal('${m.id}')" title="Löschen">✕</button>
+    </div>
+  `).join('');
+}
+
+function deleteMeal(id) {
+  todayMeals = todayMeals.filter(m => m.id !== id);
+  save();
+  renderMeals();
+  updateProgress();
+}
+
+// ── ADD MEAL ──────────────────────────────────────────────────────────────
+function getActiveSlot(containerSelector) {
+  const active = document.querySelector(containerSelector + ' .slot-chip.active');
+  return active ? active.dataset.slot : '🌅 Morgens';
+}
+
+function addMeal(name, protein, kcal, slot, amount) {
+  const meal = {
+    id: Date.now().toString(),
+    name, slot, protein: Math.round(protein * 10) / 10,
+    kcal: Math.round(kcal), amount: amount || null,
+    time: new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'})
+  };
+  todayMeals.push(meal);
+  save();
+  renderMeals();
+  updateProgress();
+}
+
+function addManualEntry() {
+  const name = document.getElementById('manual-name').value.trim();
+  const prot = parseFloat(document.getElementById('manual-prot').value) || 0;
+  const kcal = parseFloat(document.getElementById('manual-kcal').value) || 0;
+  if (!name) { alert('Bitte Lebensmittel eingeben!'); return; }
+  if (prot <= 0) { alert('Bitte Proteingehalt eingeben!'); return; }
+  const slot = getActiveSlot('#manual-slots');
+  addMeal(name, prot, kcal, slot, null);
+  document.getElementById('manual-name').value = '';
+  document.getElementById('manual-prot').value = '';
+  document.getElementById('manual-kcal').value = '';
+}
+
+function selectManualSlot(el) {
+  document.querySelectorAll('#manual-slots .slot-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+const PRESETS = {
+  'Ei': [1, 2, 3],
+  'default': [50, 100, 150, 200]
+};
+
+function openModal(name, protPer100, kcalPer100, unit, defaultAmount) {
+  modalFood = { name, protPer100, kcalPer100, unit, defaultAmount };
+  document.getElementById('modal-food-title').textContent = name + ' hinzufügen';
+  document.getElementById('modal-food-sub').textContent =
+    `${protPer100} g Protein pro ${defaultAmount} ${unit}`;
+
+  const amountEl = document.getElementById('modal-amount');
+  amountEl.value = defaultAmount;
+
+  // Presets
+  const presetsEl = document.getElementById('modal-presets');
+  const presetVals = name === 'Ei' ? [1, 2, 3, 4] : [50, 100, 150, 200];
+  const presetLabel = name === 'Ei' ? 'Stück' : 'g';
+  presetsEl.innerHTML = presetVals.map(v =>
+    `<button class="preset-btn" onclick="setAmount(${name === 'Ei' ? v * defaultAmount : v})">${v} ${presetLabel}</button>`
+  ).join('');
+
+  // Auto-select slot based on time
+  const h = new Date().getHours();
+  const autoSlot = h < 11 ? '🌅 Morgens' : h < 16 ? '☀️ Mittags' : '🌙 Abends';
+  document.querySelectorAll('#modal-slots .slot-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.slot === autoSlot);
+  });
+
+  updateCalc();
+  document.getElementById('foodModal').classList.remove('hidden');
+}
+
+function setAmount(val) {
+  document.getElementById('modal-amount').value = val;
+  updateCalc();
+}
+
+function updateCalc() {
+  const amount = parseFloat(document.getElementById('modal-amount').value) || 0;
+  const ref = modalFood.defaultAmount;
+  const prot = (modalFood.protPer100 / ref) * amount;
+  const kcal = (modalFood.kcalPer100 / ref) * amount;
+  document.getElementById('calc-prot').textContent = (Math.round(prot * 10) / 10).toFixed(1);
+  document.getElementById('calc-kcal').textContent = Math.round(kcal);
+}
+
+function selectModalSlot(el) {
+  document.querySelectorAll('#modal-slots .slot-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function confirmAdd() {
+  const amount = parseFloat(document.getElementById('modal-amount').value) || 0;
+  const ref = modalFood.defaultAmount;
+  const prot = (modalFood.protPer100 / ref) * amount;
+  const kcal = (modalFood.kcalPer100 / ref) * amount;
+  const slot = getActiveSlot('#modal-slots');
+  addMeal(modalFood.name, prot, kcal, slot, amount);
+  closeModal();
+}
+
+function closeModal() {
+  document.getElementById('foodModal').classList.add('hidden');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('foodModal')) closeModal();
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const keys = Object.keys(history).sort().reverse().slice(0, 14);
+
+  if (keys.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div>
+      <div style="font-size:14px;font-weight:600;">Noch kein Verlauf</div></div>`;
+    return;
+  }
+
+  list.innerHTML = keys.map(dateKey => {
+    const meals = history[dateKey] || [];
+    const totalProt = meals.reduce((s, m) => s + m.protein, 0);
+    const totalKcal = meals.reduce((s, m) => s + m.kcal, 0);
+    const protOk = totalProt >= settings.protTarget;
+    const date = new Date(dateKey + 'T12:00:00');
+    const dateLabel = date.toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'2-digit'});
+
+    const mealRows = meals.map(m => `
+      <div class="history-meal-row">
+        <span>${slotIcon(m.slot)} ${m.name}</span>
+        <span style="font-weight:700;color:#1e3a5f;">${m.protein % 1 === 0 ? m.protein : m.protein.toFixed(1)} g</span>
+      </div>`).join('');
+
+    return `<div class="history-card">
+      <div class="history-header">
+        <div class="history-date">${dateLabel}</div>
+        <div class="history-badges">
+          <span class="hbadge ${protOk ? 'ok' : totalProt >= settings.protTarget * 0.7 ? 'warn' : 'miss'}">
+            🥩 ${Math.round(totalProt)} g
+          </span>
+          ${totalKcal > 0 ? `<span class="hbadge ${totalKcal >= settings.kcalTarget * 0.8 ? 'ok' : 'warn'}">🔥 ${Math.round(totalKcal)} kcal</span>` : ''}
+        </div>
+      </div>
+      ${meals.length > 0 ? `<div class="history-meals">${mealRows}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function showTab(tab) {
+  ['heute','verlauf','einstellungen'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+  });
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    const tabs = ['heute','verlauf','einstellungen'];
+    btn.classList.toggle('active', tabs[i] === tab);
+    btn.classList.toggle('inactive', tabs[i] !== tab);
+  });
+  if (tab === 'verlauf') renderHistory();
+  if (tab === 'einstellungen') updateProteinCalc();
+}
+
+// ── BACKUP ────────────────────────────────────────────────────────────────
+function exportData() {
+  const data = { settings, todayMeals, history, today: todayStr() };
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
+  a.download = 'protein-tracker-backup-' + todayStr() + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.settings) settings = data.settings;
+      if (data.todayMeals) todayMeals = data.todayMeals;
+      if (data.history) history = data.history;
+      save();
+      const el = document.getElementById('import-status');
+      el.style.display = 'block'; el.style.color = '#16a34a';
+      el.textContent = '✅ Import erfolgreich! Seite wird neu geladen...';
+      setTimeout(() => location.reload(), 1500);
+    } catch(err) {
+      const el = document.getElementById('import-status');
+      el.style.display = 'block'; el.style.color = '#dc2626';
+      el.textContent = '❌ Fehler: ' + err.message;
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+load();
+renderMeals();
+updateProgress();
+updateProteinCalc();
+</script>
+</body>
+</html>
