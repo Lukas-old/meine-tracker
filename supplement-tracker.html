@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplement-Tracker</title>
+<style>
+  html { scroll-behavior: smooth; scroll-padding-top: 60px; }
+  html, body { overscroll-behavior-y: none; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; background: #fafaf8; color: #1a1a1a; min-height: 100vh; }
+
+  .header { background: linear-gradient(135deg, #1e3a5f 0%, #0f2644 100%); padding: 28px 32px 0; color: #fff; }
+  .header-inner { max-width: 960px; margin: 0 auto; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .header-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px; }
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .header-sub { font-size: 13px; opacity: 0.65; margin-top: 4px; }
+  .header-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 700; }
+  .stat-label { font-size: 11px; opacity: 0.6; }
+
+  .tabs { display: flex; gap: 0; margin-top: 24px; }
+  .tab-btn { padding: 10px 20px; border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+    border-radius: 8px 8px 0 0; transition: all 0.2s; font-family: Georgia, serif; }
+  .tab-btn.active { background: #fff; color: #1e3a5f; }
+  .tab-btn.inactive { background: transparent; color: rgba(255,255,255,0.65); }
+
+  .section-nav {
+    position: sticky; top: 0; z-index: 15;
+    background: #fff; border-bottom: 2px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 8px 16px;
+  }
+  .section-nav-inner {
+    max-width: 960px; margin: 0 auto;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .section-nav-label { font-size: 11px; font-weight: 700; color: #9ca3af;
+    letter-spacing: 1px; text-transform: uppercase; margin-right: 4px; }
+  .nav-jump {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 700; font-family: Georgia, serif;
+    transition: all 0.15s; text-decoration: none;
+  }
+  .nav-jump.morgens { background: #fef9c3; color: #854d0e; }
+  .nav-jump.morgens:hover { background: #fde68a; }
+  .nav-jump.mittags { background: #dcfce7; color: #166534; }
+  .nav-jump.mittags:hover { background: #bbf7d0; }
+  .nav-jump.abends  { background: #ede9fe; color: #5b21b6; }
+  .nav-jump.abends:hover  { background: #ddd6fe; }
+  .nav-jump.top { background: #f1f5f9; color: #475569; }
+  .nav-jump.top:hover { background: #e2e8f0; }
+
+  .main { max-width: 960px; margin: 0 auto; padding: 24px 16px 100px; }
+  .intro { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+
+  .group-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: #9ca3af; margin-bottom: 12px; padding-left: 4px; }
+  .group { margin-bottom: 32px; }
+
+  .group-nav-link {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 10px; margin-top: 4px; margin-bottom: 8px; padding-right: 4px;
+  }
+  .group-nav-btn {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 14px; border-radius: 20px; border: 1.5px solid #e5e7eb;
+    background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 700;
+    font-family: Georgia, serif; cursor: pointer; transition: all 0.15s;
+    text-decoration: none;
+  }
+  .group-nav-btn:hover { background: #f0f7ff; border-color: #bdd7f5; color: #1e3a5f; }
+
+  .card { background: #fff; border-radius: 10px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 8px;
+    border: 1px solid transparent; transition: border-color 0.2s; }
+  .card-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; flex-wrap: wrap; }
+  .badge { flex-shrink: 0; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 3px 8px; border-radius: 20px; }
+  .card-name { flex: 1; min-width: 0; }
+  .card-name strong { font-size: 14px; font-weight: 700; color: #111; display: block; }
+  .card-name small { font-size: 11px; color: #6b7280; }
+  .dose-wrap { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .dose-input { width: 64px; padding: 7px 10px; border: 1.5px solid #d1d5db; border-radius: 7px;
+    font-size: 15px; font-weight: 700; text-align: center; color: #111; font-family: Georgia, serif;
+    outline: none; transition: box-shadow 0.2s; -moz-appearance: textfield; }
+  .dose-input::-webkit-inner-spin-button, .dose-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .dose-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #bfdbfe; }
+  .dose-input.has-value { box-shadow: 0 0 0 2px #bfdbfe; border-color: #3b82f6; }
+  .dose-unit { font-size: 12px; color: #6b7280; min-width: 56px; }
+
+  .timing-wrap { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+  .timing-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .timing-badge.morgens  { background: #fef9c3; color: #854d0e; }
+  .timing-badge.mittags  { background: #dcfce7; color: #166534; }
+  .timing-badge.abends   { background: #ede9fe; color: #5b21b6; }
+  .timing-badge.essen    { background: #f0f7ff; color: #1d4ed8; }
+  .timing-badge.nuechtern{ background: #f1f5f9; color: #475569; }
+  .timing-badge.info     { background: #fff7ed; color: #9a3412; }
+
+  .check-wrap { display: flex; gap: 6px; align-items: center; flex-shrink: 0; position: relative; z-index: 1; }
+  .stock-wrap { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; }
+  .day-panel { border-top: 1px solid #e5e7eb; background: #f9fafb; padding: 12px 18px; }
+  .day-chip {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent; display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:2px solid #d1d5db;background:#fff;font-size:12px;font-weight:800;cursor:pointer;color:#6b7280;transition:all 0.15s;user-select:none; }
+  .day-chip.day-active { background:#1e3a5f;border-color:#1e3a5f;color:#fff; }
+  .day-chip:hover { border-color:#1e3a5f; }
+  .check-box {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    width: 32px; height: 32px; border-radius: 7px;
+    border: 2px solid #d1d5db; background: #fff;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; transition: all 0.15s; flex-shrink: 0; user-select: none;
+  }
+  .check-box:hover { border-color: #3b82f6; background: #eff6ff; }
+  .check-box.checked { border-color: #16a34a; background: #dcfce7; }
+  .check-box.checked::after { content: "✓"; font-weight: 900; color: #16a34a; }
+  .check-label { font-size: 10px; color: #9ca3af; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; white-space: nowrap; }
+
+  .card-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .panel-btn {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px;
+    cursor: pointer; font-size: 12px; font-weight: 600; color: #6b7280;
+    padding: 5px 10px; font-family: Georgia, serif; transition: all 0.15s; white-space: nowrap; }
+  .panel-btn:hover { background: #e5e7eb; color: #374151; }
+  .panel-btn.ev-open { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+
+  .card-nutrients { padding: 12px 16px 16px; border-top: 1px solid #f3f4f6; background: #f9fafb; }
+  .panel-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #9ca3af; margin-bottom: 10px; }
+  .nut-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+  .nut-item { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; }
+  .nut-item-name { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #9ca3af; margin-bottom: 2px; }
+  .nut-item-per { font-size: 13px; font-weight: 600; color: #374151; }
+  .nut-item-total { font-size: 13px; font-weight: 700; color: #2563eb; margin-top: 2px; }
+  .nut-item-total.zero { color: #d1d5db; font-weight: 400; font-size: 12px; }
+  .nut-item-rec { font-size: 11px; color: #6b7280; margin-top: 6px; padding-top: 6px; border-top: 1px solid #f3f4f6; line-height: 1.4; }
+  .nut-item-missing { font-size: 11px; font-weight: 700; margin-top: 3px; }
+  .nut-item-missing.ok     { color: #16a34a; }
+  .nut-item-missing.warn   { color: #d97706; }
+  .nut-item-missing.danger { color: #dc2626; }
+  .nut-item-missing.zero   { color: #d1d5db; }
+
+  .card-evidence { padding: 14px 16px 16px; border-top: 1px solid #fde68a; background: #fffdf5; }
+  .ev-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #92400e; margin-bottom: 12px; }
+  .ev-block { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #fef3c7; }
+  .ev-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .ev-nut { font-size: 12px; font-weight: 700; color: #1d4ed8; margin-bottom: 4px; }
+  .ev-text { font-size: 13px; color: #374151; line-height: 1.7; }
+  .ev-src { font-size: 11px; color: #9ca3af; margin-top: 4px; font-style: italic; }
+
+  .save-bar { position: sticky; bottom: 0; background: #1e3a5f; color: #fff;
+    padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; box-shadow: 0 -2px 12px rgba(0,0,0,0.15); z-index: 10; }
+  .save-btn { background: #3b82f6; color: #fff; border: none; padding: 8px 18px;
+    border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer;
+    font-family: Georgia, serif; transition: background 0.2s; }
+  .save-btn:hover { background: #2563eb; }
+  .save-status { font-size: 11px; opacity: 0.7; }
+
+  .active-summary { background: #f8faff; border: 1px solid #dbeafe; border-radius: 10px;
+    padding: 14px 18px; margin-bottom: 24px; }
+  .active-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #3b82f6; margin-bottom: 10px; }
+  .active-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-size: 12px; background: #fff; border: 1px solid #bdd7f5; border-radius: 6px; padding: 4px 10px; }
+  .chip strong { font-weight: 700; }
+
+  .cum-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .cum-table th { padding: 10px 16px; text-align: left; font-weight: 700; font-size: 11px;
+    letter-spacing: 0.5px; color: #6b7280; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+  .cum-table th.right { text-align: right; }
+  .cum-table td { padding: 10px 16px; border-top: 1px solid #f3f4f6; vertical-align: middle; }
+  .cum-table td.right { text-align: right; font-variant-numeric: tabular-nums; }
+  .cum-table td.name { font-weight: 600; }
+  .cum-table td.total { font-weight: 700; font-variant-numeric: tabular-nums; color: #111; }
+  .cum-table td.nrv-val { color: #9ca3af; font-size: 12px; text-align: right; }
+  .cum-table td.study-col { font-size: 12px; }
+  .study-rec { font-weight: 700; color: #374151; }
+  .study-src { font-size: 11px; color: #9ca3af; font-style: italic; margin-top: 2px; }
+
+  .miss-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: 10px; margin-top: 4px; white-space: nowrap; }
+  .miss-badge.ok     { background: #dcfce7; color: #15803d; }
+  .miss-badge.warn   { background: #fef9c3; color: #a16207; }
+  .miss-badge.danger { background: #fee2e2; color: #b91c1c; }
+  .miss-badge.zero   { background: #f3f4f6; color: #9ca3af; }
+
+  .nrv-bar-wrap { display: flex; align-items: center; gap: 6px; min-width: 120px; }
+  .nrv-bar-track { flex: 1; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+  .nrv-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+  .nrv-pct { font-size: 11px; font-weight: 700; min-width: 42px; text-align: right; }
+
+  .table-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+    overflow: hidden; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: #9ca3af; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-title { font-size: 16px; font-weight: 600; }
+  .empty-sub { font-size: 13px; margin-top: 6px; }
+
+  .warning-box { margin-top: 16px; padding: 12px 16px; background: #fffbeb;
+    border: 1px solid #fde68a; border-radius: 8px; font-size: 12px; color: #92400e; }
+  .interaction-box { margin-top: 12px; padding: 12px 16px; background: #fff1f2;
+    border: 1px solid #fecdd3; border-radius: 8px; font-size: 12px; color: #9f1239; }
+
+  .footer { text-align: center; padding: 24px 16px; font-size: 11px; color: #d1d5db;
+    border-top: 1px solid #f0f0ee; margin-top: 16px; }
+
+  .hidden { display: none; }
+  tr.alt { background: #fafafa; }
+
+  @media (max-width: 600px) {
+    .header { padding: 20px 16px 0; }
+    .header-top { flex-direction: column; }
+    .nrv-bar-wrap { min-width: 80px; }
+    .dose-unit { min-width: 44px; }
+    .nut-grid { grid-template-columns: 1fr 1fr; }
+    .card-btns { flex-wrap: wrap; }
+    .section-nav-inner { gap: 6px; }
+    .nav-jump { font-size: 12px; padding: 5px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="section-top"></div>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div>
+        <div class="header-label">Persönliche Übersicht</div>
+        <h1>Supplement-Tracker</h1>
+        <div class="header-sub" id="header-sub">0 Produkte erfasst · 0 aktiv dosiert</div>
+      </div>
+      <div class="header-stats">
+        <div class="stat"><div class="stat-num" style="color:#60a5fa" id="stat-supplements">–</div><div class="stat-label">Supplements</div></div>
+        <div class="stat"><div class="stat-num" style="color:#fb923c" id="stat-medikamente">–</div><div class="stat-label">Medikamente</div></div>
+        <div class="stat"><div class="stat-num" style="color:#4ade80" id="stat-tee">–</div><div class="stat-label">Tee / Kraut</div></div>
+        <div class="stat"><div class="stat-num" style="color:#f59e0b" id="streak-num">0</div><div class="stat-label">🔥 Streak</div></div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('produkte')">Produkte &amp; Dosierung</button>
+      <button class="tab-btn inactive" onclick="showTab('kumulierung')">Kumulierte Nährstoffe</button>
+      <button class="tab-btn inactive" onclick="showTab('export')">📊 Monatsübersicht</button>
+    </div>
+  </div>
+</div>
+
+<div class="section-nav" id="section-nav">
+  <div class="section-nav-inner">
+    <span class="section-nav-label">Springen zu:</span>
+    <a class="nav-jump morgens" href="#section-morgens">🌅 Morgens</a>
+    <a class="nav-jump mittags" href="#section-mittags">☀️ Mittags</a>
+    <a class="nav-jump abends"  href="#section-abends">🌙 Abends</a>
+    <a class="nav-jump top"     href="#section-top">⬆ Anfang</a>
+  </div>
+</div>
+
+<div class="main">
+  <div id="tab-produkte">
+    <p class="intro">Trage deine tägliche Einnahmemenge ein. <strong>▼ Inhaltsstoffe</strong> zeigt Nährstoffe und die noch fehlende Menge (produktübergreifend). <strong>📖 Evidenz</strong> öffnet die Studienlage.</p>
+
+    <div style="background:#f0f7ff;border:1px solid #bdd7f5;border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#1e3a5f;margin-bottom:4px;">⏰ Aufstehzeit heute</div>
+        <input type="time" id="wakeup-time-input"
+          style="padding:6px 10px;border:1.5px solid #bdd7f5;border-radius:7px;font-size:18px;font-weight:700;font-family:Georgia,serif;color:#1e3a5f;width:110px;"
+          onchange="saveWakeupTime(this.value)">
+        <div style="font-size:11px;color:#6b7280;margin-top:4px;" id="wakeup-hint">Morgens-Zeiten passen sich automatisch an</div>
+      </div>
+      <div style="border-left:2px solid #dbeafe;padding-left:24px;">
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#1e3a5f;margin-bottom:4px;">📅 Startdatum</div>
+        <input type="date" id="start-date-input"
+          style="padding:6px 10px;border:1.5px solid #bdd7f5;border-radius:7px;font-size:14px;font-family:Georgia,serif;color:#1e3a5f;"
+          onchange="saveStartDate(this.value)">
+      </div>
+      <div id="day-counter" style="font-size:22px;font-weight:900;color:#1e3a5f;"></div>
+    </div>
+
+    <!-- BCG-Hinweis -->
+    <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:14px 18px;margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#9f1239;margin-bottom:6px;">⚠️ BCG-Instillations-Hinweis</div>
+      <div style="font-size:13px;color:#7f1d1d;line-height:1.6;">
+        <strong>48–72 h vor und nach jeder BCG-Instillation pausieren:</strong> EGCG + Quercetin (Nr. 29), Quercetin (Nr. 30), Brokkoli-Sulforaphan (Nr. 31). Diese Wirkstoffe können die für BCG notwendige lokale T-Zell-Aktivierung beeinflussen. Bitte mit Dr. Löser (Urovitalis) abstimmen. Vitamin D3 (Nr. 6) kann weitergenommen werden – Studiendaten deuten auf Synergismus mit BCG hin.
+      </div>
+    </div>
+
+    <div id="section-morgens" class="group">
+      <div class="group-label">🌅 Morgens</div>
+      <div id="group-morgens"></div>
+      <div class="group-nav-link">
+        <a class="group-nav-btn" href="#section-mittags">☀️ Weiter zu Mittags →</a>
+      </div>
+    </div>
+
+    <div id="section-mittags" class="group">
+      <div class="group-label">☀️ Mittags</div>
+      <div id="group-mittags"></div>
+      <div class="group-nav-link">
+        <a class="group-nav-btn" href="#section-morgens">← 🌅 Morgens</a>
+        <a class="group-nav-btn" href="#section-abends">🌙 Weiter zu Abends →</a>
+      </div>
+    </div>
+
+    <div id="section-abends" class="group">
+      <div class="group-label">🌙 Abends</div>
+      <div id="group-abends"></div>
+      <div class="group-nav-link">
+        <a class="group-nav-btn" href="#section-mittags">← ☀️ Mittags</a>
+        <a class="group-nav-btn" href="#section-top">⬆ Zurück zum Anfang</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-kumulierung" class="hidden">
+    <p class="intro">Kumulierte Tageszufuhr basierend auf deinen eingetragenen Dosen. NRV = EU-Nährstoffbezugsmenge. Die Spalte <strong>Studienempfehlung</strong> zeigt die evidenzbasierte Zieldosis.</p>
+    <div id="cum-content"></div>
+  </div>
+  <div id="tab-export" class="hidden">
+    <div id="export-content"></div>
+  </div>
+</div>
+
+<div class="save-bar">
+  <div>
+    <span>💾 Dosen werden automatisch gespeichert</span>
+    <div class="save-status" id="save-status">Zuletzt gespeichert: –</div>
+  </div>
+  <button class="save-btn" onclick="saveNow()">Jetzt speichern</button>
+</div>
+
+<div class="footer">Supplement-Tracker · Kein Ersatz für ärztlichen Rat · Daten werden lokal im Browser gespeichert</div>
+
+<script>
+const PRODUCTS = [
+
+  // ═══════════════════════════════════════════════════════════
+  // MORGENS – NÜCHTERN (erste Einnahmen, sofort nach Aufstehen)
+  // ═══════════════════════════════════════════════════════════
+
+  { id:12, morgenOffset:0, name:"Weidenröschen-Tee", hersteller:"bioKontor", einheit:"TL", typ:"tee",
+    timing:{zeit:"Morgens", essen:"Nüchtern", uhrzeiten:{"morgens": "07:00"}},
+    sortBonus: -999, stockGroup:"weidenroeschen",
+    hinweis:"1–2 TL / 100 ml kochendes Wasser, 8–10 min · 1. Einnahme des Tages (vor allem anderen)",
+    nutrients:[{key:"weidenroeschen",label:"Weidenröschen (Epilobium parviflorum)",per:null,unit:"g/TL"}],
+    evidence:[
+      { nut:"Prostata-Unterstützung",
+        text:"Weidenröschen (Epilobium parviflorum) enthält Oenothein B – ein Ellagitannin mit nachgewiesener Hemmwirkung auf 5-Alpha-Reduktase und Aromatase, die bei der benignen Prostatahyperplasie (BPH) eine Rolle spielen. Traditionell eingesetzt zur Linderung von Miktionsbeschwerden. Wissenschaftliche Studienlage ist begrenzt, Erfahrungsberichte positiv.",
+        src:"Lesuisse et al., J Nat Prod 1996 · Vitalone et al., Phytomedicine 2003" }
+    ]
+  },
+
+  { id:22, morgenOffset:5, name:"Vitamin C gepuffert (Calcium-L-Ascorbat)", hersteller:"Sunday Natural", einheit:"Messlöffel (½ = ~450mg)", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Nüchtern (15 min vor allem anderen)", uhrzeiten:{"morgens": "07:15"}},
+    sortBonus: -998, defaultDose:1,
+    hinweis:"½ Messlöffel = ~225mg · nüchtern 15 min vor Kollagen · Dosis kann auf ½ reduziert werden wenn Grüntee Extrakt (Nr.29) eingenommen wird",
+    nutrients:[
+      {key:"vitamin_c", label:"Vitamin C (Calcium-L-Ascorbat)", per:450, unit:"mg"},
+      {key:"calcium",   label:"Calcium",                        per:50,  unit:"mg"}],
+    evidence:[
+      { nut:"Cofaktor Kollagensynthese",
+        text:"Vitamin C ist unverzichtbarer Cofaktor für die Prolyl- und Lysylhydroxylase – Enzyme, die Kollagen seine stabile Tripelhelix-Struktur geben. Ohne ausreichend Vitamin C bleibt synthetisiertes Kollagen strukturell schwach und wird schneller abgebaut. 500 mg nüchtern maximieren die Gewebeverfügbarkeit vor der Kollagensupplementierung.",
+        src:"Carr & Maggini, Nutrients 2017 · Peterkofsky, Am J Clin Nutr 1991" },
+      { nut:"Gepufferte Form (Calciumascorbat)",
+        text:"Calcium-L-Ascorbat ist pH-neutral (ca. 7,0) im Gegensatz zu Ascorbinsäure (pH 2,5). Dadurch keine Magenreizung bei Nüchterneinnahme, identische biologische Wirkung wie Ascorbinsäure, zusätzlich 50 mg Calcium als Synergist für Knochen und Bindegewebe.",
+        src:"Johnston et al., Am J Clin Nutr 1994" }
+    ]
+  },
+
+  { id:4, morgenOffset:10, name:"Selen + L-Glutathion", hersteller:"FormMed", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Nüchtern", uhrzeiten:{"morgens": "07:20"}},
+    nutrients:[{key:"selen",label:"Selen",per:100,unit:"µg"},{key:"l_glutathion",label:"L-Glutathion (reduziert)",per:10,unit:"mg"}],
+    evidence:[
+      { nut:"Selen – Schilddrüse & Immunsystem",
+        text:"Selen ist essenzieller Cofaktor der Glutathionperoxidasen und Thioredoxinreduktasen – den wichtigsten antioxidativen Enzymsystemen des Körpers. Für die Schilddrüsenhormonsynthese (Dejodase) ist Selen unerlässlich. 100 µg/Tag gilt als optimale supplementierte Menge bei niedrigem Ausgangsstatus.",
+        src:"Rayman, Lancet 2012 · NIH ODS Selenium 2023" },
+      { nut:"L-Glutathion – Anmerkung",
+        text:"Orales reduziertes Glutathion (GSH) hat begrenzte Bioverfügbarkeit, da es im Magen-Darm-Trakt weitgehend abgebaut wird. Effektiver: S-Acetyl-L-Glutathion (Produkt Nr. 8) oder liposomales Glutathion. Die Kombination mit Selen ist sinnvoll, da Selen die körpereigene Glutathionperoxidase aktiviert.",
+        src:"Witschi et al., EJCP 1992 · Schmitt et al., Eur J Nutr 2015" }
+    ]
+  },
+
+  { id:8, morgenOffset:10, name:"S-Acetyl-L-Glutathion", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Nüchtern", uhrzeiten:{"morgens": "07:20"}},
+    nutrients:[{key:"s_acetyl_glutathion",label:"S-Acetyl-L-Glutathion",per:100,unit:"mg"}],
+    evidence:[
+      { nut:"Bioverfügbarkeit",
+        text:"Im Gegensatz zu herkömmlichem reduziertem Glutathion (GSH) ist S-Acetyl-L-Glutathion säurestabil und übersteht den Magen-Darm-Trakt weitgehend unbeschädigt. Es wird intrazellulär zu aktivem GSH deacetyliert. Studien zeigen messbar höhere intrazelluläre Glutathionspiegel als mit reduziertem GSH.",
+        src:"Schmitt et al., Eur J Nutr 2015 · Vogel et al., Eur J Nutr 2019" },
+      { nut:"Redundanz mit Produkt Nr. 4",
+        text:"Dieses Präparat und Selen+L-Glutathion (Nr. 4) verfolgen dasselbe Ziel – antioxidativer Schutz. S-Acetyl-L-Glutathion ist die effektivere Form. Die Kombination beider ist möglich, aber prüfe ob Produkt Nr. 4 (reduziertes GSH) noch sinnvoll ist, wenn dieses Präparat eingenommen wird.",
+        src:"Klinische Bewertung Bioverfügbarkeit, Stand 2024" }
+    ]
+  },
+
+  { id:9, morgenOffset:40, name:"Folsäure (L-Methylfolat)", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Unabhängig", uhrzeiten:{"morgens": "07:45"}},
+    nutrients:[{key:"folat",label:"Folsäure (als L-Methylfolat)",per:400,unit:"µg"}],
+    evidence:[
+      { nut:"L-Methylfolat vs. Folsäure",
+        text:"L-Methylfolat (5-MTHF) ist die direkt biologisch aktive Form – im Gegensatz zu synthetischer Folsäure, die zuerst durch das Enzym MTHFR in 5-MTHF umgewandelt werden muss. Ca. 10–15 % der Bevölkerung hat eine MTHFR-Mutation (C677T) mit stark reduzierter Enzymaktivität. Für diese Personen ist L-Methylfolat deutlich wirksamer.",
+        src:"Greenberg et al., Am J Obstet Gynecol 2011 · Bailey & Stover, J Nutr 2015" },
+      { nut:"Homocystein & Kardiovaskuläres Risiko",
+        text:"Folat ist zusammen mit B12 und B6 essenziell für den Homocysteinabbau. Erhöhtes Homocystein (>10 µmol/l) gilt als unabhängiger Risikofaktor für Herzerkrankungen, Schlaganfall und kognitive Beeinträchtigungen. 400 µg L-Methylfolat entspricht dem EU-NRV und ist für die meisten Erwachsenen eine sinnvolle tägliche Dosis.",
+        src:"Clarke et al., NEJM 1998 · Lonn et al., NEJM 2006" }
+    ]
+  },
+
+  // NEU: Vitamin B12 Methylcobalamin
+  { id:32, morgenOffset:45, name:"Vitamin B12 (Methylcobalamin)", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Unabhängig", uhrzeiten:{"morgens": "07:45"}},
+    defaultDose:1,
+    hinweis:"1 Kapsel = 1000 µg Methylcobalamin · zeitgleich mit Folsäure (Nr. 9) · synergistisch für Homocysteinabbau · neu seit LaVita-/Ashwagandha-Absetzen (B12-Lücke geschlossen)",
+    nutrients:[{key:"vitamin_b12", label:"Vitamin B12 (Methylcobalamin)", per:1000, unit:"µg"}],
+    evidence:[
+      { nut:"Warum 1000 µg statt 2,5 µg (NRV)?",
+        text:"Die passive Diffusion von Vitamin B12 durch die Darmwand – unabhängig vom Intrinsic Factor – beträgt nur ca. 1 % der aufgenommenen Dosis. Bei 1000 µg werden so ca. 10 µg resorbiert, was den tatsächlichen Bedarf deckt. Ab dem 60. Lebensjahr nimmt die Magensäureproduktion und damit die Freisetzung von B12 aus Nahrungsproteinen ab; die hochdosierte Supplementierung umgeht dieses Problem.",
+        src:"NIH ODS Vitamin B12 2023 · Stabler, NEJM 2013 · Allen, Annu Rev Nutr 2012" },
+      { nut:"Methylcobalamin – aktive Form",
+        text:"Methylcobalamin ist die direkt biologisch aktive Coenzymform – im Gegensatz zu Cyanocobalamin, das erst in der Leber zu Methylcobalamin und Adenosylcobalamin umgewandelt werden muss. Methylcobalamin wird bevorzugt im Nervengewebe gespeichert und ist für die Myelin-Synthese besonders relevant. Bei neurologischen Symptomen (Kribbeln, Gedächtnis) ist Methylcobalamin die bevorzugte Form.",
+        src:"Watanabe et al., Exp Neurol 1994 · Okuda et al., J Nutr Sci Vitaminol 1999" },
+      { nut:"Synergie mit Folat (Nr. 9)",
+        text:"B12 und L-Methylfolat arbeiten im selben Einkohlenstoff-Stoffwechsel zusammen. Nur wenn beide vorhanden sind, kann Homocystein vollständig zu Methionin remethyliert werden. Die zeitgleiche Einnahme ist ideal. Ein isolierter Folat-Überschuss bei B12-Mangel kann B12-Mangelsymptome maskieren – ein weiterer Grund, B12 explizit zu supplementieren.",
+        src:"Clarke et al., NEJM 1998 · Shane, Am J Clin Nutr 2010" },
+      { nut:"Frühere Abdeckung – nun geschlossene Lücke",
+        text:"Vitamin B12 war bislang über LaVita (5 µg/Tag) und den Ashwagandha-Komplex (2,5 µg/Tag) abgedeckt – insgesamt ca. 7,5 µg. Nach dem Absetzen beider Präparate war B12 vollständig unabgedeckt. Da ein B12-Mangel sich schleichend über Monate entwickelt und irreversible Nervenschäden verursachen kann, ist die eigenständige Supplementierung jetzt unverzichtbar.",
+        src:"Stabler & Allen, Annu Rev Nutr 2004 · Langan & Goodbred, Am Fam Physician 2017" }
+    ]
+  },
+
+  { id:23, morgenOffset:25, name:"Hyaluronsäure 500mg", hersteller:"Sunday Natural", einheit:"Tabletten", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Nüchtern (mit viel Wasser)", uhrzeiten:{"morgens": "07:25"}},
+    defaultDose:2,
+    hinweis:"2 Tabletten = 500mg · mindestens 400ml Wasser! · Molekulargewicht 800–1.300 kDa (mittel) · aus Fermentation (vegan)",
+    nutrients:[{key:"hyaluronsaeure", label:"Hyaluronsäure (800–1.300 kDa)", per:250, unit:"mg"}],
+    evidence:[
+      { nut:"Orale Wirksamkeit bei Gelenken",
+        text:"Orale Hyaluronsäure wird im Darm zu Oligosacchariden gespalten, die systemisch aufgenommen werden und die körpereigene HA-Synthese in Synovialzellen stimulieren. Studien zeigen bei 80–200 mg/Tag Reduktion von Gelenkschmerzen nach 8 Wochen. 500 mg ist ein großzügiges, sicheres Protokoll.",
+        src:"Tashiro et al., Nutrients 2012 · Oe et al., Nutr J 2016" },
+      { nut:"Molekulargewicht: Warum 800–1.300 kDa?",
+        text:"Niedermolekulare HA (<50 kDa) aktiviert proinflammatorische TLR-Rezeptoren und kann Entzündungen verstärken. Hochmolekulare HA (>1.000 kDa) wirkt entzündungshemmend und schützend. Das mittlere Molekulargewicht (800–1.300 kDa) bietet die beste Balance: gute Resorption bei gleichzeitig entzündungshemmender Wirkung.",
+        src:"Litwiniuk et al., Wounds 2016 · Stern et al., Matrix Biol 2006" }
+    ]
+  },
+
+  { id:24, morgenOffset:30, name:"Kollagen SunGlow® Luxe (Typ I & III)", hersteller:"Sunday Natural", einheit:"Messlöffel (2g)", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Nüchtern (nach Vit C & Hyaluron)", uhrzeiten:{"morgens": "07:30"}},
+    defaultDose:1,
+    hinweis:"1 Messlöffel = 2g · SunColl® Markenrohstoff · 500 Dalton · 80% Tripeptide · Grass-fed Rind · in 200ml Wasser auflösen",
+    nutrients:[{key:"kollagen_typ1_3", label:"Kollagenhydrolysat Typ I & III (SunColl®)", per:2000, unit:"mg"}],
+    evidence:[
+      { nut:"Warum nur 2g statt 15–20g?",
+        text:"SunGlow® Luxe verwendet einen proprietären Enzymprozess der das Kollagen auf 500 Dalton (Tripeptide) reduziert. Bei dieser Partikelgröße ist keine weitere Verdauung nötig – sofortige Resorption. Studien zeigen bei 2g Luxe-Kollagen äquivalente Signalwirkung wie bei 15–20g konventionellem Hydrolysat, da die Tripeptide direkt Fibroblasten stimulieren.",
+        src:"Inoue et al., J Agric Food Chem 2016 · SunColl® Herstellerdokumentation" },
+      { nut:"Typ I & III: Zielgewebe",
+        text:"Kollagen Typ I ist das häufigste Kollagen im Körper: Haut (90%), Sehnen, Bänder, Knochen. Typ III findet sich in Blutgefäßen, Haut und Muskeln und arbeitet synergistisch mit Typ I. Für Knorpel ist Typ II (UC-II®, separat) zuständig – Typ I & III und Typ II ergänzen sich und konkurrieren nicht.",
+        src:"Di Lullo et al., J Biol Chem 2002 · Shoulders & Raines, Annu Rev Biochem 2009" }
+    ]
+  },
+
+  { id:25, morgenOffset:30, name:"UC-II® Kollagen Typ II + Boswellia", hersteller:"WFN / World Food Nutrition", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Nüchtern (unzerkaut schlucken!)", uhrzeiten:{"morgens": "07:30"}},
+    defaultDose:1,
+    hinweis:"1 Kapsel täglich · UNZERKAUT schlucken – Molekül muss intakt den Darm erreichen! · UC-II® von Lonza · + Boswellia Serrata · Made in Germany · laborgeprüft",
+    nutrients:[
+      {key:"ucii_kollagen", label:"UC-II® undenaturiertes Kollagen Typ II", per:40, unit:"mg"},
+      {key:"boswellia",     label:"Boswellia Serrata Extrakt",              per:null, unit:""}],
+    evidence:[
+      { nut:"UC-II®: Oraler Toleranzmechanismus",
+        text:"Undenaturiertes Typ-II-Kollagen (UC-II®) wirkt über orale Toleranzinduktion im Peyer-Patch des Darms: Das intakte Molekül wird von regulatorischen T-Zellen erkannt und trainiert das Immunsystem, den eigenen Gelenkknorpel nicht anzugreifen. Dieser Mechanismus erklärt warum nur 40mg nötig sind – denaturiertes Kollagen (Hydrolysat) hat diesen Effekt nicht.",
+        src:"Trentham et al., Science 1993 · Crowley et al., Int J Med Sci 2009" },
+      { nut:"Boswellia Serrata (Weihrauch): Gelenkentzündung",
+        text:"Boswellia-Extrakt enthält Boswellinsäuren (v.a. AKBA) die spezifisch die 5-Lipoxygenase hemmen – ein Schlüsselenzym der Entzündungskaskade. Klinische Studien zeigen signifikante Reduktion von Gelenkschmerzen und verbesserter Beweglichkeit bei Arthrose nach 4–8 Wochen.",
+        src:"Kimmatkar et al., Phytomedicine 2003 · Sontakke et al., Indian J Pharmacol 2007" },
+      { nut:"UC-II® vs. Glucosamin + Chondroitin",
+        text:"In einer randomisierten Doppelblindstudie zeigte UC-II® (40mg) signifikant bessere Ergebnisse bei Gelenkschmerzen und Beweglichkeit als die Kombination aus 1.500mg Glucosamin + 1.200mg Chondroitin. Wirkungseintritt nach 60–90 Tagen kontinuierlicher Einnahme.",
+        src:"Crowley et al., Int J Med Sci 2009" }
+    ]
+  },
+
+  { id:26, morgenOffset:30, name:"Kieselsäure (Diatomeenerde) 195mg Silizium", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Nüchtern", uhrzeiten:{"morgens": "07:30"}},
+    defaultDose:1,
+    hinweis:"1 Kapsel = 195mg elementares Silizium · Amorphe Diatomeenerde · ohne Nanopartikel · vernetzt Kollagenfasern im Bindegewebe",
+    nutrients:[{key:"silizium", label:"Silizium (aus Diatomeenerde)", per:195, unit:"mg"}],
+    evidence:[
+      { nut:"Silizium: Kollagenvernetzung",
+        text:"Silizium ist essenzieller Cofaktor für die Prolylhydroxylase und die Quervernetzung von Kollagenfasern im Bindegewebe. Ohne ausreichend Silizium bleibt die Kollagenmatrix strukturell schwächer – Sehnen, Knorpel und Knochen verlieren an Festigkeit. Der Körperspiegel sinkt ab dem 40. Lebensjahr kontinuierlich.",
+        src:"Jugdaohsingh et al., Am J Clin Nutr 2004 · Price et al., Nutr Metab 2012" },
+      { nut:"Diatomeenerde vs. Bambus: Gleichwertig",
+        text:"Amorphe Kieselsäure aus Diatomeenerde und Bambus-Extrakt sind beide organisch gebundene Siliziumquellen mit vergleichbarer Bioverfügbarkeit. Sunday Natural verwendet amorphes (nicht kristallines) Siliziumdioxid ohne Nanopartikel – die sicherste und bestverträglichste Form.",
+        src:"Sripanyakorn et al., Br J Nutr 2009" }
+    ]
+  },
+
+  { id:2, morgenOffset:60, name:"Magnesium L-Threonat (Magtein®)", hersteller:"Moleclar GmbH", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens + Abends", essen:"Zum Essen", uhrzeiten:{"morgens": "08:00", "abends": "19:00"}},
+    hinweis:"50 mg Mg/Kapsel · 2 Kapseln tagsüber + 1 Kapsel vor dem Schlafen",
+    nutrients:[{key:"magnesium",label:"Magnesium",per:50,unit:"mg"}],
+    evidence:[
+      { nut:"Blut-Hirn-Schranke",
+        text:"Die einzige Magnesiumform, die in klinischen Studien nachweislich die Blut-Hirn-Schranke überquert und den Magnesiumspiegel im Gehirn messbar erhöht. Alle anderen Formen – Citrat, Oxid, Glycinat – haben keinen nachweisbaren Effekt auf die Hirnkonzentration.",
+        src:"Slutsky et al., Neuron 2010 · Ates et al., Nutrients 2019" },
+      { nut:"Kognitive Wirkung",
+        text:"In einer randomisierten, doppelblinden Studie verbesserten 3 Kapseln täglich Kurzzeitgedächtnis, Lernfähigkeit und kognitive Flexibilität signifikant – auch bei älteren Teilnehmern. Das kognitive Alter verbesserte sich im Schnitt um 9 Jahre gegenüber Placebo. Volle Wirkung nach 6–8 Wochen.",
+        src:"Liu et al., Neuron 2010" },
+      { nut:"Schlaf & Entspannung",
+        text:"Abends einnehmen: Magnesium aktiviert das parasympathische Nervensystem und verbessert Einschlafgeschwindigkeit und Tiefschlafanteil. Magtein® hat dabei eine leicht sedierende Wirkung durch die kognitive Entspannung.",
+        src:"Zhang et al., Sleep 2022 · Abbasi et al., J Res Med Sci 2012" }
+    ]
+  },
+
+  { id:3, morgenOffset:60, name:"Krillöl (Superba®)", hersteller:"FormMed", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens + Mittags + Abends", essen:"Zum Essen (fetthaltig)", uhrzeiten:{"morgens": "08:00", "mittags": "13:00", "abends": "19:00"}},
+    defaultDose:2,
+    hinweis:"2 Kapseln/Tag · je 1 Kapsel zu Frühstück + Mittagessen · EPA 178 mg · DHA 82 mg/Tag · reduziert von 3 auf 2 Kapseln (Algenöl deckt Hauptbedarf ab)",
+    nutrients:[
+      {key:"krilloel",label:"Krillöl gesamt",per:590,unit:"mg"},
+      {key:"omega3_phospholipide",label:"Omega-3-Phospholipide",per:330,unit:"mg"},
+      {key:"omega3",label:"Omega-3-Fettsäuren",per:160,unit:"mg"},
+      {key:"epa",label:"EPA",per:89,unit:"mg"},
+      {key:"dha",label:"DHA",per:41,unit:"mg"},
+      {key:"astaxanthin",label:"Astaxanthin",per:50,unit:"µg"}],
+    evidence:[
+      { nut:"Krillöl vs. Fischöl – Phospholipidform",
+        text:"Krillöl-Omega-3 liegt in Phospholipidform vor – im Gegensatz zu Fischöl (Triglyceride). Phospholipid-gebundenes EPA/DHA wird direkt ins Gewebe eingebaut, ohne Umweg über die Leber. Studien zeigen bis zu 68 % höhere Bioverfügbarkeit als Fischöl. Die Kombination mit Algenöl (Nr. 27) ist sinnvoll: Krill liefert Phospholipid-Form + Astaxanthin, Algenöl liefert die Hauptmenge EPA/DHA vegan und schwermetallfrei.",
+        src:"Ulven et al., Lipids 2011 · Schuchardt et al., Lipids 2011" },
+      { nut:"Astaxanthin",
+        text:"Natürliches Antioxidans im Krillöl, das die empfindlichen Omega-3-Fettsäuren vor Oxidation schützt. Astaxanthin ist 550× stärker als Vitamin E als Antioxidans und passiert als eines der wenigen Substanzen sowohl Blut-Hirn- als auch Blut-Retina-Schranke. Nach dem Absetzen von LaVita (enthielt Vitamin E) ist Astaxanthin als Omega-3-Schutz noch wichtiger.",
+        src:"Guerin et al., Trends Biotechnol 2003" },
+      { nut:"Dosisanpassung: 2 statt 3 Kapseln",
+        text:"Da Algenöl (Nr. 27, 2 Kapseln) bereits EPA 800 mg + DHA 450 mg/Tag liefert, ist die Krillöl-Hauptfunktion jetzt der Phospholipid-Vorteil und das Astaxanthin. 2 Kapseln Krill reichen für diesen Synergismus vollständig aus. Die Gesamtdosis EPA+DHA bleibt mit ~1.050 mg EPA + ~530 mg DHA im optimalen therapeutischen Bereich.",
+        src:"AHA 2002 · ISSFAL · ESC Guidelines 2021" }
+    ]
+  },
+
+  { id:5, morgenOffset:60, name:"Tomatenextrakt Fruitflow® II SD", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Zum Essen", uhrzeiten:{"morgens": "08:00"}},
+    nutrients:[
+      {key:"fruitflow",label:"Tomatenextrakt Fruitflow® II SD",per:150,unit:"mg"},
+      {key:"fruitflow_aktiv",label:"Adenosin / Chlorogensäure / Rutin",per:2.4,unit:"mg"}],
+    evidence:[
+      { nut:"Thrombozytenaggregation – EFSA-Claim",
+        text:"Fruitflow® ist der einzige von der EFSA zugelassene gesundheitsbezogene Claim für einen Pflanzenstoff im Bereich Blutfluss: 'Fruitflow trägt zur normalen Thrombozytenaggregation bei, die zu einem gesunden Blutfluss beiträgt.' Der Wirkmechanismus beruht auf Hemmung der ADP-induzierten Plättchenaggregation durch wasserlösliche Tomatenbestandteile.",
+        src:"EFSA Health Claim Regulation 2009 · Duttaroy & Jørgensen, Platelets 2004" },
+      { nut:"Einnahme-Tipp",
+        text:"Wirkung tritt innerhalb von 1,5–3 Stunden ein und hält 18 Stunden an – tägliche Einnahme ist für kontinuierliche Wirkung notwendig. Besonders relevant in Kombination mit Tamsulosin (Nr. 13) und der insgesamt kardioprotektiven Ausrichtung des Protokolls.",
+        src:"Duttaroy & Jørgensen, Platelets 2004" }
+    ]
+  },
+
+  { id:6, morgenOffset:60, name:"Vitamin D3 + K2 (MK-7) + Pantothensäure", hersteller:"FormMed", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Zum Essen (fetthaltig)", uhrzeiten:{"morgens": "08:00"}},
+    nutrients:[
+      {key:"vitamin_d3",label:"Vitamin D3",per:87.5,unit:"µg"},
+      {key:"vitamin_k2",label:"Vitamin K2 (MK-7)",per:37.5,unit:"µg"},
+      {key:"vitamin_b5",label:"Pantothensäure (B5)",per:3,unit:"mg"}],
+    evidence:[
+      { nut:"Vitamin D3 – Dosis & Blutspiegelkontrolle",
+        text:"87,5 µg (3.500 IU) ist eine hochdosierte Therapeutikadosis – sinnvoll bei dokumentiertem Mangel (Blutspiegel <30 ng/ml). Zielbereich: 40–60 ng/ml. Bei regelmäßiger Einnahme dieser Dosis sollte der Spiegel alle 3–6 Monate kontrolliert werden. Interessant: Studiendaten deuten darauf hin, dass ausreichend Vitamin D3 die Wirksamkeit der BCG-Instillationstherapie durch Steigerung der Makrophagen-Zytotoxizität verbessern kann.",
+        src:"Holick et al., JCEM 2011 · Endocrine Society Guidelines · Chen et al., PMC 2014" },
+      { nut:"Vitamin K2 (MK-7) – D3-Synergie",
+        text:"Essenziell bei hoher D3-Supplementierung: K2 aktiviert Matrix-Gla-Protein (MGP) und Osteocalcin – verhindert Calciumeinlagerung in Gefäßwänden und leitet es in die Knochen. MK-7 hat mit ~72 Stunden Halbwertszeit die längste Wirkdauer aller K2-Formen. 37,5 µg liegt am unteren Rand – bei Fortsetzung dieser D3-Dosis 100 µg MK-7 anstreben.",
+        src:"Geleijnse et al., NEJM 2004 (Rotterdam-Studie) · Knapen et al., OI 2013" },
+      { nut:"Magnesium als D3-Aktivator",
+        text:"Vitamin D3 benötigt Magnesium als Cofaktor für seine Aktivierung zu Calcitriol. Ohne ausreichend Magnesium bleibt D3 weitgehend wirkungslos. Bei dieser hohen D3-Dosis ist eine gute Magnesiumversorgung (aus Produkt 1+2) besonders wichtig.",
+        src:"Uwitonze & Razzaque, JASN 2018" }
+    ]
+  },
+
+  { id:29, morgenOffset:90, name:"Grüntee Extrakt EGCG + C + Quercetin", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Zum Essen (NICHT nüchtern!)", uhrzeiten:{"morgens": "08:30"}},
+    defaultDose:1,
+    hinweis:"1 Kapsel = 144mg EGCG + 150mg Vit C (PureWay-C®) + 20mg Quercetin · entkoffeiniert · ⚠️ NIEMALS nüchtern! · ⚠️ 48-72h vor/nach BCG-Instillation PAUSIEREN",
+    nutrients:[
+      {key:"egcg",      label:"EGCG (Epigallocatechin-Gallat)", per:144, unit:"mg"},
+      {key:"vitamin_c", label:"Vitamin C (PureWay-C®)",          per:150, unit:"mg"},
+      {key:"quercetin", label:"Quercetin (Sophora japonica)",     per:20,  unit:"mg"}],
+    evidence:[
+      { nut:"⚠️ WICHTIG: Niemals nüchtern einnehmen",
+        text:"EGCG reizt die Magenschleimhaut erheblich wenn nüchtern eingenommen. Übelkeit und Magenreizung sind häufige Nebenwirkungen bei Einnahme ohne Mahlzeit. Immer zu oder direkt nach dem Frühstück einnehmen – mindestens 60 Minuten nach den nüchternen Morgens-Supplements.",
+        src:"EFSA Green Tea Safety Assessment 2018 · Sunday Natural Produkthinweis" },
+      { nut:"⚠️ BCG-Instillation: 48–72h pausieren",
+        text:"EGCG, Quercetin und Sulforaphan hemmen in vitro signifikant die T-Zell-Proliferation. Da die BCG-Wirksamkeit auf lokaler T-Zell-Aktivierung in der Blasenwand beruht, sollten diese Wirkstoffe rund um BCG-Instillationen pausiert werden. Außerhalb der BCG-Phasen sprechen die antiproliferativen Effekte auf Tumorzellen für die Weitereinnahme.",
+        src:"Ogawa et al., PMC 2020 · EFSA 2018 · Abstimmung mit Dr. Löser empfohlen" },
+      { nut:"EGCG – antioxidative & antiproliferative Wirkung",
+        text:"EGCG hemmt proinflammatorische Signalwege (NF-κB), unterstützt die Autophagie und wirkt synergetisch mit Quercetin als starkes Antioxidans. Klinisch geprüfte Wirkungen bei 200–800mg EGCG/Tag: kardioprotektiv, neuroprotektiv, antiinflammatorisch. Bei 1 Kapsel (144mg) ist man weit unterhalb kritischer Mengen.",
+        src:"Khan et al., Antioxidants & Redox Signaling 2006 · Chacko et al., Chin Med 2010" }
+    ]
+  },
+
+  { id:30, morgenOffset:90, name:"Quercetin 250mg (Sophora japonica)", hersteller:"allcura Naturheilmittel", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Zum Essen", uhrzeiten:{"morgens": "08:30"}},
+    defaultDose:1,
+    hinweis:"1 Kapsel = 250mg Quercetin · zeitgleich mit EGCG (Nr. 29) · ⚠️ 48-72h vor/nach BCG-Instillation PAUSIEREN",
+    nutrients:[
+      {key:"quercetin_allcura", label:"Quercetin (Sophora japonica 60%)", per:250, unit:"mg"}],
+    evidence:[
+      { nut:"⚠️ BCG-Instillation: 48–72h pausieren",
+        text:"Siehe Nr. 29 (EGCG). Quercetin hemmt ebenfalls T-Zell-Proliferation in vitro. In der BCG-freien Phase ist Quercetin als Kombinationspartner zu EGCG und Sulforaphan sinnvoll – alle drei greifen auf komplementäre Tumorzell-Signalwege ein (PI3K/Akt, NF-κB, COX-2). Zeitgleiche Einnahme mit Nr. 29 + 31 zum Frühstück ist das optimale Protokoll.",
+        src:"Boots et al., Eur J Pharmacol 2008 · Dagher et al., Nutrients 2021" },
+      { nut:"Quercetin bei Urothelkarzinom",
+        text:"Quercetin zeigt in präklinischen Studien starke antiproliferative Effekte bei Blasenkarzinomzellen über PI3K/Akt-Hemmung. Eine 2024 veröffentlichte Studie bestätigt synergistische Apoptose-Induktion in Kombination mit anderen Wirkstoffen. Bei 250mg/Tag sind diese Wege relevant aktivierbar.",
+        src:"Xuan et al., Mol Med Rep 2016 · Spagnuolo et al., Molecules 2024" },
+      { nut:"Synergie mit EGCG",
+        text:"Quercetin und EGCG stabilisieren sich gegenseitig gegen Oxidation und erhöhen so gegenseitig ihre Bioverfügbarkeit. Die Kombination wirkt auf multiple Tumorzell-Signalwege gleichzeitig: NF-κB (EGCG), PI3K/Akt (beide), COX-2 (Quercetin). 270mg Quercetin/Tag (20mg aus Nr.29 + 250mg hier) liegt im optimalen therapeutischen Bereich.",
+        src:"Fantini et al., Life Sci 2004 · Lambert & Elias, Biochem Pharmacol 2010" }
+    ]
+  },
+
+  { id:31, morgenOffset:90, name:"Brokkoli Extrakt Sulforaphan (Liposomal)", hersteller:"mighty elements", einheit:"Portion (10 ml)", typ:"supplement",
+    timing:{zeit:"Morgens", essen:"Zum Essen", uhrzeiten:{"morgens": "08:30"}},
+    defaultDose:1,
+    hinweis:"1 Portion = 10 ml = 52 mg Sulforaphan · liposomal · 25 Portionen/Flasche · zeitgleich mit Nr. 29+30 · NICHT in heißen Getränken! · ⚠️ 48-72h vor/nach BCG-Instillation PAUSIEREN",
+    nutrients:[
+      {key:"sulforaphan",      label:"Sulforaphan",      per:52,  unit:"mg"},
+      {key:"brokkoli_extrakt", label:"Brokkoli-Extrakt", per:400, unit:"mg"},
+      {key:"sanddornextrakt",  label:"Sanddornextrakt",  per:10,  unit:"mg"}
+    ],
+    evidence:[
+      { nut:"⚠️ BCG-Instillation: 48–72h pausieren",
+        text:"Sulforaphan hemmt in vitro die T-Zell-Proliferation. Da BCG über lokale T-Zell-Aktivierung wirkt, sollte Sulforaphan rund um Instillationen pausiert werden. In der BCG-freien Intervallphase ist Sulforaphan besonders wertvoll: Nrf2-Aktivierung, HDAC-Hemmung (epigenetisch) und antiproliferative Wirkung auf Blasenkrebszellen sprechen für die konsequente Einnahme.",
+        src:"Abbaoui et al., Mol Nutr Food Res 2012 · Zhao et al., Cancer Lett 2012 · Naumann et al., Nutrients 2019" },
+      { nut:"Sulforaphan – Nrf2-Aktivierung & Zellschutz",
+        text:"Sulforaphan ist der stärkste bekannte natürliche Aktivator des Nrf2-Signalwegs – dem Haupt-Transkriptionsfaktor für antioxidative und zellschützende Enzyme. Bereits 10–30mg/Tag erhöhen den intrazellulären Glutathionspiegel messbar. Der Mechanismus ergänzt synergistisch EGCG (NF-κB-Hemmung) und Quercetin (PI3K/Akt-Hemmung).",
+        src:"Zhang et al., PNAS 1992 · Houghton et al., Nutrients 2019 · Fahey et al., PNAS 1997" },
+      { nut:"Liposomale Form – Hinweis zur Bioverfügbarkeit",
+        text:"Sulforaphan hat bereits in nicht-verkapselter Form eine absolute Bioverfügbarkeit von ca. 80% und erreicht den Blutspiegel-Spitzenwert nach ca. 1 Stunde. Die liposomale Verkapselung schützt primär vor Magenabbau und Hitzezersetzung – sinnvoll für Stabilität, aber kein dramatischer Bioverfügbarkeits-Vorteil gegenüber hochwertigen Standardkapseln. Nicht in heißen Getränken (>40°C) verdünnen.",
+        src:"Fahey et al., PNAS 1997 · Vermeulen et al., Am J Clin Nutr 2008 · Giacometti et al., Nutrients 2020" }
+    ]
+  },
+
+  // ═══════════════════
+  // MITTAGS
+  // ═══════════════════
+
+  { id:16, name:"MSM Pulver", hersteller:"Bonemis (99,95% Reinheit)", einheit:"g", typ:"supplement",
+    timing:{zeit:"Mittags", essen:"Zum Essen", uhrzeiten:{"mittags": "13:00"}},
+    hinweis:"Ziel: 2–3g/Tag · in Fruchtsaft einrühren · 60-80 Mesh",
+    nutrients:[{key:"msm",label:"Methylsulfonylmethan (MSM)",per:1000,unit:"mg"}],
+    evidence:[
+      { nut:"MSM – Gelenke & Entzündung",
+        text:"MSM (organischer Schwefel) liefert biologisch verfügbares Sulfat für die Synthese von Knorpelmatrix-Bestandteilen (Proteoglykane, Glykosaminoglykane). In RCTs bei 3g/Tag über 12 Wochen: signifikante Reduktion von Gelenkschmerz (WOMAC-Score) und Entzündungsmarkern (CRP, IL-6). Gut kombinierbar mit Glucosamin+Chondroitin.",
+        src:"Kim et al., Osteoarthritis Cartilage 2006 · Usha & Naidu, Clin Drug Invest 2004" },
+      { nut:"Einschleichen empfohlen",
+        text:"Plötzliche hohe MSM-Dosen können Verdauungsbeschwerden verursachen. Bewährtes Protokoll: Woche 1 → 1g/Tag; Woche 2 → 2g/Tag; ab Woche 3 → 3g/Tag. MSM ist wasserlöslich – keine besonderen Anforderungen an Fettgehalt der Mahlzeit.",
+        src:"Butawan et al., Nutrients 2017" }
+    ]
+  },
+
+  { id:27, name:"Omega-3 Algenöl (EPA 400mg + DHA 225mg)", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Mittags", essen:"Zum Essen (Fettaufnahme nötig!)", uhrzeiten:{"mittags": "13:00"}},
+    defaultDose:2,
+    hinweis:"2 Kapseln = EPA 800mg + DHA 450mg · Mikroalge Schizochytrium sp. · vegan · kein Fischgeschmack · Hauptquelle Omega-3 (ergänzt Krill Nr.3)",
+    nutrients:[
+      {key:"epa", label:"EPA (Eicosapentaensäure)", per:400, unit:"mg"},
+      {key:"dha", label:"DHA (Docosahexaensäure)",  per:225, unit:"mg"}],
+    evidence:[
+      { nut:"Omega-3 bei Gelenkerkrankungen",
+        text:"EPA und DHA hemmen die Synthese entzündungsfördernder Eicosanoide (PGE2, LTB4) und werden zu entzündungshemmenden Resolvinen und Protectinen umgewandelt. Meta-Analysen zeigen bei 2.000–4.000mg EPA+DHA/Tag signifikante Reduktion von Gelenksteife und Schmerzintensität bei Arthritis nach 3 Monaten.",
+        src:"Goldberg & Katz, Pain 2007 · Calder, Biochim Biophys Acta 2015" },
+      { nut:"Algenöl: Primärquelle ohne Schwermetalle",
+        text:"Fische reichern Omega-3 durch Mikroalgen-Konsum an. Algenöl ist die direktere, reinere Quelle – ohne das Risiko von Schwermetallen, PCBs oder Dioxinen. Schizochytrium sp. produziert besonders EPA- und DHA-reiches Öl in kontrollierten Fermentationsanlagen.",
+        src:"Arterburn et al., Am J Clin Nutr 2008" }
+    ]
+  },
+
+  { id:15, name:"Glucosamin & Chondroitin", hersteller:"natural elements", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Mittags", essen:"Zum Essen", uhrzeiten:{"mittags": "13:00"}},
+    defaultDose:3,
+    hinweis:"Tagesdosis = 3 Kapseln · je 1 Kapsel zu jeder Mahlzeit (M+M+A) oder alle 3 zum Mittagessen · Glucosaminsulfat 1500mg + Chondroitin 1200mg/Tag",
+    nutrients:[
+      {key:"glucosamin",label:"Glucosaminsulfat",per:500,unit:"mg"},
+      {key:"chondroitin",label:"Chondroitinsulfat",per:400,unit:"mg"},
+      {key:"vitamin_c",label:"Vitamin C (Hagebuttenextrakt)",per:26.7,unit:"mg"}],
+    evidence:[
+      { nut:"Glucosamin & Chondroitin",
+        text:"Glucosaminsulfat und Chondroitinsulfat sind die einzigen Nahrungsergänzungen, für die im Bereich Gelenkgesundheit moderate klinische Evidenz besteht. Bei Tagesdosen von 1.500mg Glucosaminsulfat + 1.200mg Chondroitin zeigten Studien Verbesserung von Gelenkschmerzen und -steifigkeit bei Kniearthrose vergleichbar mit 200mg Celecoxib.",
+        src:"Clegg et al., NEJM 2006 (GAIT Trial) · Kahan et al., Ann Rheum Dis 2009" },
+      { nut:"Wirkungseintritt",
+        text:"Geduld ist entscheidend: Erste Wirkung frühestens nach 4–8 Wochen, volle Wirkung nach 3 Monaten regelmäßiger Einnahme. Vitamin C (Hagebuttenextrakt) fördert die körpereigene Kollagensynthese.",
+        src:"Richy et al., Arch Int Med 2003" }
+    ]
+  },
+
+  // ═══════════════════
+  // ABENDS
+  // ═══════════════════
+
+  { id:13, name:"Tamsulosin 0,4 mg", hersteller:"1A Pharma", einheit:"Tabletten", typ:"medikament",
+    timing:{zeit:"Abends", essen:"Nach dem Abendessen", uhrzeiten:{"abends": "19:30"}},
+    nutrients:[{key:"tamsulosin",label:"Tamsulosinhydrochlorid",per:0.4,unit:"mg"}],
+    evidence:[
+      { nut:"Wirkprinzip",
+        text:"Alpha-1A-Adrenorezeptor-Blocker – relaxiert glatte Muskulatur im Blasenhals und der Prostatakapsel. Verbessert die Harnflussrate bei BPH. Einnahme 30 min nach dem Abendessen zur Reduktion orthostatischer Hypotonie. Verschriebenes Medikament – keine eigenmächtige Dosisänderung.",
+        src:"Roehrborn, Rev Urol 2001" }
+    ]
+  },
+
+  { id:1, name:"Magnesium Komplex", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Abends", essen:"Zum Essen", uhrzeiten:{"abends": "19:00"}},
+    nutrients:[{key:"magnesium",label:"Magnesium",per:200,unit:"mg"},{key:"vitamin_c",label:"Vitamin C",per:38,unit:"mg"}],
+    evidence:[
+      { nut:"Magnesium – Gesamtbedarf",
+        text:"Magnesium ist an über 300 enzymatischen Reaktionen beteiligt, darunter Energiestoffwechsel, Muskelrelaxation und die Aktivierung von Vitamin D3. Der Tagesbedarf laut DGE liegt bei 350–400 mg; bei intensiver Belastung (Tennis) kann der Bedarf höher sein. Dieser Komplex liefert 200mg als Basis – gut kombinierbar mit dem Magtein®.",
+        src:"DGE Referenzwerte 2021 · Gröber et al., Nutrients 2015" },
+      { nut:"Einnahme-Tipp",
+        text:"Magnesium am besten abends einnehmen: fördert Muskelentspannung und Schlafqualität. Magnesiumcitrat oder -bisglycinat haben eine höhere Bioverfügbarkeit als Magnesiumoxid (nur ~4% Resorption).",
+        src:"Walker et al., Magnes Res 2003" }
+    ]
+  },
+
+  // NEU: Zink niedrigdosiert
+  { id:33, name:"Zink-Bisglycinat 10mg", hersteller:"Sunday Natural", einheit:"Kapseln", typ:"supplement",
+    timing:{zeit:"Abends", essen:"Nüchtern (mind. 2h nach dem Essen)", uhrzeiten:{"abends": "22:00"}},
+    defaultDose:1,
+    hinweis:"1 Kapsel = Zink 10mg (100% NRV) · Nüchtern abends · Zellreparatur im Schlaf · NEU: Dosisreduktion von 25mg auf 10mg (war am EFSA-UL, jetzt sichere Dauerdosis) · großer Abstand zu Mahlzeiten",
+    nutrients:[
+      {key:"zink", label:"Zink (Bisglycinat)", per:10, unit:"mg"}],
+    evidence:[
+      { nut:"Warum 10mg statt 25mg?",
+        text:"Das frühere Zink-Bisglycinat 25mg lag exakt am EFSA-Tolerable Upper Intake Level (UL: 25mg/Tag). Langfristig hohe Zinkgaben können durch Verdrängung am intestinalen ZIP-Transporter einen sekundären Kupfermangel verursachen. 10mg/Tag (100% NRV) decken den Bedarf vollständig ohne dieses Risiko und ohne LaVita-Überlappung (die jetzt wegfällt).",
+        src:"EFSA UL Zink 2014 · Oestreicher & Cousins, J Nutr 1985" },
+      { nut:"Zink-Bisglycinat: Optimale Form",
+        text:"Zinkbisglycinat ist eine Chelatverbindung mit Glycin, die die intestinale Resorption gegenüber anorganischen Zinkformen (Oxid, Sulfat) um 40–60% verbessert. Glycin konkurriert nicht mit anderen Mineralstoffen um Transporter und ist magenfreundlich.",
+        src:"Gandia et al., Curr Top Nutraceut Res 2007" },
+      { nut:"Zink: Kollagen, Gelenke & Immunfunktion",
+        text:"Zink ist Cofaktor für über 300 Enzyme, darunter Kollagenasen (Gewebeumbau), Superoxiddismutase (antioxidativ) und Matrixmetalloproteinasen. Bei Gelenkerkrankungen ist Zink oft erniedrigt. Nach dem Absetzen von LaVita (5mg Zink) und des alten Zink-Präparats war Zink vollständig unabgedeckt. Diese Lücke wird jetzt gezielt und sicher geschlossen.",
+        src:"Maares & Haase, Arch Biochem Biophys 2020 · NIH ODS Zinc 2023" }
+    ]
+  },
+
+  { id:21, name:"Weidenröschen-Tee", hersteller:"bioKontor", einheit:"TL", typ:"tee",
+    timing:{zeit:"Abends", essen:"Nüchtern", uhrzeiten:{"abends": "21:00"}},
+    sortBonus: 999, stockGroup:"weidenroeschen",
+    hinweis:"1–2 TL / 100 ml kochendes Wasser, 8–10 min · letzte Einnahme des Tages (nach allem anderen)",
+    nutrients:[{key:"weidenroeschen",label:"Weidenröschen (Epilobium parviflorum)",per:null,unit:"g/TL"}],
+    evidence:[
+      { nut:"Prostata-Unterstützung",
+        text:"Weidenröschen (Epilobium parviflorum) enthält Oenothein B – ein Ellagitannin mit nachgewiesener Hemmwirkung auf 5-Alpha-Reduktase und Aromatase, die bei der benignen Prostatahyperplasie (BPH) eine Rolle spielen. Traditionell eingesetzt zur Linderung von Miktionsbeschwerden.",
+        src:"Lesuisse et al., J Nat Prod 1996 · Vitalone et al., Phytomedicine 2003" }
+    ]
+  },
+
+];
+
+// ═══════════════════════════════════════════
+// NRV, UL, STUDY, NRV_ORDER
+// ═══════════════════════════════════════════
+
+const NRV = {
+  magnesium:{value:375,unit:"mg"},vitamin_c:{value:80,unit:"mg"},vitamin_d3:{value:5,unit:"µg"},
+  vitamin_k2:{value:75,unit:"µg"},vitamin_k1:{value:75,unit:"µg"},vitamin_k:{value:75,unit:"µg"},
+  vitamin_b5:{value:6,unit:"mg"},vitamin_b1:{value:1.1,unit:"mg"},vitamin_b2:{value:1.4,unit:"mg"},
+  vitamin_b3:{value:16,unit:"mg NE"},vitamin_b6:{value:1.4,unit:"mg"},vitamin_b12:{value:2.5,unit:"µg"},
+  folat:{value:200,unit:"µg"},selen:{value:55,unit:"µg"},zink:{value:10,unit:"mg"},
+  mangan:{value:2,unit:"mg"},molybdaen:{value:50,unit:"µg"},vitamin_e:{value:12,unit:"mg"},
+  biotin:{value:50,unit:"µg"},kupfer:{value:1,unit:"mg"},eisen:{value:14,unit:"mg"},
+  jod:{value:150,unit:"µg"},chrom:{value:40,unit:"µg"},epa:{value:250,unit:"mg"},dha:{value:250,unit:"mg"},
+  hyaluronsaeure:{value:80,unit:"mg"},kollagen_typ1_3:{value:10000,unit:"mg"},
+  ucii_kollagen:{value:40,unit:"mg"},silizium:{value:20,unit:"mg"},calcium:{value:800,unit:"mg"},
+};
+
+const UL = {
+  vitamin_d3:{value:100,unit:"µg",src:"EFSA 2012"},vitamin_a:{value:800,unit:"µg RE",src:"EFSA 2006"},
+  vitamin_e:{value:300,unit:"mg",src:"EFSA 2006"},vitamin_b6:{value:25,unit:"mg",src:"EFSA 2006"},
+  folat:{value:1000,unit:"µg",src:"EFSA 2006"},vitamin_c:{value:2000,unit:"mg",src:"EFSA 2006"},
+  selen:{value:300,unit:"µg",src:"EFSA 2023"},zink:{value:25,unit:"mg",src:"EFSA 2023"},
+  jod:{value:600,unit:"µg",src:"EFSA 2006"},kupfer:{value:5,unit:"mg",src:"EFSA 2006"},
+  eisen:{value:40,unit:"mg",src:"EFSA 2006"},calcium:{value:2500,unit:"mg",src:"EFSA 2012"},
+  mangan:{value:8,unit:"mg",src:"EFSA 2013"},
+};
+
+const STUDY = {
+  magnesium:{text:"310–420 mg/Tag",src:"DGE · NIH ODS · Gröber et al., Nutrients 2015"},
+  vitamin_d3:{text:"37,5–50 µg (1.500–2.000 IU)",src:"Endocrine Society · Holick et al., JCEM 2011"},
+  vitamin_k2:{text:"90–200 µg MK-7/Tag",src:"EFSA 2017 · Geleijnse et al., NEJM 2004"},
+  vitamin_c:{text:"100–200 mg/Tag",src:"Carr & Maggini, Nutrients 2017 · Linus Pauling Inst."},
+  epa:{text:"≥500 mg EPA+DHA komb.",src:"AHA 2002 · ISSFAL · ESC Guidelines 2021"},
+  dha:{text:"≥500 mg EPA+DHA komb.",src:"AHA 2002 · ISSFAL · ESC Guidelines 2021"},
+  selen:{text:"55–100 µg/Tag",src:"Rayman, Lancet 2012 · NIH ODS"},
+  folat:{text:"400 µg/Tag (L-Methylfolat)",src:"Greenberg et al., AJOG 2011"},
+  vitamin_b12:{text:"500–1.000 µg/Tag (bei Resorptionsminderung ab 60+)",src:"NIH ODS Vitamin B12 2023 · Stabler, NEJM 2013"},
+  vitamin_b5:{text:"5–7 mg/Tag",src:"NIH ODS Pantothenic Acid 2023"},
+  hyaluronsaeure:{text:"80–200 mg/Tag oral",src:"Tashiro et al., Nutrients 2012"},
+  kollagen_typ1_3:{text:"2.000mg Tripeptide (≙ 10–15g konv.)",src:"Shaw et al., Nutrients 2017"},
+  ucii_kollagen:{text:"40 mg/Tag (undenaturiert)",src:"Crowley et al., Int J Med Sci 2009"},
+  silizium:{text:"20–50 mg/Tag",src:"Jugdaohsingh et al., Am J Clin Nutr 2004"},
+  sulforaphan:{text:"10–30 mg/Tag aktives Sulforaphan",src:"Houghton et al., Nutrients 2019 · Fahey et al., PNAS 1997"},
+  zink:{text:"10–15 mg/Tag (sichere Dauerdosis)",src:"EFSA 2014 · NIH ODS Zinc 2023"},
+};
+
+const NRV_ORDER = ["magnesium","vitamin_c","vitamin_d3","vitamin_k2","vitamin_k1","vitamin_k","vitamin_b1","vitamin_b2","vitamin_b3","vitamin_b5","vitamin_b6","vitamin_b12","folat","vitamin_e","biotin","selen","zink","calcium","mangan","kupfer","eisen","jod","chrom","molybdaen","epa","dha"];
+
+const TYPE_COLORS = {
+  supplement:{bg:"#f0f7ff",border:"#bdd7f5",badge:"#2563eb",badgeBg:"#dbeafe",label:"Supplement"},
+  medikament:{bg:"#fff8f0",border:"#fcd4a0",badge:"#c2410c",badgeBg:"#ffedd5",label:"Rx-Medikament"},
+  tee:{bg:"#f0fdf4",border:"#a7f3d0",badge:"#166534",badgeBg:"#dcfce7",label:"Tee / Kraut"},
+};
+
+let doses={}, expandedNut={}, expandedEv={}, checks={}, stock={}, history={}, productDays={}, productStart={};
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function localDateStr(dateObj) {
+  return `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
+}
+
+function loadChecks() {
+  try {
+    const saved = localStorage.getItem("supplement_checks");
+    const savedDate = localStorage.getItem("supplement_checks_date");
+    if (saved && savedDate === todayStr()) { checks = JSON.parse(saved); }
+    else { checks = {}; localStorage.setItem("supplement_checks_date", todayStr()); localStorage.setItem("supplement_checks", JSON.stringify(checks)); }
+  } catch(e) { checks = {}; }
+}
+function saveChecks() {
+  try { localStorage.setItem("supplement_checks", JSON.stringify(checks)); localStorage.setItem("supplement_checks_date", todayStr()); } catch(e) {}
+}
+let _lastCheck = 0;
+function toggleCheck(productId, index) {
+  const now = Date.now();
+  if (now - _lastCheck < 400) return;
+  _lastCheck = now;
+  if (!checks[productId]) checks[productId] = [false,false,false];
+  const wasChecked = checks[productId][index];
+  checks[productId][index] = !wasChecked;
+  saveChecks(); renderCheckboxes(productId);
+  if (!wasChecked) { deductStock(productId,-1); } else { deductStock(productId,+1); }
+  recordDayCompletion();
+}
+function renderCheckboxes(productId) {
+  const state = checks[productId] || [false,false,false];
+  for (let i=0;i<3;i++) { document.querySelectorAll(`.chkbox-${productId}-${i}`).forEach(el => el.classList.toggle("checked", !!state[i])); }
+}
+function stockKey(id) { const p=PRODUCTS.find(x=>x.id===id); return p?.stockGroup||String(id); }
+function startKey(id) { return stockKey(id); }
+function loadProductStart() { try{const s=localStorage.getItem("supplement_product_start");if(s)productStart=JSON.parse(s);}catch(e){} }
+function saveProductStart() { try{localStorage.setItem("supplement_product_start",JSON.stringify(productStart));}catch(e){} }
+function setProductStart(id,val) { const key=startKey(id); productStart[key]=val; saveProductStart(); PRODUCTS.filter(p=>startKey(p.id)===key).forEach(p=>refreshProductStartDisplay(p.id)); }
+function calcProductDay(id) {
+  const key=startKey(id); const val=productStart[key]; if(!val)return null;
+  const start=new Date(val); const today=new Date();
+  start.setHours(0,0,0,0); today.setHours(0,0,0,0);
+  const diff=Math.floor((today-start)/86400000)+1; return diff>=1?diff:null;
+}
+function refreshProductStartDisplay(id) {
+  const key=startKey(id); const val=productStart[key]||""; const day=calcProductDay(id);
+  document.querySelectorAll(`.pstart-input-${id}`).forEach(el=>{if(document.activeElement!==el)el.value=val;});
+  document.querySelectorAll(`.pstart-day-${id}`).forEach(el=>{el.textContent=day?`Tag ${day} 🗓`:"";el.style.color="#1e3a5f";el.style.fontWeight="900";});
+}
+function loadStock() { try{const s=localStorage.getItem("supplement_stock");if(s)stock=JSON.parse(s);}catch(e){} }
+function saveStock() { try{localStorage.setItem("supplement_stock",JSON.stringify(stock));}catch(e){} }
+function setStock(id,val) {
+  const key=stockKey(id); if(!stock[key])stock[key]={amount:0};
+  stock[key].amount=Math.max(0,parseFloat(val)||0); saveStock();
+  PRODUCTS.filter(p=>stockKey(p.id)===key).forEach(p=>refreshStockDisplays(p.id));
+}
+function deductStock(id,delta) {
+  const key=stockKey(id); if(!stock[key])stock[key]={amount:0};
+  stock[key].amount=Math.max(0,(stock[key].amount||0)+delta); saveStock();
+  PRODUCTS.filter(p=>stockKey(p.id)===key).forEach(p=>refreshStockDisplays(p.id));
+}
+function refreshStockDisplays(id) {
+  const key=stockKey(id); const amt=stock[key]?.amount||0; const amtRounded=Math.round(amt);
+  const p=PRODUCTS.find(x=>x.id===id);
+  const unit=p?(p.einheit==="Kapseln"?"Kapseln":p.einheit==="Tabletten"?"Tabletten":p.einheit):"";
+  const dose=doses[id]||0; let rangeHtml="";
+  if(dose>0&&amtRounded>0){
+    const daysLeft=Math.floor(amtRounded/dose); const reorderDate=new Date();
+    reorderDate.setDate(reorderDate.getDate()+daysLeft);
+    const reorderStr=reorderDate.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+    const color=daysLeft<=7?"#dc2626":daysLeft<=14?"#d97706":"#15803d";
+    rangeHtml=`<div style="font-size:11px;color:${color};font-weight:700;margin-top:2px;">⏳ Reicht noch ${daysLeft} Tage · Nachkaufen bis ${reorderStr}</div>`;
+  }
+  document.querySelectorAll(`.stock-display-${id}`).forEach(el=>{el.textContent=`📦 Bestand: ${amtRounded} ${unit}`;el.style.color=amtRounded<=5?"#dc2626":amtRounded<=15?"#d97706":"#15803d";el.style.fontWeight="700";});
+  document.querySelectorAll(`.stock-range-wrap-${id}`).forEach(el=>{el.innerHTML=dose>0&&amtRounded>0?rangeHtml:"";});
+  document.querySelectorAll(`.stock-input-${id}`).forEach(el=>{if(document.activeElement!==el)el.value=amtRounded||"";});
+}
+function fmt(val) { if(val===null||val===undefined)return"–"; if(val%1===0)return val.toString(); return parseFloat(val.toFixed(3)).toString(); }
+
+function loadProductDays() { try{const s=localStorage.getItem("supplement_days");if(s)productDays=JSON.parse(s);}catch(e){} }
+function saveProductDays() { try{localStorage.setItem("supplement_days",JSON.stringify(productDays));}catch(e){} }
+function toggleDay(id,dayIndex) {
+  if(!productDays[id])productDays[id]=[true,true,true,true,true,true,true];
+  productDays[id][dayIndex]=!productDays[id][dayIndex]; saveProductDays();
+  const chip=document.getElementById(`daychip-${id}-${dayIndex}`);
+  if(chip)chip.classList.toggle("day-active",productDays[id][dayIndex]);
+}
+function toggleDayPanel(id) { const panel=document.getElementById(`day-panel-${id}`);if(panel)panel.classList.toggle("hidden"); }
+function isTodayActive(id) { const days=productDays[id]||[true,true,true,true,true,true,true]; const dow=(new Date().getDay()+6)%7; return days[dow]; }
+
+function loadHistory() { try{const s=localStorage.getItem("supplement_history");if(s)history=JSON.parse(s);}catch(e){} }
+function saveHistory() { try{localStorage.setItem("supplement_history",JSON.stringify(history));}catch(e){} }
+function recordDayCompletion() {
+  const today=todayStr(); const activeDosed=PRODUCTS.filter(p=>(doses[p.id]||0)>0&&isTodayActive(p.id));
+  if(activeDosed.length===0)return;
+  const totalChecks=activeDosed.reduce((sum,p)=>sum+(checks[p.id]||[]).filter(Boolean).length,0);
+  const completed=totalChecks>0; history[today]={completed,checkedCount:totalChecks}; saveHistory(); updateStreak();
+}
+function updateStreak() {
+  let streak=0; const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-1);
+  while(true){ const key=localDateStr(d); if(history[key]?.completed){streak++;d.setDate(d.getDate()-1);}else break; }
+  const el=document.getElementById("streak-num"); if(el)el.textContent=streak;
+}
+
+function renderExport() {
+  const el=document.getElementById("export-content"); if(!el)return;
+  const now=new Date(); const year=now.getFullYear(); const month=now.getMonth();
+  const monthName=now.toLocaleDateString("de-DE",{month:"long",year:"numeric"});
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  let rows="";
+  for(let d=1;d<=daysInMonth;d++){
+    const date=new Date(year,month,d);
+    const key=localDateStr(date);
+    const h=history[key]; const isToday=key===todayStr();
+    const wday=date.toLocaleDateString("de-DE",{weekday:"short"});
+    const status=h?.completed?"✅":h?"⬜":(date<now&&!isToday?"–":"");
+    const bg=isToday?"#fef9c3":"";
+    rows+=`<tr style="background:${bg}"><td style="padding:5px 10px;font-weight:${isToday?'800':'400'};color:#374151;">${wday} ${d}.</td><td style="padding:5px 10px;text-align:center;font-size:16px;">${status}</td><td style="padding:5px 10px;color:#6b7280;font-size:12px;">${h?.checkedCount?h.checkedCount+' Einnahmen':''}</td></tr>`;
+  }
+  const streak=document.getElementById("streak-num")?.textContent||"0";
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;"><div><div style="font-size:20px;font-weight:900;color:#1e3a5f;">${monthName}</div></div><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;"><div style="text-align:center;background:#fef3c7;border-radius:10px;padding:8px 16px;"><div style="font-size:24px;font-weight:900;color:#d97706;">${streak}</div><div style="font-size:11px;color:#92400e;font-weight:700;">🔥 STREAK</div></div><button onclick="window.print()" style="background:#1e3a5f;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">🖨 Drucken</button><button onclick="exportData()" style="background:#059669;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">📤 Exportieren</button><label style="background:#7c3aed;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">📥 Importieren<input type="file" accept=".json" onchange="importData(event)" style="display:none;"></label></div></div><table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;"><thead><tr style="background:#1e3a5f;color:#fff;"><th style="padding:8px 10px;text-align:left;font-size:12px;">TAG</th><th style="padding:8px 10px;font-size:12px;">STATUS</th><th style="padding:8px 10px;text-align:left;font-size:12px;">DETAIL</th></tr></thead><tbody>${rows}</tbody></table><div style="margin-top:12px;font-size:12px;color:#9ca3af;">✅ = mind. 1 Einnahme abgehakt · ⬜ = nichts · – = keine Daten</div>`;
+}
+
+function saveStartDate(val) { localStorage.setItem("supplement_start_date",val); updateDayCounter(); }
+function loadStartDate() { const saved=localStorage.getItem("supplement_start_date"); if(saved)document.getElementById("start-date-input").value=saved; }
+function updateDayCounter() {
+  const val=localStorage.getItem("supplement_start_date"); const el=document.getElementById("day-counter");
+  if(!val){el.textContent="";return;}
+  const start=new Date(val); const today=new Date(); today.setHours(0,0,0,0); start.setHours(0,0,0,0);
+  const diff=Math.floor((today-start)/86400000)+1;
+  if(diff<1){el.textContent="Startet in "+Math.abs(diff-1)+" Tagen";return;}
+  el.textContent="Tag "+diff+" 🗓";
+}
+function initDayCounter() {
+  updateDayCounter();
+  const lastReset=localStorage.getItem("supplement_last_reset"); const today=todayStr();
+  if(lastReset!==today){
+    recordDayCompletion();
+    Object.keys(checks).forEach(id=>{checks[id]=[false,false,false];}); saveChecks();
+    localStorage.setItem("supplement_last_reset",today); renderProducts(); updateHeaderSub();
+  }
+  const now=new Date(); const msUntilMidnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1)-now;
+  setTimeout(()=>{initDayCounter();},msUntilMidnight+1000);
+}
+
+function exportData() {
+  const data={_version:2,_exported:new Date().toISOString(),_protocol:"Kleist v2 (Mai 2026)",doses:JSON.parse(localStorage.getItem("supplement_doses")||"{}"),checks:JSON.parse(localStorage.getItem("supplement_checks")||"{}"),checks_date:localStorage.getItem("supplement_checks_date")||"",stock:JSON.parse(localStorage.getItem("supplement_stock")||"{}"),history:JSON.parse(localStorage.getItem("supplement_history")||"{}"),product_days:JSON.parse(localStorage.getItem("supplement_days")||"{}"),product_start:JSON.parse(localStorage.getItem("supplement_product_start")||"{}"),start_date:localStorage.getItem("supplement_start_date")||"",last_reset:localStorage.getItem("supplement_last_reset")||"",saved_at:localStorage.getItem("supplement_saved_at")||""};
+  const json=JSON.stringify(data,null,2); const date=new Date().toISOString().slice(0,10);
+  const a=document.createElement("a"); a.href="data:application/json;charset=utf-8,"+encodeURIComponent(json);
+  a.download=`supplement-daten-v2-${date}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function importData(event) {
+  const file=event.target.files?.[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result); if(!data._version)throw new Error("Ungültiges Format");
+      if(data.doses)localStorage.setItem("supplement_doses",JSON.stringify(data.doses));
+      if(data.checks)localStorage.setItem("supplement_checks",JSON.stringify(data.checks));
+      if(data.checks_date)localStorage.setItem("supplement_checks_date",data.checks_date);
+      if(data.stock)localStorage.setItem("supplement_stock",JSON.stringify(data.stock));
+      if(data.history)localStorage.setItem("supplement_history",JSON.stringify(data.history));
+      if(data.product_days)localStorage.setItem("supplement_days",JSON.stringify(data.product_days));
+      if(data.product_start)localStorage.setItem("supplement_product_start",JSON.stringify(data.product_start));
+      if(data.start_date)localStorage.setItem("supplement_start_date",data.start_date);
+      if(data.last_reset)localStorage.setItem("supplement_last_reset",data.last_reset);
+      if(data.saved_at)localStorage.setItem("supplement_saved_at",data.saved_at);
+      doses=data.doses||{}; checks=data.checks||{}; stock=data.stock||{};
+      history=data.history||{}; productDays=data.product_days||{}; productStart=data.product_start||{};
+      renderProducts(); updateHeaderSub(); updateHeaderStats(); updateStreak(); loadStartDate(); updateDayCounter();
+      const exportedOn=data._exported?new Date(data._exported).toLocaleString("de-DE"):"unbekannt";
+      alert(`✅ Import erfolgreich!\nExportiert am: ${exportedOn}`);
+      showTab("produkte");
+    }catch(err){alert("❌ Import fehlgeschlagen: "+err.message);}
+    event.target.value="";
+  };
+  reader.readAsText(file);
+}
+
+function loadDoses() {
+  try{const saved=localStorage.getItem("supplement_doses");if(saved)doses=JSON.parse(saved);
+  const ts=localStorage.getItem("supplement_saved_at");if(ts)document.getElementById("save-status").textContent="Zuletzt gespeichert: "+ts;}catch(e){}
+  PRODUCTS.forEach(p=>{if(p.defaultDose!==undefined&&(doses[p.id]===undefined||doses[p.id]===0))doses[p.id]=p.defaultDose;});
+}
+function saveNow() {
+  try{localStorage.setItem("supplement_doses",JSON.stringify(doses));
+  const now=new Date().toLocaleString("de-DE"); localStorage.setItem("supplement_saved_at",now);
+  document.getElementById("save-status").textContent="Zuletzt gespeichert: "+now;}catch(e){}
+}
+function calcAcc() {
+  const acc={};
+  PRODUCTS.forEach(p=>{const dose=doses[p.id]||0;if(!dose)return;
+    p.nutrients.forEach(n=>{if(n.per===null)return;
+      if(!acc[n.key])acc[n.key]={label:n.label,total:0,unit:n.unit,sources:[]};
+      acc[n.key].total+=n.per*dose; acc[n.key].sources.push({name:p.name,amount:n.per*dose,unit:n.unit});
+    });
+  }); return acc;
+}
+function updateDose(id,val) {
+  const n=parseFloat(val); doses[id]=isNaN(n)||n<0?0:n;
+  const inp=document.getElementById("inp-"+id); if(inp)inp.classList.toggle("has-value",doses[id]>0);
+  PRODUCTS.forEach(p=>{if(expandedNut[p.id])updateNutPanel(p.id);}); updateHeaderSub(); saveNow();
+  if(!document.getElementById("tab-kumulierung").classList.contains("hidden"))renderCumulative();
+}
+function updateNutPanel(id) {
+  const p=PRODUCTS.find(x=>x.id===id); if(!p||!expandedNut[id])return;
+  const dose=doses[id]||0; const acc=calcAcc();
+  p.nutrients.forEach(n=>{
+    const elTotal=document.getElementById(`nt-${id}-${n.key}`); const elMiss=document.getElementById(`nm-${id}-${n.key}`);
+    if(!elTotal)return;
+    const thisAmount=(dose>0&&n.per!==null)?n.per*dose:0; const cumTotal=acc[n.key]?.total||0;
+    if(thisAmount>0){elTotal.textContent=`→ ${fmt(thisAmount)} ${n.unit} heute`;elTotal.classList.remove("zero");}
+    else{elTotal.textContent="– nicht dosiert";elTotal.classList.add("zero");}
+    if(!elMiss)return;
+    const nrvMeta=NRV[n.key]; if(!nrvMeta||cumTotal===0){elMiss.textContent="";elMiss.className="nut-item-missing zero";return;}
+    const refVal=nrvMeta.value; const diff=refVal-cumTotal; const pct=Math.round((cumTotal/refVal)*100);
+    const otherSources=cumTotal-thisAmount; const cumNote=otherSources>0.001?` (gesamt: ${fmt(cumTotal)} ${n.unit})`:"";
+    if(diff<=0){elMiss.textContent=`✓ NRV erreicht${cumNote}`;elMiss.className="nut-item-missing ok";}
+    else{const cls=pct>=60?"warn":"danger";elMiss.textContent=`Noch ${fmt(diff)} ${n.unit} bis NRV${cumNote}`;elMiss.className=`nut-item-missing ${cls}`;}
+  });
+}
+function toggleNut(id) {
+  expandedNut[id]=!expandedNut[id]; document.getElementById("nut-panel-"+id)?.classList.toggle("hidden",!expandedNut[id]);
+  const btn=document.getElementById("nut-btn-"+id); if(btn)btn.textContent=expandedNut[id]?"▲ Inhaltsstoffe":"▼ Inhaltsstoffe";
+  updateNutPanel(id);
+}
+function toggleEv(id) {
+  expandedEv[id]=!expandedEv[id]; document.getElementById("ev-panel-"+id)?.classList.toggle("hidden",!expandedEv[id]);
+  const btn=document.getElementById("ev-btn-"+id);
+  if(btn){btn.textContent=expandedEv[id]?"📖 Evidenz ▲":"📖 Evidenz";btn.classList.toggle("ev-open",expandedEv[id]);}
+}
+function updateHeaderStats() {
+  const seen=new Set(); const counts={supplement:0,medikament:0,tee:0};
+  PRODUCTS.forEach(p=>{const key=p.stockGroup||String(p.id);if(!seen.has(key)){seen.add(key);if(counts[p.typ]!==undefined)counts[p.typ]++;}});
+  const s=document.getElementById('stat-supplements'); if(s)s.textContent=counts.supplement;
+  const m=document.getElementById('stat-medikamente'); if(m)m.textContent=counts.medikament;
+  const t=document.getElementById('stat-tee'); if(t)t.textContent=counts.tee;
+}
+function updateHeaderSub() {
+  const active=PRODUCTS.filter(p=>(doses[p.id]||0)>0).length;
+  document.getElementById("header-sub").textContent=`${PRODUCTS.length} Produkte erfasst · ${active} aktiv dosiert · Protokoll v2 (Mai 2026)`;
+}
+function renderProducts() {
+  function getSlots(p){const z=p.timing?.zeit||"";const slots=[];if(z.includes("Morgens"))slots.push("morgens");if(z.includes("Mittags"))slots.push("mittags");if(z.includes("Abends"))slots.push("abends");return slots.length?slots:["morgens"];}
+  function essenRank(p){const e=p.timing?.essen||"";if(e.startsWith("Nüchtern"))return 0;if(e==="Unabhängig")return 1;return 2;}
+  function bonusRank(p){return p.sortBonus||0;}
+  function timeRank(p,slot){if(slot==="morgens"&&p.morgenOffset!==undefined)return p.morgenOffset;const t=p.timing?.uhrzeiten?.[slot];if(!t)return 99*60;const parts=t.split(':');return parseInt(parts[0])*60+(parseInt(parts[1])||0);}
+  ["morgens","mittags","abends"].forEach(slot=>{
+    const container=document.getElementById("group-"+slot); container.innerHTML="";
+    PRODUCTS.filter(p=>getSlots(p).includes(slot)).sort((a,b)=>bonusRank(a)-bonusRank(b)||timeRank(a,slot)-timeRank(b,slot)||essenRank(a)-essenRank(b)).forEach(p=>{
+      const c=TYPE_COLORS[p.typ]; const dose=doses[p.id]||0;
+      const einheitSingular=p.einheit==="Kapseln"?"Kapsel":p.einheit==="Tabletten"?"Tablette":p.einheit;
+      const slotIcon=slot==="morgens"?"🌅":slot==="mittags"?"☀️":"🌙";
+      const slotLabel=slot==="morgens"?"Morgens":slot==="mittags"?"Mittags":"Abends";
+      let uhrzeit=p.timing?.uhrzeiten?.[slot]||""; let offsetHint="";
+      if(slot==="morgens"&&p.morgenOffset!==undefined){uhrzeit=calcMorgenUhrzeit(p)||uhrzeit;offsetHint=offsetLabel(p.morgenOffset);}
+      const nutItems=p.nutrients.map(n=>{
+        const nrvMeta=NRV[n.key]; const studyMeta=STUDY[n.key];
+        const recText=studyMeta?`Empfohlen: ${studyMeta.text}`:(nrvMeta?`NRV: ${nrvMeta.value} ${nrvMeta.unit}`:"");
+        return `<div class="nut-item"><div class="nut-item-name">${n.label}</div><div class="nut-item-per">${n.per!==null?fmt(n.per)+" "+n.unit+" / "+einheitSingular:"Menge k. A."}</div><div class="nut-item-total zero" id="nt-${p.id}-${n.key}">– nicht dosiert</div>${recText?`<div class="nut-item-rec">${recText}</div>`:""}<div class="nut-item-missing zero" id="nm-${p.id}-${n.key}"></div></div>`;
+      }).join("");
+      const evBlocks=(p.evidence||[]).map(e=>`<div class="ev-block"><div class="ev-nut">▸ ${e.nut}</div><div class="ev-text">${e.text}</div><div class="ev-src">Quellen: ${e.src}</div></div>`).join("");
+      const div=document.createElement("div"); div.className="card"; div.id="card-"+p.id; div.style.border=`1px solid ${c.border}`;
+      div.innerHTML=`<div class="card-head" style="background:${c.bg}"><span class="badge" style="background:${c.badgeBg};color:${c.badge}">${c.label}</span><div class="card-name"><strong>${p.name}</strong><small>${p.hersteller}${p.hinweis?' · '+p.hinweis:''}</small></div><div class="dose-wrap"><input type="number" id="inp-${p.id}" class="dose-input${dose?' has-value':''}" min="0" step="1" value="${dose||""}" placeholder="0" oninput="updateDose(${p.id},this.value)"><span class="dose-unit">${p.einheit}/Tag</span></div>${p.timing?`<div class="timing-wrap"><span class="timing-badge ${slot}">${slotIcon} ${slotLabel}${uhrzeit?` · <strong>${uhrzeit}</strong>`:""}${offsetHint&&slot==="morgens"?` <span style="font-weight:400;opacity:0.8;">(${offsetHint})</span>`:""}</span><span class="timing-badge ${p.timing.essen.startsWith('Nüchtern')?'nuechtern':p.timing.essen==='Unabhängig'?'info':'essen'}">${p.timing.essen.startsWith('Nüchtern')?'🚫':p.timing.essen==='Unabhängig'?'ℹ️':'🍽️'} ${p.timing.essen}</span></div>`:""}<div class="check-wrap"><span class="check-label">Heute</span><div class="check-box chkbox-${p.id}-0 ${(checks[p.id]||[])[0]?'checked':''}" onclick="toggleCheck(${p.id},0)"></div><div class="check-box chkbox-${p.id}-1 ${(checks[p.id]||[])[1]?'checked':''}" onclick="toggleCheck(${p.id},1)"></div><div class="check-box chkbox-${p.id}-2 ${(checks[p.id]||[])[2]?'checked':''}" onclick="toggleCheck(${p.id},2)"></div></div><div class="stock-wrap"><div class="stock-display-${p.id}" style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:2px;">📦 Bestand: ${Math.round(stock[p.stockGroup||String(p.id)]?.amount||0)} ${p.einheit}</div><div class="stock-range-wrap-${p.id}"></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:4px;"><input type="number" min="0" step="1" placeholder="Bestand" value="${Math.round(stock[p.stockGroup||String(p.id)]?.amount||0)||''}" class="stock-input-${p.id}" style="width:120px;padding:5px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;font-family:Georgia,serif;" onchange="setStock(${p.id},this.value)" oninput="setStock(${p.id},this.value)"><span style="font-size:11px;color:#6b7280;">${p.einheit}</span></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0;"><div><div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;margin-bottom:3px;">📅 Startdatum</div><input type="date" class="pstart-input-${p.id}" value="${productStart[p.stockGroup||String(p.id)]||''}" style="padding:4px 8px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:12px;font-family:Georgia,serif;color:#1e3a5f;" onchange="setProductStart(${p.id},this.value)"></div><div class="pstart-day-${p.id}" style="font-size:16px;font-weight:900;color:#1e3a5f;">${(()=>{const d=calcProductDay(p.id);return d?'Tag '+d+' 🗓':''})()}</div></div></div><div class="card-btns"><button class="panel-btn" id="nut-btn-${p.id}" onclick="toggleNut(${p.id})">▼ Inhaltsstoffe</button>${evBlocks?`<button class="panel-btn" id="ev-btn-${p.id}" onclick="toggleEv(${p.id})">📖 Evidenz</button>`:""}<button class="panel-btn" onclick="toggleDayPanel(${p.id})">📆 Tage</button></div><div class="day-panel hidden" id="day-panel-${p.id}"><div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#6b7280;margin-bottom:8px;">An welchen Tagen nehmen?</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${["Mo","Di","Mi","Do","Fr","Sa","So"].map((d,i)=>{const active=(productDays[p.id]||[true,true,true,true,true,true,true])[i];return`<div class="day-chip${active?' day-active':''}" id="daychip-${p.id}-${i}" onclick="toggleDay(${p.id},${i})">${d}</div>`;}).join("")}</div></div></div><div class="card-nutrients hidden" id="nut-panel-${p.id}"><div class="panel-label">Nährstoffe pro ${einheitSingular} &amp; heutige Zufuhr</div><div class="nut-grid">${nutItems}</div></div>${evBlocks?`<div class="card-evidence hidden" id="ev-panel-${p.id}"><div class="ev-title">📖 Wissenschaftliche Evidenz</div>${evBlocks}</div>`:""}`;
+      container.appendChild(div);
+    });
+  });
+}
+function renderCumulative() {
+  const container=document.getElementById("cum-content");
+  const activeProducts=PRODUCTS.filter(p=>(doses[p.id]||0)>0);
+  if(activeProducts.length===0){container.innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Noch keine Dosen eingetragen</div></div>`;return;}
+  const acc=calcAcc();
+  function sourcesTooltip(sources){return sources.map(s=>`<span style="display:inline-block;background:#f0f7ff;border:1px solid #bdd7f5;border-radius:5px;padding:2px 8px;margin:2px 2px 0 0;font-size:11px;color:#1e3a5f;white-space:nowrap;">${s.name} <span style="font-weight:700;color:#2563eb">${fmt(s.amount)} ${s.unit}</span></span>`).join('');}
+  function missBadge(total,refVal,unit,ulMeta){
+    if(ulMeta&&total>ulMeta.value)return`<span class="miss-badge danger">⛔ UL überschritten +${fmt(total-ulMeta.value)} ${unit}</span>`;
+    if(ulMeta&&total>ulMeta.value*0.8)return`<span class="miss-badge warn">⚠️ ${Math.round((total/ulMeta.value)*100)}% des UL</span>`;
+    if(!refVal||total===0)return`<span class="miss-badge zero">–</span>`;
+    const diff=refVal-total;const pct=Math.round((total/refVal)*100);
+    if(diff<=0)return`<span class="miss-badge ok">✓ Erreicht</span>`;
+    const cls=pct>=60?"warn":"danger";return`<span class="miss-badge ${cls}">Noch ${fmt(diff)} ${unit}</span>`;
+  }
+  const chips=activeProducts.map(p=>`<div class="chip"><strong>${doses[p.id]}</strong> × ${p.name}</div>`).join("");
+  const nrvEntries=Object.entries(acc).filter(([k])=>NRV[k]);
+  nrvEntries.sort(([a],[b])=>{const ia=NRV_ORDER.indexOf(a);const ib=NRV_ORDER.indexOf(b);return(ia<0?99:ia)-(ib<0?99:ib);});
+  const nrvRows=nrvEntries.map(([key,data],i)=>{
+    const nrv=NRV[key];const study=STUDY[key];const ul=UL[key];const pct=(data.total/nrv.value)*100;
+    const ulExceeded=ul&&data.total>ul.value;const ulNear=ul&&data.total>ul.value*0.8;
+    const color=ulExceeded?"#dc2626":ulNear?"#f59e0b":pct>150?"#f59e0b":"#22c55e";
+    const barW=Math.min(pct/4,100);const hasMultiple=data.sources.length>1;
+    const sourcesHtml=hasMultiple?`<tr class="${i%2===1?'alt':''}"><td colspan="5" style="padding:0 16px 10px 16px;"><div style="display:flex;flex-wrap:wrap;">${sourcesTooltip(data.sources)}</div></td></tr>`:'';
+    const badge=missBadge(data.total,nrv.value,nrv.unit,ul);
+    return`<tr class="${i%2===1?'alt':''}"><td class="name">${data.label}${hasMultiple?`<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:6px;font-weight:700;">${data.sources.length} Quellen</span>`:''}</td><td class="total right">${fmt(data.total)} ${data.unit}</td><td class="nrv-val right">${fmt(nrv.value)} ${nrv.unit}${ul?`<br><span style="font-size:10px;color:#dc2626;font-weight:700;">UL: ${ul.value} ${ul.unit}</span>`:''}</td><td class="study-col">${study?`<div class="study-rec">${study.text}</div><div class="study-src">${study.src}</div>`:'<span style="color:#d1d5db;font-size:11px;">–</span>'}${badge}</td><td><div class="nrv-bar-wrap"><div class="nrv-bar-track"><div class="nrv-bar-fill" style="width:${barW}%;background:${color}"></div></div><span class="nrv-pct" style="color:${color}">${Math.round(pct)}%</span></div></td></tr>${sourcesHtml}`;
+  }).join("");
+  const otherEntries=Object.entries(acc).filter(([k])=>!NRV[k]);
+  const otherRows=otherEntries.map(([key,data],i)=>{
+    const hasMultiple=data.sources.length>1;const studyMeta=STUDY[key];
+    const sourcesHtml=hasMultiple?`<tr><td colspan="5" style="padding:0 16px 10px;"><div style="display:flex;flex-wrap:wrap;">${sourcesTooltip(data.sources)}</div></td></tr>`:'';
+    return`<tr class="${i%2===1?'alt':''}"><td class="name">${data.label}${hasMultiple?`<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:6px;font-weight:700;">${data.sources.length} Quellen</span>`:''}</td><td class="total right">${fmt(data.total)} ${data.unit}</td><td></td><td>${studyMeta?`<div class="study-rec">${studyMeta.text}</div><div class="study-src">${studyMeta.src}</div>`:''}</td><td></td></tr>${sourcesHtml}`;
+  }).join("");
+  container.innerHTML=`<div class="active-summary"><div class="active-title">Aktive Dosierungen</div><div class="active-chips">${chips}</div></div>${nrvRows?`<div class="group-label" style="margin-bottom:12px">Vitamine &amp; Mineralstoffe (mit NRV)</div><div class="table-card"><table class="cum-table"><thead><tr><th>Nährstoff</th><th class="right">Tageszufuhr</th><th class="right">EU NRV</th><th>Studienempfehlung &amp; Status</th><th></th></tr></thead><tbody>${nrvRows}</tbody></table></div>`:""}${otherRows?`<div class="group-label" style="margin-bottom:12px">Weitere Wirkstoffe (kein EU-NRV)</div><div class="table-card"><table class="cum-table"><thead><tr><th>Wirkstoff</th><th class="right">Tageszufuhr</th><th></th><th>Studienempfehlung</th><th></th></tr></thead><tbody>${otherRows}</tbody></table></div>`:""}<div class="interaction-box" style="margin-top:12px">⚠️ <strong>BCG-Hinweis:</strong> EGCG (Nr.29), Quercetin (Nr.30) und Sulforaphan (Nr.31) bitte 48–72h vor und nach jeder BCG-Instillation pausieren. Mit Dr. Löser abstimmen.</div>`;
+}
+function showTab(tab) {
+  document.getElementById("tab-produkte").classList.toggle("hidden",tab!=="produkte");
+  document.getElementById("tab-kumulierung").classList.toggle("hidden",tab!=="kumulierung");
+  document.getElementById("tab-export").classList.toggle("hidden",tab!=="export");
+  document.getElementById("section-nav").classList.toggle("hidden",tab!=="produkte");
+  document.querySelectorAll(".tab-btn").forEach((btn,i)=>{btn.classList.toggle("active",(i===0&&tab==="produkte")||(i===1&&tab==="kumulierung")||(i===2&&tab==="export"));btn.classList.toggle("inactive",!btn.classList.contains("active"));});
+  if(tab==="kumulierung")renderCumulative();
+  if(tab==="export")renderExport();
+}
+let wakeupMinutes=7*60;
+function saveWakeupTime(val){localStorage.setItem("supplement_wakeup",val);const parts=val.split(':');wakeupMinutes=parseInt(parts[0])*60+(parseInt(parts[1])||0);renderProducts();updateTimingHint();}
+function loadWakeupTime(){const saved=localStorage.getItem("supplement_wakeup");const input=document.getElementById("wakeup-time-input");if(saved){if(input)input.value=saved;const parts=saved.split(':');wakeupMinutes=parseInt(parts[0])*60+(parseInt(parts[1])||0);}else{if(input)input.value="07:00";wakeupMinutes=7*60;}updateTimingHint();}
+function updateTimingHint(){const el=document.getElementById("wakeup-hint");if(!el)return;const fruehstueck=wakeupMinutes+60;const fh=Math.floor(fruehstueck/60);const fm=fruehstueck%60;el.textContent=`Frühstück ca. ${String(fh).padStart(2,'0')}:${String(fm).padStart(2,'0')} · Alle Morgens-Zeiten angepasst`;}
+function calcMorgenUhrzeit(p){if(p.morgenOffset===undefined)return null;const total=wakeupMinutes+p.morgenOffset;const h=Math.floor(total/60)%24;const m=total%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}
+function offsetLabel(offset){if(offset===0)return"sofort nach dem Aufstehen";if(offset<60)return`+ ${offset} Min`;if(offset===60)return"zum Frühstück";return`+ ${offset} Min (nach Frühstück)`;}
+loadDoses();loadChecks();loadStock();loadHistory();loadProductDays();loadProductStart();
+loadWakeupTime();loadStartDate();renderProducts();updateHeaderSub();updateHeaderStats();updateStreak();initDayCounter();
+</script>
+</body>
+</html>
