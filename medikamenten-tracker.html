@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medikamenten-Tracker – Peter Faul</title>
+<style>
+  html { scroll-behavior: smooth; scroll-padding-top: 60px; }
+  html, body { overscroll-behavior-y: none; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; background: #f7f8fa; color: #1a1a1a; min-height: 100vh; }
+
+  .header { background: linear-gradient(135deg, #1a3a2a 0%, #0d2218 100%); padding: 28px 32px 0; color: #fff; }
+  .header-inner { max-width: 960px; margin: 0 auto; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .header-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px; }
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .header-sub { font-size: 13px; opacity: 0.65; margin-top: 4px; }
+  .header-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 700; }
+  .stat-label { font-size: 11px; opacity: 0.6; }
+
+  .tabs { display: flex; gap: 0; margin-top: 24px; }
+  .tab-btn { padding: 10px 20px; border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+    border-radius: 8px 8px 0 0; transition: all 0.2s; font-family: Georgia, serif; }
+  .tab-btn.active { background: #fff; color: #1a3a2a; }
+  .tab-btn.inactive { background: transparent; color: rgba(255,255,255,0.65); }
+
+  .section-nav {
+    position: sticky; top: 0; z-index: 15;
+    background: #fff; border-bottom: 2px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 8px 16px;
+  }
+  .section-nav-inner {
+    max-width: 960px; margin: 0 auto;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .section-nav-label { font-size: 11px; font-weight: 700; color: #9ca3af;
+    letter-spacing: 1px; text-transform: uppercase; margin-right: 4px; }
+  .nav-jump {
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 700; font-family: Georgia, serif;
+    transition: all 0.15s; text-decoration: none;
+  }
+  .nav-jump.morgens  { background: #fef9c3; color: #854d0e; }
+  .nav-jump.morgens:hover  { background: #fde68a; }
+  .nav-jump.mittags  { background: #dcfce7; color: #166534; }
+  .nav-jump.mittags:hover  { background: #bbf7d0; }
+  .nav-jump.abends   { background: #ede9fe; color: #5b21b6; }
+  .nav-jump.abends:hover   { background: #ddd6fe; }
+  .nav-jump.nacht    { background: #1e293b; color: #94a3b8; }
+  .nav-jump.nacht:hover    { background: #0f172a; color: #cbd5e1; }
+  .nav-jump.bedarf   { background: #fff1f2; color: #9f1239; }
+  .nav-jump.bedarf:hover   { background: #ffe4e6; }
+  .nav-jump.top      { background: #f1f5f9; color: #475569; }
+  .nav-jump.top:hover      { background: #e2e8f0; }
+
+  .main { max-width: 960px; margin: 0 auto; padding: 24px 16px 100px; }
+  .intro { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+
+  .group-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: #9ca3af; margin-bottom: 12px; padding-left: 4px; }
+  .group { margin-bottom: 32px; }
+
+  .group-nav-link { display: flex; align-items: center; justify-content: flex-end;
+    gap: 10px; margin-top: 4px; margin-bottom: 8px; padding-right: 4px; }
+  .group-nav-btn {
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 14px; border-radius: 20px; border: 1.5px solid #e5e7eb;
+    background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 700;
+    font-family: Georgia, serif; cursor: pointer; transition: all 0.15s; text-decoration: none;
+  }
+  .group-nav-btn:hover { background: #f0fdf4; border-color: #a7f3d0; color: #1a3a2a; }
+
+  .card { background: #fff; border-radius: 10px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 8px;
+    border: 1px solid transparent; transition: border-color 0.2s; }
+  .card-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; flex-wrap: wrap; }
+  .badge { flex-shrink: 0; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 3px 8px; border-radius: 20px; }
+  .card-name { flex: 1; min-width: 0; }
+  .card-name strong { font-size: 14px; font-weight: 700; color: #111; display: block; }
+  .card-name small { font-size: 11px; color: #6b7280; }
+
+  .dose-static { display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 6px 12px; }
+  .dose-num { font-size: 18px; font-weight: 900; color: #1a3a2a; }
+  .dose-unit { font-size: 12px; color: #6b7280; }
+
+  .timing-wrap { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+  .timing-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .timing-badge.morgens  { background: #fef9c3; color: #854d0e; }
+  .timing-badge.mittags  { background: #dcfce7; color: #166534; }
+  .timing-badge.abends   { background: #ede9fe; color: #5b21b6; }
+  .timing-badge.nacht    { background: #1e293b; color: #94a3b8; }
+  .timing-badge.essen    { background: #f0f7ff; color: #1d4ed8; }
+  .timing-badge.nuechtern{ background: #f1f5f9; color: #475569; }
+  .timing-badge.warn     { background: #fff7ed; color: #9a3412; }
+  .timing-badge.bedarf   { background: #fff1f2; color: #9f1239; }
+
+  .check-wrap { display: flex; gap: 6px; align-items: center; flex-shrink: 0; position: relative; z-index: 1; }
+  .check-label { font-size: 10px; color: #9ca3af; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; white-space: nowrap; }
+  .check-box {
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    width: 32px; height: 32px; border-radius: 7px;
+    border: 2px solid #d1d5db; background: #fff;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; transition: all 0.15s; flex-shrink: 0; user-select: none;
+  }
+  .check-box:hover { border-color: #16a34a; background: #f0fdf4; }
+  .check-box.checked { border-color: #16a34a; background: #dcfce7; }
+  .check-box.checked::after { content: "✓"; font-weight: 900; color: #16a34a; }
+  .check-box.bedarf-box:hover { border-color: #9f1239; background: #fff1f2; }
+  .check-box.bedarf-box.checked { border-color: #9f1239; background: #fff1f2; }
+  .check-box.bedarf-box.checked::after { color: #9f1239; }
+
+  .stock-wrap { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;
+    padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; }
+
+  .day-panel { border-top: 1px solid #e5e7eb; background: #f9fafb; padding: 12px 18px; }
+  .day-chip {
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;
+    border-radius:50%;border:2px solid #d1d5db;background:#fff;font-size:12px;font-weight:800;
+    cursor:pointer;color:#6b7280;transition:all 0.15s;user-select:none; }
+  .day-chip.day-active { background:#1a3a2a;border-color:#1a3a2a;color:#fff; }
+  .day-chip:hover { border-color:#1a3a2a; }
+
+  .card-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .panel-btn {
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px;
+    cursor: pointer; font-size: 12px; font-weight: 600; color: #6b7280;
+    padding: 5px 10px; font-family: Georgia, serif; transition: all 0.15s; white-space: nowrap; }
+  .panel-btn:hover { background: #e5e7eb; color: #374151; }
+  .panel-btn.hint-open { background: #fef9c3; border-color: #fde68a; color: #92400e; }
+  .panel-btn.ia-open { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+
+  .card-hint { padding: 12px 16px 14px; border-top: 1px solid #fde68a; background: #fffdf5; }
+  .hint-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #92400e; margin-bottom: 8px; }
+  .hint-text { font-size: 13px; color: #374151; line-height: 1.7; }
+
+  .card-ia { padding: 12px 16px 14px; border-top: 1px solid #fecdd3; background: #fff5f5; }
+  .ia-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #9f1239; margin-bottom: 8px; }
+  .ia-block { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #fee2e2; }
+  .ia-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .ia-sev { font-size: 11px; font-weight: 700; border-radius: 10px; padding: 2px 8px; display: inline-block; margin-bottom: 4px; }
+  .ia-sev.hoch { background: #fee2e2; color: #b91c1c; }
+  .ia-sev.mittel { background: #fef9c3; color: #a16207; }
+  .ia-sev.gering { background: #dcfce7; color: #15803d; }
+  .ia-text { font-size: 13px; color: #374151; line-height: 1.6; }
+
+  .grund-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 8px;
+    background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; white-space: nowrap; }
+
+  .save-bar { position: sticky; bottom: 0; background: #1a3a2a; color: #fff;
+    padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; box-shadow: 0 -2px 12px rgba(0,0,0,0.15); z-index: 10; }
+  .save-btn { background: #16a34a; color: #fff; border: none; padding: 8px 18px;
+    border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer;
+    font-family: Georgia, serif; transition: background 0.2s; }
+  .save-btn:hover { background: #15803d; }
+  .save-status { font-size: 11px; opacity: 0.7; }
+
+  /* Wechselwirkungen Tab */
+  .ia-overview { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb;
+    overflow: hidden; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .ia-overview-head { background: #1a3a2a; color: #fff; padding: 14px 18px;
+    font-size: 13px; font-weight: 700; }
+  .ia-row { display: flex; gap: 12px; align-items: flex-start; padding: 14px 18px;
+    border-bottom: 1px solid #f3f4f6; }
+  .ia-row:last-child { border-bottom: none; }
+  .ia-row-sev { flex-shrink: 0; width: 90px; }
+  .ia-row-pair { font-size: 13px; font-weight: 700; color: #111; margin-bottom: 3px; }
+  .ia-row-desc { font-size: 12px; color: #6b7280; line-height: 1.5; }
+
+  /* Monatsübersicht */
+  .export-month { font-size: 20px; font-weight: 900; color: #1a3a2a; }
+  .streak-box { text-align:center; background:#dcfce7; border-radius:10px; padding:8px 16px; }
+  .streak-num { font-size:24px; font-weight:900; color:#15803d; }
+  .streak-lbl { font-size:11px; color:#166534; font-weight:700; }
+
+  .table-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+    overflow: hidden; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .med-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .med-table th { padding: 10px 14px; text-align: left; font-weight: 700; font-size: 11px;
+    letter-spacing: 0.5px; color: #6b7280; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+  .med-table td { padding: 9px 14px; border-top: 1px solid #f3f4f6; vertical-align: middle; }
+  tr.alt { background: #fafafa; }
+
+  .disclaimer { margin-top: 20px; padding: 14px 18px; background: #fff8f0; border: 1px solid #fcd4a0;
+    border-radius: 10px; font-size: 12px; color: #92400e; line-height: 1.6; }
+
+  .footer { text-align: center; padding: 24px 16px; font-size: 11px; color: #d1d5db;
+    border-top: 1px solid #f0f0ee; margin-top: 16px; }
+  .hidden { display: none; }
+
+  @media (max-width: 600px) {
+    .header { padding: 20px 16px 0; }
+    .header-top { flex-direction: column; }
+    .card-btns { flex-wrap: wrap; }
+    .section-nav-inner { gap: 6px; }
+    .nav-jump { font-size: 12px; padding: 5px 10px; }
+    .ia-row { flex-direction: column; gap: 6px; }
+    .ia-row-sev { width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div id="section-top"></div>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div>
+        <div class="header-label">Persönlicher Medikamentenplan</div>
+        <h1>Medikamenten-Tracker</h1>
+        <div class="header-sub" id="header-sub">Peter Faul · Dr. med. Christian Kipp · Igersheim</div>
+      </div>
+      <div class="header-stats">
+        <div class="stat"><div class="stat-num" style="color:#60a5fa" id="stat-dauer">–</div><div class="stat-label">Dauermeds</div></div>
+        <div class="stat"><div class="stat-num" style="color:#f87171" id="stat-bedarf">–</div><div class="stat-label">Bedarfsmeds</div></div>
+        <div class="stat"><div class="stat-num" style="color:#4ade80" id="streak-num">0</div><div class="stat-label">🔥 Streak</div></div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('plan')">Medikamentenplan</button>
+      <button class="tab-btn inactive" onclick="showTab('wechsel')">⚠️ Wechselwirkungen</button>
+      <button class="tab-btn inactive" onclick="showTab('export')">📊 Monatsübersicht</button>
+    </div>
+  </div>
+</div>
+
+<div class="section-nav" id="section-nav">
+  <div class="section-nav-inner">
+    <span class="section-nav-label">Springen zu:</span>
+    <a class="nav-jump morgens" href="#section-morgens">🌅 Morgens</a>
+    <a class="nav-jump mittags" href="#section-mittags">☀️ Mittags</a>
+    <a class="nav-jump abends"  href="#section-abends">🌙 Abends</a>
+    <a class="nav-jump nacht"   href="#section-nacht">🌑 Nacht</a>
+    <a class="nav-jump bedarf"  href="#section-bedarf">🆘 Bedarf</a>
+    <a class="nav-jump top"     href="#section-top">⬆ Anfang</a>
+  </div>
+</div>
+
+<div class="main">
+  <div id="tab-plan">
+    <p class="intro">Hier sind alle Medikamente nach Einnahmezeit sortiert. Hake jede Einnahme ab. Einnahmehinweise (nüchtern, zum Essen usw.) sind direkt bei jedem Präparat vermerkt.</p>
+
+    <div style="background:#f0fdf4;border:1px solid #a7f3d0;border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#1a3a2a;margin-bottom:4px;">📅 Startdatum Protokoll</div>
+        <input type="date" id="start-date-input"
+          style="padding:6px 10px;border:1.5px solid #a7f3d0;border-radius:7px;font-size:14px;font-family:Georgia,serif;color:#1a3a2a;"
+          onchange="saveStartDate(this.value)">
+      </div>
+      <div id="day-counter" style="font-size:22px;font-weight:900;color:#1a3a2a;"></div>
+      <div style="font-size:12px;color:#6b7280;line-height:1.5;">Ausgedruckt: 11.02.2026<br>Dr. med. Christian Kipp, Igersheim</div>
+    </div>
+
+    <div id="section-morgens" class="group">
+      <div class="group-label">🌅 Morgens</div>
+      <div id="group-morgens"></div>
+      <div class="group-nav-link"><a class="group-nav-btn" href="#section-mittags">☀️ Weiter zu Mittags →</a></div>
+    </div>
+    <div id="section-mittags" class="group">
+      <div class="group-label">☀️ Mittags</div>
+      <div id="group-mittags"></div>
+      <div class="group-nav-link">
+        <a class="group-nav-btn" href="#section-morgens">← 🌅 Morgens</a>
+        <a class="group-nav-btn" href="#section-abends">🌙 Weiter zu Abends →</a>
+      </div>
+    </div>
+    <div id="section-abends" class="group">
+      <div class="group-label">🌙 Abends</div>
+      <div id="group-abends"></div>
+      <div class="group-nav-link">
+        <a class="group-nav-btn" href="#section-mittags">← ☀️ Mittags</a>
+        <a class="group-nav-btn" href="#section-nacht">🌑 Weiter zu Nacht →</a>
+      </div>
+    </div>
+    <div id="section-nacht" class="group">
+      <div class="group-label">🌑 Nacht / Zur Nacht</div>
+      <div id="group-nacht"></div>
+      <div class="group-nav-link">
+        <a class="group-nav-btn" href="#section-abends">← 🌙 Abends</a>
+        <a class="group-nav-btn" href="#section-bedarf">🆘 Weiter zu Bedarf →</a>
+      </div>
+    </div>
+    <div id="section-bedarf" class="group">
+      <div class="group-label">🆘 Bedarfsmedikation</div>
+      <div id="group-bedarf"></div>
+      <div class="group-nav-link"><a class="group-nav-btn" href="#section-top">⬆ Zurück zum Anfang</a></div>
+    </div>
+
+    <div class="disclaimer">
+      ⚕️ <strong>Wichtiger Hinweis:</strong> Dieser Tracker ersetzt keine ärztliche oder pharmazeutische Beratung. Änderungen der Dosierung nur nach Rücksprache mit Dr. Kipp. Bei Nebenwirkungen oder Fragen sofort den Arzt kontaktieren. Notfall: 112.
+    </div>
+  </div>
+
+  <div id="tab-wechsel" class="hidden">
+    <p class="intro">Übersicht aller bekannten Wechselwirkungen zwischen den Dauermedikamenten. Bitte mit Dr. Kipp besprechen, insbesondere bei Bedarfsmedikation.</p>
+    <div id="wechsel-content"></div>
+  </div>
+
+  <div id="tab-export" class="hidden">
+    <div id="export-content"></div>
+  </div>
+</div>
+
+<div class="save-bar">
+  <div>
+    <span>💾 Abhakungen werden automatisch gespeichert</span>
+    <div class="save-status" id="save-status">Zuletzt gespeichert: –</div>
+  </div>
+  <button class="save-btn" onclick="saveNow()">Jetzt speichern</button>
+</div>
+
+<div class="footer">Medikamenten-Tracker · Peter Faul · Plan vom 11.02.2026 · Kein Ersatz für ärztlichen Rat · Daten lokal im Browser</div>
+
+<script>
+// ═══════════════════════════════════
+// MEDIKAMENTE
+// ═══════════════════════════════════
+const MEDS = [
+  // MORGENS
+  { id:1, name:"Esomeprazol 20 mg", handelsname:"Esomeprazol Aristo 20mg magensaftr. Hartkapseln",
+    stärke:"20 mg", form:"Kapsel", einheit:"Kapsel", typ:"dauer",
+    slots:["morgens"], dosen:{morgens:1},
+    sort:{morgens:1},
+    grund:"Magenschutz",
+    einnahme:{
+      zeit:"🌅 Morgens – nüchtern",
+      hinweis:"30 Minuten VOR dem Frühstück einnehmen, nüchtern. Der Protonenpumpenhemmer wirkt nur optimal, wenn er aktive Parietalzellen vorfindet – das ist direkt vor einer Mahlzeit der Fall.",
+      essen:"nuechtern",
+      essenLabel:"🚫 Nüchtern – 30 min vor dem Frühstück"
+    },
+    ww:["ibuprofen"],
+    ia:[{partner:"Ibuprofen 600mg", sev:"gering", text:"Esomeprazol schützt die Magenschleimhaut teilweise vor NSAR-bedingten Schäden – das ist hier therapeutisch gewünscht (Magenschutz). Dennoch: Ibuprofen möglichst kurz und niedrig dosiert einsetzen."}]
+  },
+  { id:2, name:"ASS 100 mg", handelsname:"ASS 100",
+    stärke:"100 mg", form:"Tablette", einheit:"Tablette", typ:"dauer",
+    slots:["morgens"], dosen:{morgens:1},
+    sort:{morgens:2},
+    grund:"Durchblutung (Thrombozytenaggregationshemmung)",
+    einnahme:{
+      zeit:"🌅 Morgens – zum Essen",
+      hinweis:"Morgens zum Frühstück. Niedrigdosis-ASS zum Essen einnehmen, um Magenreizung zu minimieren (trotz Esomeprazol als Magenschutz).",
+      essen:"essen",
+      essenLabel:"🍽️ Zum Frühstück"
+    },
+    ww:["ibuprofen","naproxen"],
+    ia:[
+      {partner:"Ibuprofen 600mg", sev:"hoch", text:"Ibuprofen blockiert reversibel die COX-1, ASS hingegen acetyliert sie irreversibel. Ibuprofen kann die Bindungsstelle belegen und die thrombozytenhemmende Wirkung von ASS aufheben. Ibuprofen möglichst 2 Stunden NACH ASS einnehmen (oder durch Metamizol/Naproxen ersetzen, wenn möglich)."},
+      {partner:"Naproxen 500mg (Bedarf)", sev:"mittel", text:"Ähnlicher Mechanismus wie Ibuprofen, aber geringeres Risiko für die ASS-Wirkminderung. Zeitlicher Abstand von 30 Minuten nach ASS empfohlen."}
+    ]
+  },
+  { id:3, name:"Cyanocobalamin 1 mg", handelsname:"B12 ANKERMANN",
+    stärke:"1 mg", form:"Tablette", einheit:"Tablette", typ:"dauer",
+    slots:["morgens"], dosen:{morgens:1},
+    sort:{morgens:3},
+    grund:"Vitamin B12",
+    einnahme:{
+      zeit:"🌅 Morgens – unabhängig",
+      hinweis:"Morgens unabhängig vom Essen. Cyanocobalamin wird bei dieser hohen Dosis (1 mg) hauptsächlich passiv resorbiert – keine besonderen Einnahmehinweise erforderlich.",
+      essen:"info",
+      essenLabel:"ℹ️ Unabhängig vom Essen"
+    },
+    ww:[],
+    ia:[]
+  },
+  { id:4, name:"Folsäure 5 mg", handelsname:"FOLSAEURE 5MG",
+    stärke:"5 mg", form:"Tablette", einheit:"Tablette", typ:"dauer",
+    slots:["morgens"], dosen:{morgens:1},
+    sort:{morgens:4},
+    grund:"Folsäure (Vitaminsubstitution)",
+    einnahme:{
+      zeit:"🌅 Morgens – unabhängig",
+      hinweis:"Morgens, unabhängig vom Essen. Gut kombinierbar mit B12. Bei dieser Hochdosis (5 mg) wird Folsäure für therapeutische Zwecke (nicht nur Prophylaxe) eingesetzt.",
+      essen:"info",
+      essenLabel:"ℹ️ Unabhängig vom Essen"
+    },
+    ww:[],
+    ia:[]
+  },
+  { id:5, name:"Metoprololsuccinat 95 mg", handelsname:"MetoHEXAL-Succ 95mg",
+    stärke:"95 mg", form:"Retardtablette", einheit:"Tablette", typ:"dauer",
+    slots:["morgens"], dosen:{morgens:1},
+    sort:{morgens:5},
+    grund:"Blutdruck",
+    einnahme:{
+      zeit:"🌅 Morgens – zum Frühstück",
+      hinweis:"Zum Frühstück einnehmen. Retardtablette NICHT zerkauen oder teilen – die Retardwirkung wird dadurch zerstört (gefährliche Überdosierung möglich). Mit ausreichend Wasser schlucken. Morgens für gleichmäßige 24h-Abdeckung optimal.",
+      essen:"essen",
+      essenLabel:"🍽️ Zum Frühstück – NICHT zerkauen!"
+    },
+    ww:[],
+    ia:[]
+  },
+  { id:6, name:"Ramipril 5 mg", handelsname:"RamiLich 5mg Tabletten",
+    stärke:"5 mg", form:"Tablette", einheit:"Tablette", typ:"dauer",
+    slots:["morgens","abends"], dosen:{morgens:1, abends:1},
+    sort:{morgens:6, abends:1},
+    grund:"Blutdruck (ACE-Hemmer)",
+    einnahme:{
+      zeit:"🌅 Morgens + 🌙 Abends",
+      hinweis:"Morgens bevorzugt nüchtern oder vor dem Essen; Mahlzeiten verlangsamen die Resorption (nicht die Wirkstärke). ACE-Hemmer morgens: optimale Blutdruckkontrolle über den Tag. Abendsdosis für nächtliche Abdeckung.",
+      essen:"nuechtern",
+      essenLabel:"🚫 Bevorzugt nüchtern (oder vor dem Essen)"
+    },
+    ww:["ibuprofen","metformin"],
+    ia:[
+      {partner:"Ibuprofen 600mg", sev:"hoch", text:"NSAR wie Ibuprofen hemmen die Prostaglandinsynthese in der Niere → Wasserretention → Blutdruckanstieg, der die Wirkung von Ramipril direkt antagonisiert. Außerdem erhöhtes Risiko akuter Nierenschädigung. Ibuprofen bei dieser Kombination so kurz wie möglich einsetzen, auf Metamizol oder Paracetamol ausweichen wenn möglich."},
+      {partner:"Metformin 1000mg", sev:"gering", text:"ACE-Hemmer können die Nierenfunktion beeinflussen → leicht erhöhter Metformin-Spiegel möglich. Relevanz bei normaler Nierenfunktion gering; bei Nierenfunktionsverschlechterung auf Metformin achten."}
+    ]
+  },
+  { id:7, name:"Metformin 1000 mg (Morgens)", handelsname:"Metformin Filmtabletten",
+    stärke:"1000 mg", form:"Tablette", einheit:"Tablette", typ:"dauer",
+    slots:["morgens"], dosen:{morgens:1},
+    sort:{morgens:7},
+    grund:"Diabetes Mellitus",
+    einnahme:{
+      zeit:"🌅 Morgens – zum Essen",
+      hinweis:"Zwingend zum Frühstück einnehmen. Metformin nüchtern verursacht häufig starke Übelkeit und Durchfall. Die Mahlzeit verlangsamt die Resorption und minimiert Magen-Darm-Nebenwirkungen deutlich.",
+      essen:"essen",
+      essenLabel:"🍽️ Zwingend zum Frühstück"
+    },
+    ww:["ibuprofen","ramipril"],
+    ia:[
+      {partner:"Ibuprofen 600mg", sev:"mittel", text:"NSAR können die Nierenperfusion reduzieren → Metformin-Akkumulation möglich (Metformin wird renal eliminiert). Bei eingeschränkter Nierenfunktion erhöhtes Risiko für Laktatazidose. Regelmäßige Nierenwertkontrollen empfohlen."}
+    ]
+  },
+  { id:8, name:"Pregabalin 100 mg (Morgens)", handelsname:"PREGABALIN BASICS 100mg Hartkapseln",
+    stärke:"100 mg", form:"Kapsel", einheit:"Kapseln", typ:"dauer",
+    slots:["morgens"], dosen:{morgens:2},
+    sort:{morgens:8},
+    grund:"Neuropathieschmerzen",
+    einnahme:{
+      zeit:"🌅 Morgens – 2 Kapseln",
+      hinweis:"2 Kapseln morgens. Pregabalin kann unabhängig vom Essen eingenommen werden – Mahlzeiten beeinflussen die Resorption kaum. Sedierung besonders zu Beginn; Vorsicht beim Autofahren.",
+      essen:"info",
+      essenLabel:"ℹ️ Unabhängig vom Essen"
+    },
+    ww:["amitriptylin","hydromorphon"],
+    ia:[
+      {partner:"Amitriptylin 25mg", sev:"hoch", text:"Additive ZNS-dämpfende Wirkung. Verstärkte Sedierung, Benommenheit, kognitive Einschränkungen möglich. Auf Stürze achten, insbesondere in der Nacht. Keine Dosiserhöhung ohne ärztliche Rücksprache."},
+      {partner:"Hydromorphon 4mg", sev:"hoch", text:"Pregabalin + Opioide: synergistische Atemdepression und Sedierung. Dieses Risiko ist bei der vorliegenden Kombination klinisch relevant. Auf Zeichen von Übersedierung achten (verlangsamte Atmung, extreme Schläfrigkeit)."}
+    ]
+  },
+  { id:9, name:"Dulaglutid 3 mg (1× wöchentlich)", handelsname:"Trulicity 3mg Injektionslösung",
+    stärke:"3 mg", form:"Injektion (Fertigpen)", einheit:"Injektion", typ:"dauer",
+    slots:["morgens"], dosen:{morgens:1},
+    sort:{morgens:9},
+    wöchentlich:true,
+    grund:"Diabetes Mellitus (GLP-1-Rezeptoragonist)",
+    einnahme:{
+      zeit:"🌅 Morgens – 1× wöchentlich",
+      hinweis:"1× WÖCHENTLICH, immer am gleichen Wochentag. Unabhängig vom Essen und der Tageszeit – aber morgens hat sich als praktisch erwiesen. Subkutane Injektion in Bauch, Oberschenkel oder Oberarm. Fertigpen nicht schütteln.",
+      essen:"info",
+      essenLabel:"ℹ️ Unabhängig – 1× pro Woche"
+    },
+    ww:["metformin"],
+    ia:[
+      {partner:"Metformin 1000mg", sev:"mittel", text:"Synergistische blutzuckersenkende Wirkung – therapeutisch gewünscht. Hypoglykämie-Risiko alleine durch diese Kombination gering (da kein Insulin involviert), aber Blutzuckerkontrollen beachten. Gastrointestinale Nebenwirkungen können sich addieren (Übelkeit)."}
+    ]
+  },
+
+  // MITTAGS
+  { id:10, name:"Pregabalin 100 mg (Mittags)", handelsname:"PREGABALIN BASICS 100mg Hartkapseln",
+    stärke:"100 mg", form:"Kapsel", einheit:"Kapsel", typ:"dauer",
+    slots:["mittags"], dosen:{mittags:1},
+    sort:{mittags:1},
+    grund:"Neuropathieschmerzen",
+    einnahme:{
+      zeit:"☀️ Mittags – 1 Kapsel",
+      hinweis:"Unabhängig vom Essen. Zweite Tagesdosis Pregabalin für gleichmäßige Plasmaspiegel.",
+      essen:"info",
+      essenLabel:"ℹ️ Unabhängig vom Essen"
+    },
+    ww:["amitriptylin","hydromorphon"],
+    ia:[
+      {partner:"Amitriptylin 25mg", sev:"hoch", text:"Siehe Morgens-Dosis. Additive Sedierung."},
+      {partner:"Hydromorphon 4mg", sev:"hoch", text:"Siehe Morgens-Dosis. Atemdepression und Sedierung."}
+    ]
+  },
+  { id:11, name:"Metformin 1000 mg (Abends)", handelsname:"Metformin Filmtabletten",
+    stärke:"1000 mg", form:"Tablette", einheit:"Tablette", typ:"dauer",
+    slots:["abends"], dosen:{abends:1},
+    sort:{abends:2},
+    grund:"Diabetes Mellitus",
+    einnahme:{
+      zeit:"🌙 Abends – zum Abendessen",
+      hinweis:"Zwingend zum Abendessen einnehmen. Niemals nüchtern – selbe Gründe wie morgens (Übelkeit, Magen-Darm).",
+      essen:"essen",
+      essenLabel:"🍽️ Zwingend zum Abendessen"
+    },
+    ww:["ibuprofen"],
+    ia:[{partner:"Ibuprofen 600mg", sev:"mittel", text:"Siehe Morgens-Dosis Metformin."}]
+  },
+  { id:12, name:"Metoprololsuccinat ½ Tablette (Mittags)", handelsname:"MetoHEXAL-Succ 95mg",
+    stärke:"47,5 mg (½)", form:"Retardtablette (½)", einheit:"½ Tablette", typ:"dauer",
+    slots:["mittags"], dosen:{mittags:0.5},
+    sort:{mittags:2},
+    grund:"Blutdruck (halbe Dosis mittags)",
+    einnahme:{
+      zeit:"☀️ Mittags – ½ Tablette",
+      hinweis:"Laut Medikationsplan 0,5 Tabletten mittags. Retardtabletten dürfen grundsätzlich nicht geteilt werden – bitte mit Dr. Kipp klären, ob eine teilbare Retardtablette verordnet ist oder ob dies eine spezielle Formulierung ist.",
+      essen:"essen",
+      essenLabel:"🍽️ Zum Mittagessen – ⚠️ Rückfrage Teilbarkeit"
+    },
+    ww:[],
+    ia:[]
+  },
+
+  // ABENDS
+  { id:13, name:"Pregabalin 100 mg (Abends)", handelsname:"PREGABALIN BASICS 100mg Hartkapseln",
+    stärke:"100 mg", form:"Kapsel", einheit:"Kapsel", typ:"dauer",
+    slots:["abends"], dosen:{abends:1},
+    sort:{abends:3},
+    grund:"Neuropathieschmerzen",
+    einnahme:{
+      zeit:"🌙 Abends – 1 Kapsel",
+      hinweis:"Dritte Tagesdosis. Abends besonders sedierend – nicht mehr Autofahren nach Einnahme.",
+      essen:"info",
+      essenLabel:"ℹ️ Unabhängig vom Essen"
+    },
+    ww:["amitriptylin","hydromorphon"],
+    ia:[
+      {partner:"Amitriptylin 25mg", sev:"hoch", text:"Additive Sedierung abends – ist hier therapeutisch teilweise gewünscht (Einschlafen), aber Sturzgefahr nachts erhöht."},
+      {partner:"Hydromorphon 4mg", sev:"hoch", text:"Atemdepression und Sedierung – besonders kritisch bei der Nachtdosis."}
+    ]
+  },
+  { id:14, name:"Pregabalin 330 mg retard (Abends)", handelsname:"Pregabalin Aristo retard 330mg",
+    stärke:"330 mg", form:"Retardtablette", einheit:"Tablette", typ:"dauer",
+    slots:["abends"], dosen:{abends:1},
+    sort:{abends:4},
+    grund:"Neuropathieschmerzen (Hauptdosis abends)",
+    einnahme:{
+      zeit:"🌙 Abends – Retardtablette",
+      hinweis:"Hauptdosis Pregabalin als Retardform. NICHT zerkauen oder teilen – Retardwirkung wird zerstört. Mit ausreichend Wasser schlucken. Stark sedierend – nur abends/nachts.",
+      essen:"essen",
+      essenLabel:"🍽️ Zum Abendessen – NICHT zerkauen!"
+    },
+    ww:["amitriptylin","hydromorphon"],
+    ia:[
+      {partner:"Amitriptylin 25mg", sev:"hoch", text:"Additive starke Sedierung durch Pregabalin 330mg + Amitriptylin. Sturzrisiko in der Nacht."},
+      {partner:"Hydromorphon 4mg", sev:"hoch", text:"Sehr hohes Risiko additiver Atemdepression bei Pregabalin 330mg (Hochdosis) + Hydromorphon nachts. Bitte mit Dr. Kipp besprechen."}
+    ]
+  },
+  { id:15, name:"Pregabalin 165 mg retard (Abends)", handelsname:"Pregabalin Aristo retard 165mg",
+    stärke:"165 mg", form:"Retardtablette", einheit:"Tablette", typ:"dauer",
+    slots:["abends"], dosen:{abends:1},
+    sort:{abends:5},
+    grund:"Neuropathieschmerzen (Ergänzungsdosis abends)",
+    einnahme:{
+      zeit:"🌙 Abends – Retardtablette",
+      hinweis:"Zweite Retardtablette Pregabalin abends. NICHT zerkauen. Zusammen mit Pregabalin 330mg = 495mg Pregabalin abends (sehr hohe Gesamtdosis – nur laut ärztlicher Verordnung).",
+      essen:"essen",
+      essenLabel:"🍽️ Zum Abendessen – NICHT zerkauen!"
+    },
+    ww:["amitriptylin","hydromorphon"],
+    ia:[
+      {partner:"Amitriptylin 25mg", sev:"hoch", text:"Additive Sedierung."},
+      {partner:"Hydromorphon 4mg", sev:"hoch", text:"Additive Atemdepression – besonders nächtlich kritisch."}
+    ]
+  },
+  { id:16, name:"Atorvastatin 40 mg", handelsname:"Atorvastatin AXiromed 40mg",
+    stärke:"40 mg", form:"Tablette", einheit:"Tablette", typ:"dauer",
+    slots:["abends"], dosen:{abends:1},
+    sort:{abends:6},
+    grund:"Fettstoffwechsel (Statin)",
+    einnahme:{
+      zeit:"🌙 Abends – zum Abendessen oder danach",
+      hinweis:"Abends einnehmen: Die Cholesterinsynthese in der Leber läuft hauptsächlich nachts – abendliche Statineinnahme deckt diesen Zeitraum optimal ab. Unabhängig vom Essen, aber Mahlzeit verbessert Verträglichkeit.",
+      essen:"info",
+      essenLabel:"ℹ️ Abends – unabhängig vom Essen"
+    },
+    ww:[],
+    ia:[]
+  },
+  { id:17, name:"Ibuprofen 600 mg (Abends)", handelsname:"Ibuprofen AbZ 600mg",
+    stärke:"600 mg", form:"Tablette", einheit:"Tablette", typ:"dauer",
+    slots:["abends"], dosen:{abends:1},
+    sort:{abends:7},
+    grund:"Schmerzen (NSAR)",
+    einnahme:{
+      zeit:"🌙 Abends – zum Essen",
+      hinweis:"Zwingend zum Essen – Ibuprofen ohne Mahlzeit schädigt die Magenschleimhaut (NSAR). Esomeprazol (morgens) bietet Teilschutz, aber Einnahme zum Essen ist dennoch Pflicht. Mindestens 2–4 Stunden Abstand zur ASS-Morgendosis (Interaktionsrisiko).",
+      essen:"essen",
+      essenLabel:"🍽️ Zwingend zum Essen – ⚠️ Abstand zu ASS"
+    },
+    ww:["ass","ramipril","metformin"],
+    ia:[
+      {partner:"ASS 100mg", sev:"hoch", text:"Ibuprofen kann die kardioprotektive Wirkung von ASS 100mg aufheben. Wenn möglich: ASS mindestens 2 Stunden vor Ibuprofen einnehmen – oder Schmerztherapie auf Metamizol umstellen."},
+      {partner:"Ramipril 5mg", sev:"hoch", text:"NSAR + ACE-Hemmer: erhöhtes Risiko für Blutdruckanstieg und akute Nierenschädigung (triple whammy bei gleichzeitigem Diuretikum). Regelmäßige Blutdruck- und Nierenwertkontrolle."},
+      {partner:"Metformin 1000mg", sev:"mittel", text:"Reduktion der Nierenperfusion durch Ibuprofen → Metformin-Anreicherung möglich → Laktatazidose-Risiko."}
+    ]
+  },
+
+  // NACHT
+  { id:18, name:"Amitriptylin 25 mg", handelsname:"Amitriptylin Micro Labs 25mg",
+    stärke:"25 mg", form:"Tablette", einheit:"Tabletten", typ:"dauer",
+    slots:["nacht"], dosen:{nacht:2},
+    sort:{nacht:1},
+    grund:"Schmerzen / Neuropathie (trizyklisches Antidepressivum, Steigerung auf 50mg geplant)",
+    einnahme:{
+      zeit:"🌑 Zur Nacht – 2 Tabletten (= 50mg geplant)",
+      hinweis:"Zur Nacht einnehmen – Amitriptylin hat stark sedierende Wirkung (antihistaminerg). Laut Medikationsplan: Steigerung auf 50mg nach Plan. Mindestens 30 Minuten vor dem Schlafen. Niemals morgens oder tagsüber – starke Tagesmüdigkeit.",
+      essen:"info",
+      essenLabel:"ℹ️ Zur Nacht – stark sedierend"
+    },
+    ww:["pregabalin","hydromorphon"],
+    ia:[
+      {partner:"Pregabalin (alle Dosen)", sev:"hoch", text:"Amitriptylin + Pregabalin: additive ZNS-Dämpfung. Gemeinsam mit den hohen Pregabalin-Abendsdosen (330mg + 165mg + 100mg) sehr starke Sedierung. Sturzrisiko nachts sehr hoch – Maßnahmen: Nachtlicht, Rutschmatten, ggf. Bettgitter besprechen."},
+      {partner:"Hydromorphon 4mg", sev:"hoch", text:"Amitriptylin + Opioid: verstärkte ZNS-Dämpfung und Atemdepression. Amitriptylin hemmt zusätzlich die Noradrenalin-/Serotonin-Wiederaufnahme – kann Opioid-Analgesie verstärken (therapeutisch) aber auch UAW potenzieren."}
+    ]
+  },
+  { id:19, name:"Hydromorphon 4 mg (Morgens)", handelsname:"Hydromorphon-HCI Glenmark 4mg Retardkapseln",
+    stärke:"4 mg", form:"Retardkapsel", einheit:"Kapseln", typ:"dauer",
+    slots:["morgens"], dosen:{morgens:2},
+    sort:{morgens:10},
+    grund:"Schmerzen (Opioid – erhöht 11.2.26)",
+    einnahme:{
+      zeit:"🌅 Morgens – 2 Retardkapseln",
+      hinweis:"Retardkapseln NICHT zerkauen – Überdosierungsgefahr! Morgensdosis für Tagesschmerzabdeckung. Dosiserhöhung laut Plan vom 11.02.2026. Mit etwas Wasser schlucken.",
+      essen:"info",
+      essenLabel:"ℹ️ Unabhängig vom Essen – NICHT zerkauen!"
+    },
+    ww:["pregabalin","amitriptylin"],
+    ia:[
+      {partner:"Pregabalin (alle Dosen)", sev:"hoch", text:"Opioid + Gabapentinoide (Pregabalin): stark erhöhtes Risiko von Atemdepression und Sedierung. Dieser Synergismus ist klinisch dokumentiert und FDA/EMA-gewarnt. Bitte regelmäßig mit Dr. Kipp besprechen."},
+      {partner:"Amitriptylin 25mg", sev:"hoch", text:"Opioid + TZA: additive ZNS-Dämpfung, Atemdepression, Sturzrisiko."}
+    ]
+  },
+  { id:20, name:"Hydromorphon 4 mg (Nacht)", handelsname:"Hydromorphon-HCI Glenmark 4mg Retardkapseln",
+    stärke:"4 mg", form:"Retardkapsel", einheit:"Kapseln", typ:"dauer",
+    slots:["nacht"], dosen:{nacht:2},
+    sort:{nacht:2},
+    grund:"Schmerzen (Opioid – Nachtdosis)",
+    einnahme:{
+      zeit:"🌑 Zur Nacht – 2 Retardkapseln",
+      hinweis:"Nachtdosis Hydromorphon. NICHT zerkauen. Zusammen mit Amitriptylin und hohen Pregabalin-Dosen sehr starke Kombination – auf Atemfrequenz und Bewusstsein achten. Im Notfall: Naloxon (Narcan) als Gegenmittel.",
+      essen:"info",
+      essenLabel:"ℹ️ Zur Nacht – NICHT zerkauen! ⚠️"
+    },
+    ww:["pregabalin","amitriptylin"],
+    ia:[
+      {partner:"Pregabalin 330mg + 165mg abends", sev:"hoch", text:"Sehr hohes Risiko additiver Atemdepression nachts. Pregabalin 495mg abends + Hydromorphon 8mg (2×4mg) zur Nacht + Amitriptylin 50mg: starke Kombinationssedierung. Regelmäßige Überprüfung durch Dr. Kipp notwendig."},
+      {partner:"Amitriptylin 50mg", sev:"hoch", text:"Triple-Kombination ZNS-Dämpfer: sehr hohes Sturzrisiko und Atemdepressionsrisiko nachts."}
+    ]
+  },
+  { id:21, name:"Ibuprofen 600 mg (Morgens)", handelsname:"Ibuprofen AbZ 600mg",
+    stärke:"600 mg", form:"Tablette", einheit:"Tablette", typ:"dauer",
+    slots:["morgens"], dosen:{morgens:1},
+    sort:{morgens:11},
+    grund:"Schmerzen (NSAR – Morgendosis)",
+    einnahme:{
+      zeit:"🌅 Morgens – zum Frühstück",
+      hinweis:"Zum Frühstück. Mindestens 2 Stunden NACH der ASS-Einnahme (oder 30 Minuten danach wenn nicht möglich). Auf Nierenwerte und Blutdruck achten in Kombination mit Ramipril.",
+      essen:"essen",
+      essenLabel:"🍽️ Zum Frühstück – ⚠️ nach ASS"
+    },
+    ww:["ass","ramipril","metformin"],
+    ia:[
+      {partner:"ASS 100mg", sev:"hoch", text:"Morgendliche Kombination: ASS zuerst einnehmen, Ibuprofen mindestens 30 Min später (besser 2h) um ASS-Wirkung nicht zu blockieren."},
+      {partner:"Ramipril 5mg", sev:"hoch", text:"NSAR + ACE-Hemmer: Blutdruck- und Nierenfunktionskontrolle."},
+      {partner:"Metformin 1000mg", sev:"mittel", text:"Nierenperfusion beachten."}
+    ]
+  },
+
+  // BEDARF
+  { id:22, name:"Metamizol 500 mg", handelsname:"Metamizol Zentiva 500mg",
+    stärke:"500 mg", form:"Tablette", einheit:"Tablette", typ:"bedarf",
+    slots:["bedarf"], dosen:{bedarf:1},
+    sort:{bedarf:1},
+    grund:"Schmerzen (bei Bedarf)",
+    einnahme:{
+      zeit:"🆘 Bei Bedarf",
+      hinweis:"Bei Bedarf – bevorzugt als Schmerzalternative zu Ibuprofen bei gleichzeitiger ASS-Einnahme, da Metamizol die ASS-Wirkung nicht beeinträchtigt. Unabhängig vom Essen.",
+      essen:"info",
+      essenLabel:"ℹ️ Unabhängig vom Essen"
+    },
+    ww:[], ia:[]
+  },
+  { id:23, name:"Naproxen 500 mg", handelsname:"Naproxen 500-1A Pharma",
+    stärke:"500 mg", form:"Tablette", einheit:"Tabletten", typ:"bedarf",
+    slots:["bedarf"], dosen:{bedarf:2},
+    sort:{bedarf:2},
+    grund:"Schmerzen (bei Bedarf – 2 Tabletten morgens)",
+    einnahme:{
+      zeit:"🆘 Bei Bedarf – 2 Tabletten morgens",
+      hinweis:"Bei Bedarf, laut Plan 2 Tabletten morgens. Zum Essen einnehmen (NSAR – Magenschutz). Zeitlicher Abstand zu ASS empfohlen (30 Min nach ASS). Nicht gleichzeitig mit Ibuprofen – Kombinationen von NSAR vermeiden.",
+      essen:"essen",
+      essenLabel:"🍽️ Zum Essen – ⚠️ Abstand zu ASS und kein gleichzeitiges Ibuprofen"
+    },
+    ww:["ass"],
+    ia:[{partner:"ASS 100mg", sev:"mittel", text:"NSAR + ASS: Naproxen hat weniger Wechselwirkung mit ASS als Ibuprofen, aber 30 Min Abstand nach ASS empfohlen. Nicht gleichzeitig mit Ibuprofen verwenden – NSAR-Kombination ohne Mehrwert, aber erhöhtes Nebenwirkungsrisiko."}]
+  },
+];
+
+// ═══════════════════════════════════
+// WECHSELWIRKUNGEN ÜBERSICHT
+// ═══════════════════════════════════
+const IA_OVERVIEW = [
+  { pair:"Ibuprofen 600mg ↔ ASS 100mg", sev:"hoch",
+    desc:"Ibuprofen blockiert die COX-1-Bindungsstelle und kann die irreversible Thrombozytenhemmung von ASS aufheben. Ibuprofen mind. 2h NACH ASS einnehmen oder durch Metamizol ersetzen." },
+  { pair:"Pregabalin (gesamt) ↔ Hydromorphon 4mg", sev:"hoch",
+    desc:"Gabapentinoid + Opioid: Synergistische Atemdepression und Sedierung. FDA/EMA-gewarnt. Besonders kritisch abends/nachts bei Pregabalin 495mg + Hydromorphon 8mg." },
+  { pair:"Amitriptylin 50mg ↔ Hydromorphon 4mg", sev:"hoch",
+    desc:"Trizyklisches Antidepressivum + Opioid: additive ZNS-Dämpfung, Atemdepression. Sturzrisiko nachts sehr hoch." },
+  { pair:"Pregabalin ↔ Amitriptylin 50mg", sev:"hoch",
+    desc:"Additive ZNS-Dämpfung. In Kombination mit Hydromorphon triple-Sedierung. Nachtlicht und Sturzschutzmaßnahmen dringend empfohlen." },
+  { pair:"Ibuprofen 600mg ↔ Ramipril 5mg", sev:"hoch",
+    desc:"NSAR + ACE-Hemmer: Blutdruckanstieg, erhöhtes Risiko akuter Nierenschädigung. Regelmäßige Blutdruck- und Kreatinin-Kontrolle." },
+  { pair:"Ibuprofen 600mg ↔ Metformin 1000mg", sev:"mittel",
+    desc:"NSAR reduzieren Nierenperfusion → Metformin-Akkumulation möglich → Laktatazidose-Risiko (selten, aber ernst). Nierenwerte kontrollieren." },
+  { pair:"Dulaglutid ↔ Metformin 1000mg", sev:"mittel",
+    desc:"Synergistische Blutzuckersenkung (therapeutisch gewünscht). Gastrointestinale Nebenwirkungen können sich addieren. Blutzucker engmaschig kontrollieren." },
+  { pair:"Naproxen 500mg ↔ ASS 100mg", sev:"mittel",
+    desc:"Geringeres Wechselwirkungsrisiko als Ibuprofen/ASS, aber 30 Min Abstand empfohlen. Nie gleichzeitig mit Ibuprofen (NSAR-Kombination)." },
+  { pair:"Esomeprazol ↔ Metformin 1000mg", sev:"gering",
+    desc:"PPI können die Magensäure senken → leicht veränderter Metformin-Spiegel. Klinisch meist irrelevant bei normaler Nierenfunktion." },
+  { pair:"Metformin ↔ Ramipril 5mg", sev:"gering",
+    desc:"ACE-Hemmer können Nierenfunktion beeinflussen → minimale Metformin-Spiegelerhöhung möglich. Relevant bei bestehender Niereninsuffizienz." },
+];
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let checks={}, expandedHint={}, expandedIa={}, history={}, productDays={};
+
+function todayStr(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function localDateStr(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+
+function loadChecks(){try{const s=localStorage.getItem("med_checks");const sd=localStorage.getItem("med_checks_date");if(s&&sd===todayStr())checks=JSON.parse(s);else{checks={};localStorage.setItem("med_checks_date",todayStr());localStorage.setItem("med_checks",JSON.stringify(checks));}}catch(e){checks={};}}
+function saveChecks(){try{localStorage.setItem("med_checks",JSON.stringify(checks));localStorage.setItem("med_checks_date",todayStr());}catch(e){}}
+
+let _lastCheck=0;
+function toggleCheck(medId,slot,idx){
+  const now=Date.now(); if(now-_lastCheck<400)return; _lastCheck=now;
+  const key=`${medId}_${slot}`;
+  if(!checks[key])checks[key]=[false,false,false];
+  checks[key][idx]=!checks[key][idx];
+  saveChecks(); renderCheckboxes(medId,slot); recordDay();
+}
+function renderCheckboxes(medId,slot){
+  const key=`${medId}_${slot}`; const state=checks[key]||[false,false,false];
+  for(let i=0;i<3;i++){document.querySelectorAll(`.chkbox-${medId}-${slot}-${i}`).forEach(el=>el.classList.toggle("checked",!!state[i]));}
+}
+
+function loadHistory(){try{const s=localStorage.getItem("med_history");if(s)history=JSON.parse(s);}catch(e){}}
+function saveHistory(){try{localStorage.setItem("med_history",JSON.stringify(history));}catch(e){}}
+function recordDay(){
+  const today=todayStr(); const totalChecks=Object.values(checks).reduce((s,arr)=>s+arr.filter(Boolean).length,0);
+  history[today]={completed:totalChecks>0,checkedCount:totalChecks}; saveHistory(); updateStreak();
+}
+function updateStreak(){
+  let streak=0; const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-1);
+  while(true){const key=localDateStr(d);if(history[key]?.completed){streak++;d.setDate(d.getDate()-1);}else break;}
+  const el=document.getElementById("streak-num"); if(el)el.textContent=streak;
+}
+
+function loadProductDays(){try{const s=localStorage.getItem("med_days");if(s)productDays=JSON.parse(s);}catch(e){}}
+function saveProductDays(){try{localStorage.setItem("med_days",JSON.stringify(productDays));}catch(e){}}
+function toggleDay(id,i){if(!productDays[id])productDays[id]=[true,true,true,true,true,true,true];productDays[id][i]=!productDays[id][i];saveProductDays();const chip=document.getElementById(`daychip-${id}-${i}`);if(chip)chip.classList.toggle("day-active",productDays[id][i]);}
+function toggleDayPanel(id){const p=document.getElementById(`day-panel-${id}`);if(p)p.classList.toggle("hidden");}
+
+function toggleHint(id){
+  expandedHint[id]=!expandedHint[id];
+  document.getElementById(`hint-panel-${id}`)?.classList.toggle("hidden",!expandedHint[id]);
+  const btn=document.getElementById(`hint-btn-${id}`);
+  if(btn){btn.textContent=expandedHint[id]?"💊 Einnahme ▲":"💊 Einnahme";btn.classList.toggle("hint-open",expandedHint[id]);}
+}
+function toggleIa(id){
+  expandedIa[id]=!expandedIa[id];
+  document.getElementById(`ia-panel-${id}`)?.classList.toggle("hidden",!expandedIa[id]);
+  const btn=document.getElementById(`ia-btn-${id}`);
+  if(btn){btn.textContent=expandedIa[id]?"⚠️ Wechselwirkungen ▲":"⚠️ Wechselwirkungen";btn.classList.toggle("ia-open",expandedIa[id]);}
+}
+
+function saveStartDate(v){localStorage.setItem("med_start_date",v);updateDayCounter();}
+function loadStartDate(){const s=localStorage.getItem("med_start_date");if(s)document.getElementById("start-date-input").value=s;}
+function updateDayCounter(){
+  const v=localStorage.getItem("med_start_date");const el=document.getElementById("day-counter");
+  if(!v){el.textContent="";return;}
+  const start=new Date(v);const today=new Date();today.setHours(0,0,0,0);start.setHours(0,0,0,0);
+  const diff=Math.floor((today-start)/86400000)+1;
+  el.textContent=diff<1?"Startet in "+Math.abs(diff-1)+" Tagen":"Tag "+diff+" 🗓";
+}
+function initDayCounter(){
+  updateDayCounter();
+  const lastReset=localStorage.getItem("med_last_reset");const today=todayStr();
+  if(lastReset!==today){
+    recordDay();
+    Object.keys(checks).forEach(k=>{checks[k]=[false,false,false];}); saveChecks();
+    localStorage.setItem("med_last_reset",today); renderMeds();
+  }
+  const now=new Date(); const msUntilMidnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1)-now;
+  setTimeout(()=>initDayCounter(),msUntilMidnight+1000);
+}
+
+function saveNow(){
+  try{
+    const now=new Date().toLocaleString("de-DE");
+    localStorage.setItem("med_saved_at",now);
+    document.getElementById("save-status").textContent="Zuletzt gespeichert: "+now;
+  }catch(e){}
+}
+
+function exportData(){
+  const data={_version:1,_exported:new Date().toISOString(),_patient:"Peter Faul",checks:JSON.parse(localStorage.getItem("med_checks")||"{}"),checks_date:localStorage.getItem("med_checks_date")||"",history:JSON.parse(localStorage.getItem("med_history")||"{}"),product_days:JSON.parse(localStorage.getItem("med_days")||"{}"),start_date:localStorage.getItem("med_start_date")||"",last_reset:localStorage.getItem("med_last_reset")||""};
+  const json=JSON.stringify(data,null,2);const date=new Date().toISOString().slice(0,10);
+  const a=document.createElement("a");a.href="data:application/json;charset=utf-8,"+encodeURIComponent(json);
+  a.download=`med-daten-${date}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+function importData(event){
+  const file=event.target.files?.[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);if(!data._version)throw new Error("Ungültiges Format");
+      if(data.checks)localStorage.setItem("med_checks",JSON.stringify(data.checks));
+      if(data.checks_date)localStorage.setItem("med_checks_date",data.checks_date);
+      if(data.history)localStorage.setItem("med_history",JSON.stringify(data.history));
+      if(data.product_days)localStorage.setItem("med_days",JSON.stringify(data.product_days));
+      if(data.start_date)localStorage.setItem("med_start_date",data.start_date);
+      if(data.last_reset)localStorage.setItem("med_last_reset",data.last_reset);
+      checks=data.checks||{};history=data.history||{};productDays=data.product_days||{};
+      renderMeds();updateStreak();loadStartDate();updateDayCounter();
+      alert("✅ Import erfolgreich!\nExportiert am: "+new Date(data._exported).toLocaleString("de-DE"));
+      showTab("plan");
+    }catch(err){alert("❌ Import fehlgeschlagen: "+err.message);}
+    event.target.value="";
+  };
+  reader.readAsText(file);
+}
+
+function renderWechsel(){
+  const el=document.getElementById("wechsel-content");if(!el)return;
+  const hoch=IA_OVERVIEW.filter(x=>x.sev==="hoch");
+  const mittel=IA_OVERVIEW.filter(x=>x.sev==="mittel");
+  const gering=IA_OVERVIEW.filter(x=>x.sev==="gering");
+  function rows(arr){return arr.map((ia,i)=>`<div class="ia-row${i%2===1?' style="background:#fafafa"':''}"><div class="ia-row-sev"><span class="ia-sev ${ia.sev}">${ia.sev==="hoch"?"🔴 Hoch":ia.sev==="mittel"?"🟡 Mittel":"🟢 Gering"}</span></div><div><div class="ia-row-pair">${ia.pair}</div><div class="ia-row-desc">${ia.desc}</div></div></div>`).join("");}
+  el.innerHTML=`
+    <div class="ia-overview"><div class="ia-overview-head">🔴 Relevante Wechselwirkungen (${hoch.length})</div>${rows(hoch)}</div>
+    <div class="ia-overview"><div class="ia-overview-head" style="background:#92400e;">🟡 Mittlere Wechselwirkungen (${mittel.length})</div>${rows(mittel)}</div>
+    <div class="ia-overview"><div class="ia-overview-head" style="background:#166534;">🟢 Geringe Wechselwirkungen (${gering.length})</div>${rows(gering)}</div>
+    <div class="disclaimer" style="margin-top:16px;">⚕️ Diese Übersicht dient der Information. Alle Kombinationen sind ärztlich verordnet und überwacht. Bitte Änderungen nur mit Dr. Kipp besprechen. Bei unerwarteten Symptomen sofort Kontakt aufnehmen.</div>`;
+}
+
+function renderExport(){
+  const el=document.getElementById("export-content");if(!el)return;
+  const now=new Date();const year=now.getFullYear();const month=now.getMonth();
+  const monthName=now.toLocaleDateString("de-DE",{month:"long",year:"numeric"});
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  let rows="";
+  for(let d=1;d<=daysInMonth;d++){
+    const date=new Date(year,month,d);const key=localDateStr(date);const h=history[key];const isToday=key===todayStr();
+    const wday=date.toLocaleDateString("de-DE",{weekday:"short"});
+    const status=h?.completed?"✅":h?"⬜":(date<now&&!isToday?"–":"");
+    rows+=`<tr style="background:${isToday?"#fef9c3":""}"><td style="padding:5px 10px;font-weight:${isToday?800:400};color:#374151;">${wday} ${d}.</td><td style="padding:5px 10px;text-align:center;font-size:16px;">${status}</td><td style="padding:5px 10px;color:#6b7280;font-size:12px;">${h?.checkedCount?h.checkedCount+" Einnahmen":""}</td></tr>`;
+  }
+  const streak=document.getElementById("streak-num")?.textContent||"0";
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;"><div class="export-month">${monthName}</div><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;"><div class="streak-box"><div class="streak-num">${streak}</div><div class="streak-lbl">🔥 STREAK</div></div><button onclick="window.print()" style="background:#1a3a2a;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">🖨 Drucken</button><button onclick="exportData()" style="background:#16a34a;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">📤 Exportieren</button><label style="background:#1d4ed8;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;">📥 Importieren<input type="file" accept=".json" onchange="importData(event)" style="display:none;"></label></div></div><div class="table-card"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#1a3a2a;color:#fff;"><th style="padding:8px 10px;text-align:left;">TAG</th><th style="padding:8px 10px;">STATUS</th><th style="padding:8px 10px;text-align:left;">DETAIL</th></tr></thead><tbody>${rows}</tbody></table></div><div style="font-size:12px;color:#9ca3af;">✅ = mind. 1 Einnahme abgehakt · ⬜ = nichts abgehakt · – = keine Daten</div>`;
+}
+
+function renderMeds(){
+  const TYPE = {
+    dauer:{bg:"#f0fdf4",border:"#a7f3d0",badge:"#166534",badgeBg:"#dcfce7",label:"Dauermed."},
+    bedarf:{bg:"#fff1f2",border:"#fecdd3",badge:"#9f1239",badgeBg:"#ffe4e6",label:"Bei Bedarf"},
+  };
+  const SLOTS = ["morgens","mittags","abends","nacht","bedarf"];
+  SLOTS.forEach(slot=>{
+    const container=document.getElementById("group-"+slot);if(!container)return;
+    container.innerHTML="";
+    const meds=MEDS.filter(m=>m.slots.includes(slot)).sort((a,b)=>(a.sort?.[slot]||99)-(b.sort?.[slot]||99));
+    meds.forEach(m=>{
+      const c=TYPE[m.typ];
+      const slotLabel=slot==="morgens"?"🌅 Morgens":slot==="mittags"?"☀️ Mittags":slot==="abends"?"🌙 Abends":slot==="nacht"?"🌑 Zur Nacht":"🆘 Bei Bedarf";
+      const dose=m.dosen?.[slot]||0;
+      const essenClass=m.einnahme?.essen||"info";
+      const checkCount=dose>2?3:dose>1?2:1;
+      const checkKey=`${m.id}_${slot}`;
+      let checkboxes='';
+      for(let i=0;i<checkCount;i++){
+        const checked=(checks[checkKey]||[])[i]?'checked':'';
+        const bClass=m.typ==="bedarf"?"bedarf-box":"";
+        checkboxes+=`<div class="check-box ${bClass} chkbox-${m.id}-${slot}-${i} ${checked}" onclick="toggleCheck(${m.id},'${slot}',${i})"></div>`;
+      }
+      const hasIa=m.ia&&m.ia.length>0;
+      const iaBlocks=(m.ia||[]).map(ia=>`<div class="ia-block"><span class="ia-sev ${ia.sev}">${ia.sev==="hoch"?"🔴 Hoch":ia.sev==="mittel"?"🟡 Mittel":"🟢 Gering"}</span><div style="font-size:12px;font-weight:700;color:#111;margin:4px 0 2px;">${ia.partner}</div><div class="ia-text">${ia.text}</div></div>`).join("");
+      const wöchHinweis=m.wöchentlich?`<span class="timing-badge warn">🗓 1× wöchentlich</span>`:'';
+      const div=document.createElement("div");
+      div.className="card";div.id="card-"+m.id+"-"+slot;
+      div.style.border=`1px solid ${c.border}`;
+      div.innerHTML=`
+        <div class="card-head" style="background:${c.bg}">
+          <span class="badge" style="background:${c.badgeBg};color:${c.badge}">${c.label}</span>
+          <div class="card-name">
+            <strong>${m.name}</strong>
+            <small>${m.handelsname}${m.wöchentlich?' · ⚠️ 1× wöchentlich':''}</small>
+          </div>
+          <div class="dose-static">
+            <span class="dose-num">${dose}</span>
+            <span class="dose-unit">${m.einheit}/Tag</span>
+          </div>
+          <div class="timing-wrap">
+            <span class="timing-badge ${slot==="bedarf"?"bedarf":slot}">${slotLabel}</span>
+            <span class="timing-badge ${essenClass}">${m.einnahme?.essenLabel||""}</span>
+            ${wöchHinweis}
+          </div>
+          <span class="grund-badge">📋 ${m.grund}</span>
+          <div class="check-wrap">
+            <span class="check-label">${m.typ==="bedarf"?"Heute":"Heute"}</span>
+            ${checkboxes}
+          </div>
+          <div class="card-btns">
+            <button class="panel-btn" id="hint-btn-${m.id}-${slot}" onclick="toggleHint('${m.id}_${slot}')">💊 Einnahme</button>
+            ${hasIa?`<button class="panel-btn" id="ia-btn-${m.id}-${slot}" onclick="toggleIa('${m.id}_${slot}')">⚠️ Wechselwirkungen</button>`:""}
+            <button class="panel-btn" onclick="toggleDayPanel('${m.id}_${slot}')">📆 Tage</button>
+          </div>
+        </div>
+        <div class="card-hint hidden" id="hint-panel-${m.id}_${slot}">
+          <div class="hint-title">💊 Einnahmehinweis</div>
+          <div class="hint-text">${m.einnahme?.hinweis||""}</div>
+        </div>
+        ${hasIa?`<div class="card-ia hidden" id="ia-panel-${m.id}_${slot}"><div class="ia-title">⚠️ Wechselwirkungen</div>${iaBlocks}</div>`:""}
+        <div class="day-panel hidden" id="day-panel-${m.id}_${slot}">
+          <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#6b7280;margin-bottom:8px;">An welchen Tagen einnehmen?</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${["Mo","Di","Mi","Do","Fr","Sa","So"].map((d,i)=>{const key2=`${m.id}_${slot}`;const active=(productDays[key2]||[true,true,true,true,true,true,true])[i];return`<div class="day-chip${active?" day-active":""}" id="daychip-${m.id}_${slot}-${i}" onclick="toggleDay('${m.id}_${slot}',${i})">${d}</div>`;}).join("")}
+          </div>
+        </div>`;
+      container.appendChild(div);
+    });
+  });
+}
+
+function updateHeaderStats(){
+  const dauer=MEDS.filter(m=>m.typ==="dauer").length;
+  const bedarf=MEDS.filter(m=>m.typ==="bedarf").length;
+  const sd=document.getElementById("stat-dauer");if(sd)sd.textContent=dauer;
+  const sb=document.getElementById("stat-bedarf");if(sb)sb.textContent=bedarf;
+}
+
+function showTab(tab){
+  document.getElementById("tab-plan").classList.toggle("hidden",tab!=="plan");
+  document.getElementById("tab-wechsel").classList.toggle("hidden",tab!=="wechsel");
+  document.getElementById("tab-export").classList.toggle("hidden",tab!=="export");
+  document.getElementById("section-nav").classList.toggle("hidden",tab!=="plan");
+  document.querySelectorAll(".tab-btn").forEach((btn,i)=>{
+    btn.classList.toggle("active",(i===0&&tab==="plan")||(i===1&&tab==="wechsel")||(i===2&&tab==="export"));
+    btn.classList.toggle("inactive",!btn.classList.contains("active"));
+  });
+  if(tab==="wechsel")renderWechsel();
+  if(tab==="export")renderExport();
+}
+
+// Hint/Ia toggle mit zusammengesetztem Key
+function toggleHint(key){
+  expandedHint[key]=!expandedHint[key];
+  document.getElementById(`hint-panel-${key}`)?.classList.toggle("hidden",!expandedHint[key]);
+  const btn=document.getElementById(`hint-btn-${key}`);
+  if(btn){btn.textContent=expandedHint[key]?"💊 Einnahme ▲":"💊 Einnahme";btn.classList.toggle("hint-open",expandedHint[key]);}
+}
+function toggleIa(key){
+  expandedIa[key]=!expandedIa[key];
+  document.getElementById(`ia-panel-${key}`)?.classList.toggle("hidden",!expandedIa[key]);
+  const btn=document.getElementById(`ia-btn-${key}`);
+  if(btn){btn.textContent=expandedIa[key]?"⚠️ Wechselwirkungen ▲":"⚠️ Wechselwirkungen";btn.classList.toggle("ia-open",expandedIa[key]);}
+}
+function toggleDayPanel(key){const p=document.getElementById(`day-panel-${key}`);if(p)p.classList.toggle("hidden");}
+function toggleDay(key,i){if(!productDays[key])productDays[key]=[true,true,true,true,true,true,true];productDays[key][i]=!productDays[key][i];saveProductDays();const chip=document.getElementById(`daychip-${key}-${i}`);if(chip)chip.classList.toggle("day-active",productDays[key][i]);}
+
+// INIT
+loadChecks();loadHistory();loadProductDays();
+renderMeds();updateHeaderStats();updateStreak();
+loadStartDate();initDayCounter();
+const ts=localStorage.getItem("med_saved_at");
+if(ts)document.getElementById("save-status").textContent="Zuletzt gespeichert: "+ts;
+</script>
+</body>
+</html>
